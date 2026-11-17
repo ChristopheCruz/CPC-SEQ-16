@@ -508,6 +508,21 @@ class SmpApp:
         w, h = min(round(1280 * self.scale), sw - 40), min(round(800 * self.scale), sh - 80)
         root.geometry("%dx%d+%d+%d" % (w, h, max(0, (sw - w) // 2), max(0, (sh - h) // 3)))
         root.minsize(min(1100, sw - 40), min(680, sh - 80))
+        if sys.platform == "win32":
+            # Zone de travail = écran moins la barre des tâches.  Si la taille
+            # par défaut (et la barre de titre) n'y tient pas, on agrandit la
+            # fenêtre à toute cette zone : sinon le bas (Sauver, Ajouter à la
+            # disquette) passerait sous la barre des tâches.
+            try:
+                import ctypes
+                import ctypes.wintypes
+                r = ctypes.wintypes.RECT()
+                ctypes.windll.user32.SystemParametersInfoW(0x30, 0, ctypes.byref(r), 0)
+                work_h = r.bottom - r.top
+                if round(800 * self.scale) + round(40 * self.scale) > work_h:
+                    root.state("zoomed")
+            except Exception:  # noqa: BLE001
+                pass
 
         # Variables des réglages (survivent au changement de thème)
         self.v_name = tk.StringVar()
