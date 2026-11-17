@@ -16,6 +16,7 @@ RUN"SEQ16
 
 **Un séquenceur chiptune 4 voix (3 tons + bruit) pour Amstrad CPC 6128, écrit en assembleur Z80.**
 16 pas par motif, 32 motifs, 32 instruments, sauvegarde des morceaux sur disquette.
+Et maintenant des **samples** : on les écoute et on les salit en direct sur l'écran f4.
 
 ![Plateforme](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Langage](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
@@ -38,6 +39,7 @@ RUN"SEQ16
 - [Les touches](#️-les-touches)
 - [Le format des morceaux](#-le-format-des-morceaux)
 - [Samples et digidrums (en cours)](#-samples-et-digidrums-en-cours)
+  - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
@@ -53,6 +55,8 @@ RUN"SEQ16
 ```
 
 Pour quitter, maintiens **ESC** une seconde. Un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
+
+La disquette contient aussi deux banques de samples : `DRUMS.SMP` (4 sons de batterie) et `VOIX.SMP` (4 mots en français). Appuie sur **f4** pour les écouter.
 
 ## 🔌 Sur un vrai CPC avec un Gotek
 
@@ -179,12 +183,55 @@ Le parti pris est assumé : **la dégradation est recherchée**. Grain, replieme
 
 Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en changeant très vite le **volume** d'une voie de l'AY : 16 niveaux sur une courbe presque logarithmique. C'est ce qui donne le grain.
 
+### Mode d'emploi des samples, pas à pas
+
+**1. Lancer.** Insère `seq16.dsk` et tape `RUN"SEQ16`.
+
+**2. Ouvrir l'écran des samples.** Appuie sur **f4**, la touche 4 du pavé numérique. La première fois, la banque `DRUMS.SMP` se charge toute seule, et ses 4 sons s'affichent à gauche.
+
+**3. Écouter.**
+- Choisis un sample avec **CTRL + ←/→**. Le sample choisi est en jaune inversé.
+- **ESPACE** le joue à sa hauteur d'origine. ESPACE à nouveau l'arrête.
+- **Les touches du piano** le jouent plus aigu ou plus grave :
+  - la rangée du haut, à partir de la touche du DO, part de la hauteur d'origine et monte de demi-ton en demi-ton ;
+  - la rangée du bas joue une octave plus bas.
+- Pendant l'écoute, l'écran ne bouge plus : c'est normal.
+
+**4. Salir le son.** À droite, choisis un réglage avec **↑/↓** et change sa valeur avec **←/→** (pour la fréquence, avec SHIFT, par pas de 10). Réécoute après chaque changement.
+- **FREQUENCE** : plus bas, c'est plus grave et plus sale.
+- **DECIMATION** : de 2 à 8, des sifflements métalliques apparaissent.
+- **BITS** : de 3 à 1, le son devient de plus en plus « bip ».
+- **COURBE** : SATUREE, REPLIEE, LINEAIRE et INVERSEE déforment le son ; LOG est le son d'origine.
+
+**5. Changer de banque.**
+1. Va sur l'écran **f3** et appuie sur **D**.
+2. La liste des fichiers `.SMP` de la disquette s'affiche en bas. Choisis avec les flèches.
+3. **RETURN** charge la banque, **ESC** annule.
+4. Reviens sur **f4**.
+
+Le champ NOM de l'écran f3 sert seulement aux morceaux `.SNG`.
+
+**6. Fabriquer ses propres sons.** Sur le PC, convertis tes fichiers WAV avec [`tools/wav2smp.py`](#convertir-ses-propres-sons--toolswav2smppy). Par exemple, pour un enregistrement de voix :
+
+```bat
+python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --dsk
+```
+
+- La banque est ajoutée directement à `build\seq16.dsk`.
+- Le script écrit aussi un WAV d'écoute, qui permet d'entendre le résultat sur le PC avant de copier la disquette.
+- On peut aussi ajouter le fichier `.SMP` sur une disquette avec [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC).
+
+**À savoir**
+- **Taille d'une banque** : 16 Ko au plus, soit environ 4 secondes à 8 kHz, ou 5 secondes à 6,25 kHz. Une banque contient 16 sons au plus.
+- **Les réglages ne sont pas encore sauvés.** Ils sont perdus quand on recharge la banque. La sauvegarde des banques viendra en phase 6.
+- **Si le motif jouait** pendant une écoute, il se fige le temps du sample, puis repart.
+
 ### Où on en est : phase 2, les samples jouent sur le CPC
 
 | Phase | Contenu | État |
 |---|---|---|
 | 1 | convertisseur `wav2smp.py`, WAV d'écoute, banque d'usine de synthèse | ✅ fait |
-| 2 | lecture sur CPC (accès direct à l'AY), écran f4 minimal | ✅ fait, à valider à l'oreille |
+| 2 | lecture sur CPC (accès direct à l'AY), écran f4, choix de la banque (f3 + D) | ✅ fait |
 | 3 | mémoire supplémentaire du 6128, jauge, repli 464 | à venir |
 | 4 | digidrums dans le séquenceur (mode BLOQUANT), `.SNG` version 2 | à venir |
 | 5 | lecture directe du clavier, mode HACHÉ | à venir |
@@ -236,7 +283,7 @@ Les courbes :
 - **REPLIEE** multiplie aussi par 2,5, puis replie ce qui dépasse.
 - **INVERSEE** retourne la forme d'onde.
 
-### À écouter sur le CPC (validation de la phase 2)
+### Ce qu'on doit entendre
 
 1. **f4, puis ESPACE** sur chaque son. Ils doivent ressembler aux WAV de [`samples/ecoute/`](samples/ecoute/), à la même hauteur.
 2. **FREQUENCE** : de 6 250 Hz à 4 000 Hz, le kick devient plus grave et plus « baveux ». Vers 16 000 Hz, il devient aigu et court comme un tom.
@@ -247,21 +294,20 @@ Les courbes :
 7. **ESPACE pendant l'écoute** l'arrête. Pour l'entendre, prends un long sample ou mets la fréquence au plus bas.
 8. Après une écoute, **f1 puis ESPACE** : le séquenceur doit jouer normalement.
 
-### Points à vérifier sur la vraie machine
-
-Je n'ai pas pu les vérifier sans CPC ni émulateur complet :
+### Limites connues et points à surveiller
 
 - **La mémoire basse.** La banque est chargée en `#0040-#3FFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
 - **La place pour la routine** (`#A000-#A5FF`) est prise sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine.
 - **La cadence** est calculée avec la table des durées propre au CPC. Elle est exacte dans le simulateur, mais il faut comparer la hauteur du kick avec le WAV d'écoute.
 - **Au-dessus d'environ 6 kHz** (moins de 167 NOP par échantillon), le test de la touche ESPACE allonge un échantillon sur 256. Cela peut donner un très léger grésillement, environ 31 fois par seconde à 8 kHz.
 - **Un « toc » au début ou à la fin** de l'écoute est possible, quand le volume passe du réglage du moteur au premier échantillon.
-- **La liste des banques** (f3, puis D) lit le répertoire de la disquette avec la commande cachée « lecture de secteur » d'AMSDOS (`#84`), sur le lecteur A seulement. Je l'ai seulement testée dans le simulateur. Si le message « CATALOGUE ILLISIBLE » ou « ERREUR DISQUE » apparaît, dis-le-moi.
+- **La liste des banques** (f3, puis D) lit le répertoire de la disquette avec la commande cachée « lecture de secteur » d'AMSDOS (`#84`). Elle ne fonctionne que sur le **lecteur A**.
+- **Les niveaux de l'AY** viennent de l'émulateur Ayumi. La sortie du CPC passe par un filtre et par l'ampli interne : le rendu peut différer un peu des WAV d'écoute.
 
 ### La banque d'usine `DRUMS.SMP`
 
 Quatre sons fabriqués **par synthèse** dans [`tools/gen_drums.py`](tools/gen_drums.py) (sinus à hauteur descendante, bruit filtré). Aucun échantillon trouvé sur Internet, donc aucune question de droits.
-La banque fait 2 037 octets : elle tient dans les 4 Ko disponibles sur un CPC 464.
+La banque fait 2 037 octets.
 
 | N° | Nom | Durée | Fréquence | À écouter dans [`samples/ecoute/`](samples/ecoute/) |
 |---|---|---|---|---|
@@ -270,7 +316,7 @@ La banque fait 2 037 octets : elle tient dans les 4 Ko disponibles sur un CPC 46
 | 2 | HAT | 60 ms | 12 500 Hz | un charley court et métallique, qui « crépite » plus qu'il ne siffle |
 | 3 | CLAP | 140 ms | 8 000 Hz | trois claquements rapprochés, puis une courte queue qui s'éteint par paliers |
 
-Les fichiers `*_ecoute.wav` simulent le rendu du CPC (mêmes niveaux de l'AY, même fréquence). **C'est ce qu'il faut écouter pour valider la phase 1.**
+Les fichiers `*_ecoute.wav` simulent le rendu du CPC (mêmes niveaux de l'AY, même fréquence).
 Les sons de synthèse d'origine, propres, sont dans [`samples/synth/`](samples/synth/), pour comparer ou les reconvertir autrement.
 
 **Ce qui doit s'entendre** :
@@ -352,11 +398,6 @@ Trois choix faits pendant la phase 1 :
 - **Chaque échantillon est un code de niveau de l'AY**, de 0 à 15. Écrit tel quel dans le registre de volume, il redonne le son au plus près. Le silence correspond au niveau 12.
 
 La table des 16 niveaux de l'AY vient de l'émulateur open source [Ayumi](https://github.com/true-grue/ayumi) (licence MIT).
-
-### Points à vérifier sur la vraie machine (phase 2)
-
-- Les niveaux mesurés par Ayumi correspondent-ils à l'oreille sur un vrai AY-3-8912 de CPC ? La sortie du CPC passe par un filtre et par l'ampli interne, ce qui peut changer le rendu.
-- Le niveau de repos 12 provoque-t-il un « toc » au début et à la fin de la lecture sur le vrai CPC ?
 
 ### Tester
 
