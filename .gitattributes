@@ -1,2 +1,5 @@
 *.dsk binary
 *.bat text eol=crlf
+*.SMP binary
+*.smp binary
+*.wav binary

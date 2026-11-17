@@ -1,9 +1,11 @@
 ; ============================================================================
 ; SEQ-16 - Etapes 6 et 9 : instruments, mixage et disquette
+;          + samples, phase 2 : lecture des samples, écran f4
 ;
-; Trois écrans : f1 = le séquenceur (édition de la grille), f2 = l'éditeur
+; Quatre écrans : f1 = le séquenceur (édition de la grille), f2 = l'éditeur
 ; d'instrument (ADSR, bruit, enveloppe matérielle, arpège, vibrato,
-; glissando), f3 = mixage des 4 voix et sauvegarde sur disquette.
+; glissando), f3 = mixage des 4 voix et sauvegarde sur disquette,
+; f4 = Sample Composer (écoute et grain des samples).
 ;
 ; Lancement sur le CPC :  RUN"SEQ16
 ; ============================================================================
@@ -26,12 +28,14 @@ KEY_CAPS  equ 70
 KEY_F1    equ 13
 KEY_F2    equ 14
 KEY_F3    equ 5
+KEY_F4    equ 20
 KEY_F7    equ 10
 KEY_RETURN equ 18
 KEY_S     equ 60
 KEY_L     equ 36
 KEY_C     equ 62
 KEY_N     equ 46
+KEY_D     equ 61
 
 GRID_ROW  equ 6                 ; première ligne écran de la grille
 HEAD_ROW  equ 5                 ; ligne des numéros de pas
@@ -49,6 +53,8 @@ start:
         ld de,#0040             ; système sans réveiller le lecteur de
         ld hl,#ABFF             ; disquette : on relance AMSDOS (ROM 7),
         call KL_INIT_BACK       ; sinon les sauvegardes iraient sur cassette
+        call smp_install        ; DE, HL = mémoire libre : on installe la
+                                ; routine de lecture des samples
         ld a,#FF                ; AMSDOS : pas de message d'erreur disque à
         ld (#BE78),a            ; l'écran, c'est le programme qui les affiche
         call init_song          ; morceau d'usine
@@ -90,7 +96,7 @@ ml_esc:
         rst 0
 
 ; ----------------------------------------------------------------------------
-; Ecrans : f1 = séquenceur, f2 = instrument
+; Ecrans : f1 = séquenceur, f2 = instrument, f3 = disque, f4 = samples
 ; ----------------------------------------------------------------------------
 read_screen_keys:
         ld a,KEY_F1
@@ -104,6 +110,10 @@ read_screen_keys:
         ld a,KEY_F3
         call KM_TEST_KEY
         ld a,2
+        jr nz,rsk_go
+        ld a,KEY_F4
+        call KM_TEST_KEY
+        ld a,3
         ret z
 rsk_go:
         ld hl,screen
@@ -124,6 +134,8 @@ draw_screen:
         jr z,ds_sequencer
         dec a
         jr z,ds_instrument
+        dec a
+        jp nz,ds_sample         ; écran 3 : samples (smpscreen.asm)
         ld hl,dsk_text          ; écran 2 : mixage et disquette
         call print_list
         xor a
@@ -164,6 +176,10 @@ draw_title:
         call dt_colors
         ld hl,txt_tab3
         call print_str
+        ld a,3
+        call dt_colors
+        ld hl,txt_tab4
+        call print_str
         xor a
         jp TXT_SET_PAPER
 dt_colors:                      ; A = numéro de l'onglet à écrire
@@ -180,10 +196,11 @@ dt_other:
         ld a,2
         jp TXT_SET_PEN
 
-txt_title: db "SEQ16",0
-txt_tab1:  db " f1 SEQUENCE ",0
-txt_tab2:  db " f2 INSTRU ",0
-txt_tab3:  db " f3 DISQUE ",0
+txt_title: db "SEQ16",0          ; 5 + 7 + 8 + 10 + 10 = 40 colonnes
+txt_tab1:  db " f1 SEQ",0
+txt_tab2:  db " f2 INST",0
+txt_tab3:  db " f3 DISQUE",0
+txt_tab4:  db " f4 SAMPLE",0
 
 ; ----------------------------------------------------------------------------
 ; Touches de commande
@@ -202,7 +219,7 @@ rc_loop:
         inc hl
         ld a,(rc_index)
         inc a
-        cp 16
+        cp 17
         jr nz,rc_loop
         ld a,#FF                ; aucune touche de commande
         ld (cmd_last),a
@@ -248,7 +265,9 @@ rc_ctrl:
         jr z,rc_seq
         dec a
         jp z,ins_cmd            ; écran Instrument : ses propres commandes
-        jp dsk_cmd              ; écran Disque : ses propres commandes
+        dec a
+        jp z,dsk_cmd            ; écran Disque : ses propres commandes
+        jp smp_cmd              ; écran Samples : ses propres commandes
 rc_seq:
         ld a,(rc_index)
         cp 10
@@ -278,6 +297,7 @@ cmd_table:
         db KEY_SPACE,KEY_F5,KEY_DEL,KEY_CLR,KEY_TAB,KEY_CAPS   ; 0 à 5
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
+        db KEY_D                                               ; 16
 
 ; --- ESPACE : lecture / arrêt ---
 cmd_play:
@@ -633,6 +653,8 @@ rp_found:
         ld (hl),a
         ld (aud_key),a
         ld a,(screen)
+        cp 3
+        jp z,smp_piano          ; écran Samples : le sample à cette hauteur
         or a
         jp nz,ins_piano         ; écran Instrument : simple essai du son
 
@@ -1981,6 +2003,8 @@ dsk_cmd:
         jp z,disk_catalog       ; C
         cp 15
         jp z,disk_new           ; N
+        cp 16
+        jp z,disk_load_bank     ; D : banque de samples (smpscreen.asm)
         ret
 
 dc_up:
@@ -2158,6 +2182,7 @@ drs_normal:
 dsk_message:
         push hl
         ld hl,256*1+DSK_MSG_ROW
+msg_row:                        ; HL = position, texte sur la pile
         call TXT_SET_CURSOR
         xor a
         call TXT_SET_PAPER
@@ -2445,7 +2470,11 @@ silence:
         jp snd_init
 
 ; Construit fname_full = nom sans espaces + ".SNG".  NC si le nom est vide.
+; build_filename_ext : pareil avec l'extension pointée par HL (4 caractères).
 build_filename:
+        ld hl,txt_ext
+build_filename_ext:
+        ld (bf_ext_ptr),hl
         ld hl,fname
         ld de,fname_full
         ld b,NAME_LEN
@@ -2463,7 +2492,7 @@ bf_skip:
         ld a,c
         or a
         jr z,bf_empty
-        ld hl,txt_ext
+        ld hl,(bf_ext_ptr)
         ld b,4
 bf_ext:
         ld a,(hl)
@@ -2513,6 +2542,8 @@ dsk_text:
         db 3,14,2,0, "NOUVEAU",0
         db 12,14,3,0,"RETURN",0
         db 19,14,2,0,"MUET (OU NOM)",0
+        db 1,16,3,0, "D",0
+        db 3,16,2,0, "CHOISIR UNE BANQUE DE SAMPLES",0
         db 1,15,3,0, 240,241,0
         db 4,15,2,0, "CHOIX",0
         db 12,15,3,0,242,243,0
@@ -2558,12 +2589,15 @@ screen_text:
         include 'song.asm'
         include 'tables.asm'
         include 'factory.asm'
+        include 'smpscreen.asm'
+        include 'smptables.asm'
+        include 'sample.asm'
 
 ; ----------------------------------------------------------------------------
 ; Variables du programme
 ; ----------------------------------------------------------------------------
 screen:     db 0                ; écran en cours : 0 = séquenceur, 1 = instrument,
-                                ; 2 = mixage et disquette
+                                ; 2 = mixage et disquette, 3 = samples
 esc_count:  db 0                ; nombre d'images où ESC est restée enfoncée
 cur_field:  db 0                ; écran Instrument : réglage en cours
 df_i:       db 0
@@ -2617,6 +2651,22 @@ new_armed:  db 0
 fname:      db "MORCEAU1"        ; nom de fichier, complété par des espaces
 fname_full: ds 13
 fname_len:  db 0
+bf_ext_ptr: dw 0                ; extension du nom de fichier (.SNG ou .SMP)
+cur_smp:    db 0                ; écran Samples : sample choisi
+smp_field:  db 0                ;   réglage en cours
+smp_tried:  db 0                ;   1 = DRUMS.SMP a déjà été essayé
+smp_name:   db "--------"       ;   nom de la banque chargée
+smp_files:  ds 16*8             ; f3 + D : noms des fichiers .SMP trouvés
+smp_nfiles: db 0                ;   leur nombre
+smp_pick:   db 0                ;   celui qui est choisi
+smp_fname:  ds 13               ;   nom complet "NOM.SMP"
+cd_i:       db 0
+rsx_found:  db 0                ; 1 = commande AMSDOS #84 trouvée
+rsx_far:    ds 3                ;   son adresse (2 octets) et sa ROM (1 octet)
+sdr_i:      db 0
+sdr_ms:     dw 0
+sdf_i:      db 0
+sc_dir:     db 0
 
 end_of_program:
 
@@ -2634,5 +2684,7 @@ patterns    equ sons+NB_SONS*16
 song_end    equ patterns+NB_PAT*PAT_SIZE
 io_buffer   equ song_end        ; 2 Ko de travail pour AMSDOS
         assert io_buffer+2048 < #A000
+        print "fin du programme=",{hex}end_of_program," io_buffer=",{hex}io_buffer," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end
+        assert BANK_MAX >= 2048         ; la banque d'usine DRUMS.SMP doit tenir
 
         save 'SEQ16.BIN',start,end_of_program-start,DSK,'build/seq16.dsk'

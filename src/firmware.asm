@@ -29,6 +29,8 @@ CAS_OUT_ABANDON   equ #BC92
 CAS_OUT_DIRECT    equ #BC98   ; HL = adresse, DE = longueur, BC = 0, A = 2
 CAS_CATALOG       equ #BC9B   ; DE = tampon 2 Ko : affiche le catalogue
 KL_INIT_BACK      equ #BCCE   ; C = numéro de ROM, DE et HL = mémoire libre
+KL_FIND_COMMAND   equ #BCD4   ; HL = nom d'une commande (RSX) -> Carry si
+                              ;   trouvée, HL = adresse, C = numéro de ROM
 MC_WAIT_FLYBACK   equ #BD19   ; attend le début de l'image suivante (50 fois/s)
 MC_SOUND_REGISTER equ #BD34   ; A = registre du circuit sonore AY, C = valeur
 
