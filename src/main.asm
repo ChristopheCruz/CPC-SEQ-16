@@ -2244,10 +2244,10 @@ dsk_message:
         ld (last_msg),hl        ; on garde le dernier message
         push hl
         ld a,(screen)
-        dec a                   ; écran f2 ?
+        cp 2                    ; écran f3 : ligne 17
         ld hl,256*1+DSK_MSG_ROW
-        jr nz,msg_row
-        ld l,INS_MSG_ROW        ; oui : ligne 25
+        jr z,msg_row
+        ld l,INS_MSG_ROW        ; écrans f2 et f4 : ligne 25
 msg_row:                        ; HL = position, texte sur la pile
         call TXT_SET_CURSOR
         xor a

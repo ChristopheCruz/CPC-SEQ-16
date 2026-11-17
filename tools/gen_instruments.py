@@ -51,7 +51,7 @@ def ins(a=255, d=8, s=10, r=12, v=15, f=TON, n=0, shape=0, shift=0,
 def usine():
     """Les 32 instruments par défaut, relus dans src/factory.asm."""
     src = open(os.path.join(ROOT, "src", "factory.asm"), encoding="utf-8").read()
-    rows = re.findall(r"^\s*db\s+([0-9, ]+?)\s*;\s*\d+\s+(\S+)\s*$", src, re.M)
+    rows = re.findall(r"^\s*;?\s*db\s+([0-9, ]+?)\s*;\s*\d+\s+(\S+)\s*$", src, re.M)
     out = []
     for values, name in rows[:32]:
         b = bytes(int(x) for x in values.split(","))

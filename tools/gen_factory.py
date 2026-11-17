@@ -84,25 +84,46 @@ def pattern(p, mode, bpm, lanes, comment):
             out.append("        db %3d,%3d,%3d   ; pas %X, voix %d" % (p * 64 + step * 4 + lane, n, ins, step, lane))
     return out
 
+# --- le bloc d'usine (en-tête, instruments, noms, sons composés) ------------
+block = bytearray(b"SQ16" + bytes([2, 15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0]))
+for ins in INSTRUMENTS:
+    block += bytes(v & 255 for v in ins[1:])
+for ins in INSTRUMENTS:
+    block += (ins[0] + "      ")[:6].encode("ascii")
+for name, *voices in SONS:
+    for v in voices:
+        block += bytes([0, 0xFF, 0xFF]) if v is None else bytes([v[0], I[v[1]], 0xFF])
+    block += bytes(4)
+assert len(block) == 848
+
+def rle_zeros(data):
+    """Compression des suites de zéros : 0, n = n zéros (1 à 255) ; 0, 0 = fin."""
+    out, i = bytearray(), 0
+    while i < len(data):
+        if data[i] == 0:
+            j = i
+            while j < len(data) and data[j] == 0 and j - i < 255:
+                j += 1
+            out += bytes([0, j - i])
+            i = j
+        else:
+            out.append(data[i])
+            i += 1
+    return bytes(out + b"\0\0")
+
+rle = rle_zeros(block)
 out = ["; Fichier généré par tools/gen_factory.py - ne pas modifier à la main.",
        "; Contenu d'usine du morceau, recopié en mémoire au démarrage.",
        "; L'ordre et les tailles doivent suivre le bloc 'morceau' de song.asm.", "",
-       "factory:",
-       "; En-tête : signature, version, volume des voix A, B, C, N, voix muettes, réserve",
-       '        db "SQ16",2, 15,15,15,15, 0, 0,0,0,0,0,0', "",
-       "; Instruments : 16 octets chacun (voir sound.asm)"]
+       "; Le bloc d'usine (848 octets : en-tête, instruments, noms, sons composés)",
+       "; est compressé : 0, n = n zéros ; 0, 0 = fin (%d octets au lieu de 848)." % len(rle),
+       "; Pour mémoire, les instruments :"]
 for i, ins in enumerate(INSTRUMENTS):
     vals = [v & 255 for v in ins[1:]]
-    out.append("        db " + ",".join("%3d" % v for v in vals) + "   ; %2d %s" % (i + 1, ins[0]))
-out += ["", "; Noms des instruments : 6 caractères chacun"]
-for i in range(0, 32, 4):
-    out.append('        db "' + "".join((ins[0] + "      ")[:6] for ins in INSTRUMENTS[i:i + 4]) + '"')
-out += ["", "; Sons composés : pour chaque voix  décalage, instrument, volume ; puis 4 octets de réserve"]
-for name, *voices in SONS:
-    cells = []
-    for v in voices:
-        cells.append("  0,#FF,#FF" if v is None else "%3d,%3d,#FF" % (v[0], I[v[1]]))
-    out.append("        db " + ", ".join(cells) + ", 0,0,0,0   ; " + name)
+    out.append(";       db " + ",".join("%3d" % v for v in vals) + "   ; %2d %s" % (i + 1, ins[0]))
+out += ["", "factory_rle:"]
+for i in range(0, len(rle), 16):
+    out.append("        db " + ",".join("#%02X" % v for v in rle[i:i + 16]))
 
 bass = {0: ("C2", "BASS"), 1: OFF, 3: ("C2", "BASS"), 4: OFF, 6: ("D#2", "BASS"), 7: OFF,
         8: ("C2", "BASS"), 9: OFF, 11: ("F2", "BASS"), 12: OFF, 14: ("G2", "BASS"), 15: OFF}

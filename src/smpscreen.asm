@@ -304,7 +304,17 @@ smp_cmd:
         jr z,smp_up
         cp 9
         jr z,smp_down
+        cp 19
+        jr z,smp_take           ; O : prendre un sample dans une banque
         ret
+
+; O : la routine est en zone haute ; il faut une banque en mémoire
+smp_take:
+        ld a,(smp_count)
+        or a
+        ld hl,txt_s_nobank
+        jp z,smp_message
+        jp smp_take_hi
 
 smp_up:
         ld a,(smp_field)        ; réglage précédent
@@ -1045,7 +1055,6 @@ smp_text:
         db SMP_FLD_COL+9,16,2,0,"PAR 10",0
         db SMP_FLD_COL,17,3,0,"CTRL  ",242,243,0
         db SMP_FLD_COL+9,17,2,0,"SAMPLE",0
-        db 1,24,3,0, "f3",0
-        db 4,24,2,0, "PUIS D : CHOISIR UNE BANQUE",0
+        db 1,24,2,0, "f3 D/E : BANQUE   O : PRENDRE 1 SAMPLE",0
         db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
         db #FF

@@ -130,59 +130,6 @@ txt_i_took:   db "SON PRIS DANS LA BANQUE",0
 ; gelées (voulu, voir le README).
 ; ============================================================================
 
-; Met un sample en attente.  HL = instrument, B = note (ou période du bruit
-; pour la voix N), sno_chan = voix (0 à 3).
-dg_queue:
-        ld a,(sno_chan)
-        ld c,a                  ; C = voix
-        ld d,a                  ; voix muette (bit de snd_mute) : rien
-        inc d
-        ld a,(snd_mute)
-dgq_mute:
-        rrca                    ; le bit de la voix finit dans Carry
-        dec d
-        jr nz,dgq_mute
-        ret c
-        ld a,c                  ; voie de l'AY : celle de la voix, et C
-        cp 3                    ; pour la voix N
-        jr c,dgq_chan
-        ld a,2
-dgq_chan:
-        ld (dg_chan),a
-        ld a,c                  ; hauteur : la note 48 (DO de la rangée du
-        cp 3                    ; haut, octave 3) joue le sample tel quel
-        ld a,0                  ; voix N : toujours la hauteur d'origine
-        jr z,dgq_semi
-        ld a,b
-        cp 36                   ; on borne à -12 / +12 demi-tons
-        jr nc,dgq_lo
-        ld a,36
-dgq_lo:
-        cp 61
-        jr c,dgq_hi
-        ld a,60
-dgq_hi:
-        sub 48
-dgq_semi:
-        ld (dg_semi),a
-        push hl
-        ld de,INS_NOISE         ; numéro du sample
-        add hl,de
-        ld a,(hl)
-        ld (dg_smp),a
-        pop hl
-        ld de,INS_VOLUME        ; atténuation = 15 - volume
-        add hl,de
-        ld a,15
-        sub (hl)
-        jr nc,dgq_att
-        xor a
-dgq_att:
-        ld (dg_att),a
-        ld a,1
-        ld (dg_pending),a       ; la boucle principale le jouera
-        ret
-
 ; Joue le sample en attente, puis rattrape le tempo du séquenceur.
 dg_play:
         xor a
@@ -243,62 +190,212 @@ dgp_end:
         ld (spr_att),a
         ret
 
-; A:HL = HL x DE (24 bits suffisent : 16 320 x 1 000 < 2^24)
-dg_mul:
-        ld b,h                  ; BC = multiplicande
-        ld c,l
-        ld hl,0
-        xor a                   ; A:HL = résultat
-        ld (dg_cnt),a
-dgm_loop:
-        add hl,hl               ; résultat x 2
-        rla
-        ex de,hl                ; bit suivant du multiplicateur (du haut)
+
+; ============================================================================
+; f4, O : prendre un sample dans une autre banque .SMP de la disquette
+;
+; On choisit la banque, puis l'un de ses samples (liste en bas de l'écran).
+; Le sample est ajouté à la fin de la banque en mémoire, avec ses réglages.
+; Ordre des opérations, pour ne rien abîmer si la lecture échoue :
+;   1. les données du sample sont lues juste après la fin de la banque ;
+;   2. toutes les données remontent de 16 octets ;
+;   3. la nouvelle fiche prend la place libérée, après les autres fiches.
+; Appelée par smp_take (smpscreen.asm) seulement s'il y a une banque.
+; ============================================================================
+smp_take_hi:
+        ld a,(smp_count)        ; 16 samples au plus
+        cp 16
+        ld hl,txt_t_full
+        jp nc,tk_msg
+        ld hl,txt_ext_smp       ; on choisit une banque .SMP
+        call choose_file        ; -> HL = nom complet, B = longueur
+        jp nc,tk_last           ; annulé ou erreur : message déjà affiché
+        push hl                 ; on garde le nom pour la 2e lecture
+        push bc
+        ld de,io_buffer
+        call CAS_IN_OPEN
+        jp nc,tk_err2
+        ld hl,SCRATCH           ; en-tête de l'autre banque
+        ld de,16
+        call cas_read
+        jp nc,tk_ab2
+        ld a,(SCRATCH+5)        ; nombre de samples : 1 à 16
+        or a
+        jp z,tk_bad2
+        cp 17
+        jp nc,tk_bad2
+        ld (tk_n),a
+        ld l,a                  ; ses fiches : 16 octets chacune
+        ld h,0
+        add hl,hl
+        add hl,hl
+        add hl,hl
         add hl,hl
         ex de,hl
-        jr nc,dgm_next
-        add hl,bc
-        adc a,0
-dgm_next:
-        push af
-        ld a,(dg_cnt)
-        inc a
-        ld (dg_cnt),a
-        cp 16
-        jr z,dgm_done
-        pop af
-        jr dgm_loop
-dgm_done:
-        pop af
-        ret
-
-; Ligne du réglage « bruit » d'un digidrum, sur l'écran f2 :
-; HL = "  SAMPLE nomxxx" (15 caractères), le nom du sample choisi.
-dg_label_hi:
-        ld a,(cur_inst)
-        call inst_ptr
-        ld bc,INS_NOISE
-        add hl,bc
-        ld a,(hl)               ; A = numéro du sample
-        ld hl,smp_count
-        cp (hl)
-        ld hl,txt_dg_none       ; absent de la banque (ou pas de banque)
-        jr nc,dgl_copy
-        call smp_entry          ; présent : HL = sa fiche (nom en tête)
-dgl_copy:
-        push hl
-        ld hl,txt_dg_lab        ; "  SAMPLE "
-        ld de,dg_lab
-        ld bc,9
-        ldir
-        pop hl                  ; puis les 6 caractères du nom
+        ld hl,SCRATCH+16
+        call cas_read
+        jp nc,tk_ab2
+        call CAS_IN_CLOSE
+        ld hl,SCRATCH+16        ; les noms (6 caractères), les uns après les
+        ld de,SCRATCH+288       ; autres, pour la liste de choix
+        ld a,(tk_n)
+        ld b,a
+tk_names:
+        push bc
         ld bc,6
         ldir
-        ld hl,dg_lab
-        ret
+        ld bc,10                ; fiche suivante
+        add hl,bc
+        pop bc
+        djnz tk_names
+        ld hl,SCRATCH+288       ; liste : ces noms,
+        ld (ch_names),hl
+        ld a,(tk_n)
+        ld (ch_count),a
+        ld hl,6*256+CHOOSE_ROWS ;   6 caractères, 6 lignes,
+        ld (ch_rows),hl
+        ld hl,CHOOSE_ROW*256+1  ;   en bas de l'écran,
+        ld (ch_col0),hl
+        ld a,9                  ;   colonnes de 9 caractères
+        ld (ch_colw),a
+        call choose_clear
+        call choose_run         ; -> Carry si RETURN, A = sample choisi
+        pop bc                  ; B, HL = nom de l'autre banque
+        pop hl
+        jp nc,tk_cancel
+        push hl
+        ld l,a                  ; IX = sa fiche
+        ld h,0
+        add hl,hl
+        add hl,hl
+        add hl,hl
+        add hl,hl
+        ld de,SCRATCH+16
+        add hl,de
+        push hl
+        pop ix
+        pop hl
+        ld a,(ix+SMPF_BLOCK)    ; mémoire principale seulement
+        or a
+        jp nz,tk_bad
+        push hl                 ; assez de place ? taille + 16 + longueur
+        ld hl,(smp_bank_len)
+        ld e,(ix+SMPF_LEN)
+        ld d,(ix+SMPF_LEN+1)
+        add hl,de
+        ld de,16
+        add hl,de
+        ld de,BANK_MAX+1
+        or a
+        sbc hl,de
+        pop hl
+        ld de,txt_s_big
+        jp nc,tk_msg_de
+        ; --- 1. lecture des données, juste après la fin de la banque
+        ld de,io_buffer
+        call CAS_IN_OPEN
+        jp nc,tk_err
+        ld a,(tk_n)             ; on saute l'en-tête, les fiches et le début
+        ld l,a                  ; des données : 16 + 16 x n + décalage
+        ld h,0
+        inc l
+        add hl,hl
+        add hl,hl
+        add hl,hl
+        add hl,hl
+        ld e,(ix+SMPF_OFF)
+        ld d,(ix+SMPF_OFF+1)
+        add hl,de
+        ex de,hl
+        call cas_skip
+        jp nc,tk_ab
+        ld hl,(smp_bank_end)    ; les données arrivent après la banque
+        ld e,(ix+SMPF_LEN)
+        ld d,(ix+SMPF_LEN+1)
+        call cas_read
+        jp nc,tk_ab
+        call CAS_IN_CLOSE
+        ; --- 2. toutes les données remontent de 16 octets
+        ld hl,(smp_bank_end)    ; nombre d'octets = fin + longueur - données
+        ld e,(ix+SMPF_LEN)
+        ld d,(ix+SMPF_LEN+1)
+        add hl,de
+        push hl                 ; (fin des nouvelles données)
+        ld de,(smp_data)
+        or a
+        sbc hl,de
+        ld b,h
+        ld c,l
+        pop hl
+        dec hl                  ; dernier octet
+        ld d,h
+        ld e,l
+        inc de                  ; 16 octets plus haut
+        ld a,16
+tk_up16:
+        inc de
+        dec a
+        jr nz,tk_up16
+        dec de
+        lddr
+        ; --- 3. la nouvelle fiche, après les autres
+        ld hl,(smp_bank_end)    ; son décalage : taille des anciennes données
+        ld de,(smp_data)
+        or a
+        sbc hl,de
+        ld (ix+SMPF_OFF),l
+        ld (ix+SMPF_OFF+1),h
+        push ix
+        pop hl
+        ld de,(smp_data)
+        ld bc,16
+        ldir
+        ld hl,(smp_bank_len)    ; nouvelle taille
+        ld e,(ix+SMPF_LEN)
+        ld d,(ix+SMPF_LEN+1)
+        add hl,de
+        ld de,16
+        add hl,de
+        ld (smp_bank_len),hl
+        ld a,(smp_count)        ; le nouveau sample devient le sample choisi
+        ld (cur_smp),a
+        inc a
+        ld (BANK_START+5),a     ; un sample de plus dans l'en-tête
+        call smp_check          ; nombre, début des données, fin de la banque
+        ld hl,txt_t_added
+        jr tk_msg
+tk_ab2:
+        call CAS_IN_ABANDON
+tk_err2:
+        pop bc
+        pop hl
+tk_err:
+        ld hl,txt_m_error
+        jr tk_msg
+tk_ab:
+        call CAS_IN_ABANDON
+        jr tk_err
+tk_bad2:
+        call CAS_IN_ABANDON
+        pop bc
+        pop hl
+tk_bad:
+        ld hl,txt_s_bad
+        jr tk_msg
+tk_msg_de:
+        ex de,hl
+        jr tk_msg
+tk_cancel:
+        ld hl,txt_m_none
+        jr tk_msg
+tk_last:
+        ld hl,(last_msg)
+tk_msg:
+        push hl                 ; on redessine l'écran, puis le message
+        call draw_screen
+        pop hl
+        jp dsk_message
 
-txt_dg_lab:  db "  SAMPLE "
-txt_dg_none: db "------"
-dg_lab:      ds 15              ; la ligne construite
-
-dg_cnt:         db 0
+txt_t_full:  db "LA BANQUE A DEJA 16 SAMPLES",0
+txt_t_added: db "SAMPLE AJOUTE A LA BANQUE",0
+tk_n:        db 0

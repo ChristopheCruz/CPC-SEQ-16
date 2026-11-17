@@ -229,6 +229,49 @@ class DigidrumTest(unittest.TestCase):
         self.assertIn("BANQUE .SMP ABSENTE", cpc.row(17))
         self.assertEqual(cpc.peek(cpc.addr("smp_name"), 8), b"VOIX    ")
 
+    # --- f4, O : prendre un sample dans une autre banque ---------------------
+    def test_take_sample_from_bank(self):
+        cpc = self.cpc
+        self.make_disk({})                       # SEQ16.BIN, DRUMS, VOIX
+        voix = wav2smp.parse_bank(open(os.path.join(ROOT, "samples", "VOIX.SMP"), "rb").read())
+        self.key(KEY_F4)
+        before = cpc.peek(test_player.BANK, cpc.word(cpc.addr("smp_bank_len")))
+        # liste des .SMP : DRUMS, VOIX -> bas, RETURN ; puis le 2e sample
+        cpc.chars = [0xF1, 13, 0xF1, 13]
+        self.key(34)                             # O
+        self.assertIn("SAMPLE AJOUTE", cpc.row(25))
+        self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 5)
+        self.assertEqual(cpc.peek(cpc.addr("cur_smp"))[0], 4)
+        n = cpc.word(cpc.addr("smp_bank_len"))
+        bank = wav2smp.parse_bank(cpc.peek(test_player.BANK, n))
+        self.assertEqual(len(bank), 5)
+        old = wav2smp.parse_bank(before)
+        for a, b in zip(bank[:4], old):              # les 4 anciens intacts
+            self.assertEqual((a.name, a.data, a.code), (b.name, b.data, b.code))
+        self.assertEqual(bank[4].name, voix[1].name)
+        self.assertEqual(bank[4].data, voix[1].data)
+        self.assertEqual(bank[4].code, voix[1].code)
+        self.assertIn("05 " + voix[1].name.strip(), cpc.screen_text())
+        # le nouveau sample se joue
+        spans = len(cpc.di_spans)
+        cpc.frames(1, keys={KEY_SPACE})
+        cpc.frames(1)
+        self.assertGreater(len(cpc.di_spans), spans)
+        # et la banque agrandie se sauve
+        self.key(KEY_F3)
+        self.key(KEY_E)
+        self.assertEqual(cpc.saved["DRUMS.SMP"], cpc.peek(test_player.BANK, n))
+
+    def test_take_sample_too_big(self):
+        cpc = self.cpc
+        self.make_disk({})
+        self.key(KEY_F4)
+        cpc.poke(cpc.addr("smp_bank_len"), (16000).to_bytes(2, "little"))  # banque presque pleine
+        cpc.chars = [0xF1, 13, 0xF1, 13]
+        self.key(34)
+        self.assertIn("TROP GRANDE", cpc.row(25))
+        self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
+
     # --- f3, E : sauver la banque de samples ---------------------------------
     def test_save_smp(self):
         cpc = self.cpc

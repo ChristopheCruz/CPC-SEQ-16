@@ -29,10 +29,28 @@ SONG_VER   equ 2                ; version écrite dans l'en-tête
 
 ; Remet le morceau dans son état d'usine
 init_song:
-        ld hl,factory           ; en-tête, instruments, noms, sons composés
-        ld de,song_data
-        ld bc,SONG_FIXED
-        ldir
+        ld hl,factory_rle       ; en-tête, instruments, noms, sons composés,
+        ld de,song_data         ; compressés (voir factory.asm)
+is_rle:
+        ld a,(hl)
+        inc hl
+        or a
+        jr nz,is_lit            ; octet ordinaire
+        ld b,(hl)               ; 0, n : n zéros
+        inc hl
+        inc b
+        dec b
+        jr z,is_rle_end         ; 0, 0 : fin
+is_zero:
+        ld (de),a               ; (A = 0)
+        inc de
+        djnz is_zero
+        jr is_rle
+is_lit:
+        ld (de),a
+        inc de
+        jr is_rle
+is_rle_end:
         ld hl,patterns          ; tous les motifs vides, en voix séparées,
         ld c,NB_PAT             ; à 125 BPM
 is_pat:

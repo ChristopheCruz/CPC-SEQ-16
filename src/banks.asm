@@ -275,3 +275,123 @@ sbh_load:
 
 txt_m_withbank: db "MORCEAU ET BANQUE DE SAMPLES CHARGES",0
 txt_m_nobank:   db "MORCEAU CHARGE (BANQUE .SMP ABSENTE)",0
+
+; ============================================================================
+; Digidrums : mise en attente, durée, nom du sample (la lecture elle-même,
+; dg_play, est en zone haute : hizone.asm).  On n'y arrive que si la zone
+; haute est installée (tests faits par l'appelant).
+; ============================================================================
+
+; Met un sample en attente.  HL = instrument, B = note (ou période du bruit
+; pour la voix N), sno_chan = voix (0 à 3).
+dg_queue:
+        ld a,(sno_chan)
+        ld c,a                  ; C = voix
+        ld d,a                  ; voix muette (bit de snd_mute) : rien
+        inc d
+        ld a,(snd_mute)
+dgq_mute:
+        rrca                    ; le bit de la voix finit dans Carry
+        dec d
+        jr nz,dgq_mute
+        ret c
+        ld a,c                  ; voie de l'AY : celle de la voix, et C
+        cp 3                    ; pour la voix N
+        jr c,dgq_chan
+        ld a,2
+dgq_chan:
+        ld (dg_chan),a
+        ld a,c                  ; hauteur : la note 48 (DO de la rangée du
+        cp 3                    ; haut, octave 3) joue le sample tel quel
+        ld a,0                  ; voix N : toujours la hauteur d'origine
+        jr z,dgq_semi
+        ld a,b
+        cp 36                   ; on borne à -12 / +12 demi-tons
+        jr nc,dgq_lo
+        ld a,36
+dgq_lo:
+        cp 61
+        jr c,dgq_hi
+        ld a,60
+dgq_hi:
+        sub 48
+dgq_semi:
+        ld (dg_semi),a
+        push hl
+        ld de,INS_NOISE         ; numéro du sample
+        add hl,de
+        ld a,(hl)
+        ld (dg_smp),a
+        pop hl
+        ld de,INS_VOLUME        ; atténuation = 15 - volume
+        add hl,de
+        ld a,15
+        sub (hl)
+        jr nc,dgq_att
+        xor a
+dgq_att:
+        ld (dg_att),a
+        ld a,1
+        ld (dg_pending),a       ; la boucle principale le jouera
+        ret
+
+
+; A:HL = HL x DE (24 bits suffisent : 16 320 x 1 000 < 2^24)
+dg_mul:
+        ld b,h                  ; BC = multiplicande
+        ld c,l
+        ld hl,0
+        xor a                   ; A:HL = résultat
+        ld (dg_cnt),a
+dgm_loop:
+        add hl,hl               ; résultat x 2
+        rla
+        ex de,hl                ; bit suivant du multiplicateur (du haut)
+        add hl,hl
+        ex de,hl
+        jr nc,dgm_next
+        add hl,bc
+        adc a,0
+dgm_next:
+        push af
+        ld a,(dg_cnt)
+        inc a
+        ld (dg_cnt),a
+        cp 16
+        jr z,dgm_done
+        pop af
+        jr dgm_loop
+dgm_done:
+        pop af
+        ret
+
+; Ligne du réglage « bruit » d'un digidrum, sur l'écran f2 :
+; HL = "  SAMPLE nomxxx" (15 caractères), le nom du sample choisi.
+dg_label_hi:
+        ld a,(cur_inst)
+        call inst_ptr
+        ld bc,INS_NOISE
+        add hl,bc
+        ld a,(hl)               ; A = numéro du sample
+        ld hl,smp_count
+        cp (hl)
+        ld hl,txt_dg_none       ; absent de la banque (ou pas de banque)
+        jr nc,dgl_copy
+        call smp_entry          ; présent : HL = sa fiche (nom en tête)
+dgl_copy:
+        push hl
+        ld hl,txt_dg_lab        ; "  SAMPLE "
+        ld de,dg_lab
+        ld bc,9
+        ldir
+        pop hl                  ; puis les 6 caractères du nom
+        ld bc,6
+        ldir
+        ld hl,dg_lab
+        ret
+
+txt_dg_lab:  db "  SAMPLE "
+txt_dg_none: db "------"
+dg_lab:      ds 15              ; la ligne construite
+
+dg_cnt:         db 0
