@@ -29,6 +29,20 @@ def _candidats():
         ici = parent
 
 
+def remplacer(nom_module, nom):
+    """Fait de tools/<nom>.py un simple renvoi vers cpc_dsk.seq16.<nom>.
+
+    Le module de CPC DISK prend la place de celui de SEQ-16 dans
+    sys.modules : `import wav2smp` donne directement cpc_dsk.seq16.wav2smp.
+    """
+    import importlib
+    charger()
+    module = importlib.import_module("cpc_dsk.seq16." + nom)
+    if nom_module != "__main__":
+        sys.modules[nom_module] = module
+    return module
+
+
 def charger():
     """Importe cpc_dsk.core.amsdos (et l'ajoute au chemin si besoin)."""
     try:

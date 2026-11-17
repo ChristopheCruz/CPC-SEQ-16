@@ -43,7 +43,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 - [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
   - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
   - [Les digidrums : des samples dans le morceau](#les-digidrums--des-samples-dans-le-morceau)
-  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--toolssmp_guipy)
+  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--longlet-samples-seq-16-de-cpc-disk)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
@@ -362,21 +362,22 @@ Un **digidrum** est un instrument qui joue un sample de la banque chargée au li
 
 Garde les digidrums **courts : moins de 150 ms** (les 4 sons de `DRUMS.SMP` le sont). Un sample plus long fait « bégayer » l'interface et les autres voix.
 
-### L'éditeur graphique de banques (sur PC) : `tools/smp_gui.py`
+### L'éditeur graphique de banques (sur PC) : l'onglet SAMPLES SEQ-16 de CPC DISK
 
-Une petite application de bureau pour fabriquer une banque `.SMP` à partir de fichiers WAV, sans ligne de commande. Elle a l'allure d'un écran CPC, comme [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC) : bleu, jaune et cyan, ou moniteur vert (F3).
+Une application de bureau pour fabriquer une banque `.SMP` à partir de fichiers WAV, sans ligne de commande. Elle fait partie de **CPC DISK**, l'éditeur de disquettes : c'est son onglet **SAMPLES SEQ-16**, en français, en anglais ou en espagnol. Un seul programme Windows, `cpc-dsk-gui.exe`, sert donc à faire les banques et à les mettre sur la disquette (et sur la clé du Gotek).
 
 ```bat
-python tools\smp_gui.py
+python tools\smp_gui.py          rem l'éditeur seul, dans sa fenêtre
 ```
 
 - **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 320 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
 - **À droite**, les réglages du sample choisi : nom (6 caractères), fréquence, saturation, coupure des silences, adoucissement, tramage, bits, décimation, courbe, découpe en tranches. La forme d'onde montre l'original en haut et le rendu du CPC en bas.
 - **Écouter** l'original ou le rendu du CPC.
-- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** (`build\seq16.dsk` par défaut ; on confirme si un fichier du même nom existe).
+- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** : dans CPC DISK, la disquette ouverte dans l'onglet Disquette est proposée directement.
 
 Pour une banque `.SMP` ouverte, il n'y a plus de WAV d'origine : on peut changer le nom, la fréquence, les bits, la décimation et la courbe, mais pas les réglages qui demandent de reconvertir le son.
-Pour en faire un exécutable Windows : `tools\build_smp_gui.bat` (il faut PyInstaller).
+
+Le code est dans CPC DISK (`cpc_dsk/seq16/`) ; `tools/smp_gui.py`, `tools/smp_model.py` et `tools/wav2smp.py` y renvoient (voir [Réassembler](#️-réassembler)).
 
 ### L'écran f4 : Sample Composer
 
@@ -529,7 +530,7 @@ python tools\wav2smp.py samples\voix\bonjour.wav samples\voix\amstrad.wav sample
 
 ### Le format `.SMP`
 
-Le format est décrit en détail en tête de [`tools/wav2smp.py`](tools/wav2smp.py) :
+Le format est décrit en détail en tête de `cpc_dsk/seq16/wav2smp.py`, dans CPC DISK :
 
 - un en-tête `SQSM` de 16 octets (version 1) ;
 - une fiche de 16 octets par sample : nom, position, longueur, fréquence, boucle, drapeaux, réglages ;
@@ -637,11 +638,10 @@ _Codes/
 | [`src/hizone.asm`](src/hizone.asm) | routines recopiées en zone haute : prendre un son ou un sample dans une banque, jouer un digidrum |
 | [`src/smptables.asm`](src/smptables.asm) | courbes et hauteurs des samples (fichier généré) |
 | [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py) | les scripts qui génèrent ces fichiers |
-| [`tools/wav2smp.py`](tools/wav2smp.py) | convertit des WAV en banque de samples `.SMP` (et WAV d'écoute) |
 | [`tools/gen_drums.py`](tools/gen_drums.py) | fabrique la banque d'usine `DRUMS.SMP` par synthèse |
 | [`tools/gen_samples.py`](tools/gen_samples.py) | fabrique les autres banques `.SMP` (synthèse, espeak) |
 | [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/insbank.py`](tools/insbank.py) | fabrique les banques d'instruments `.INS` ; le format `.INS` |
-| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py) | l'éditeur graphique de banques `.SMP` |
+| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py), [`tools/wav2smp.py`](tools/wav2smp.py) | renvois vers l'éditeur de banques et le convertisseur, qui sont dans CPC DISK (`cpc_dsk/seq16/`) |
 | [`tools/amsdsk.py`](tools/amsdsk.py), [`tools/cpcdisk.py`](tools/cpcdisk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue), avec la bibliothèque de CPC DISK |
 | [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
