@@ -94,6 +94,11 @@ class TestConversion(unittest.TestCase):
         codes = wav2smp.unpack(wav2smp.convert(x, 44100, "b", bits=1).data)
         self.assertEqual(set(codes), {0, 8})
 
+    def test_trim(self):
+        x = [0.0] * 50 + [0.001, 0.5, -1.0, 0.3] + [0.0] * 80
+        self.assertEqual(wav2smp.trim(x), [0.5, -1.0, 0.3])
+        self.assertEqual(wav2smp.trim([0.0, 0.0]), [0.0, 0.0])
+
     def test_pack_order(self):
         """Premier échantillon dans les 4 bits de poids fort."""
         self.assertEqual(wav2smp.pack([1, 2, 3, 4]), bytes([0x12, 0x34]))
@@ -204,9 +209,10 @@ class TestConversion(unittest.TestCase):
         msgs = []
         wav2smp.check_sizes(raw, msgs.append)            # 4000 octets : < 4 Ko
         self.assertEqual(msgs, [])
-        big = wav2smp.build_bank([wav2smp.Sample("A", bytes(5000), 125)])
+        big = wav2smp.build_bank([wav2smp.Sample("A", bytes(16384), 125),
+                                  wav2smp.Sample("B", bytes(100), 125)])
         wav2smp.check_sizes(big, msgs.append)
-        self.assertIn("4 Ko", msgs[0])
+        self.assertIn("16 Ko", msgs[0])
 
 
 class TestCurves(unittest.TestCase):

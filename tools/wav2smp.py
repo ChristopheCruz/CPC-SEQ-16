@@ -90,7 +90,9 @@ ENTRY_SIZE = 16
 MAX_SAMPLES = 16
 BLOCK = 16384                      # un bloc de mémoire supplémentaire du 6128
 BANK_MAX_6128 = 65536              # 4 blocs de 16 Ko
-BANK_MAX_464 = 4096                # banque de repli en mémoire principale
+BANK_MAX_MAIN = 16320              # banque en mémoire principale (#0040-#3FFF),
+                                   # sur tous les CPC (voir src/sample.asm)
+BANK_MAX_464 = 4096                # ancienne limite prévue pour le 464
 CODE_MIN, CODE_MAX = 62, 250       # durée d'un échantillon en NOP
 DECIMS = [1, 2, 3, 4, 6, 8]
 BITS_MASK = {4: 0xF, 3: 0xE, 2: 0xC, 1: 0x8}
@@ -189,6 +191,15 @@ def write_wav(path, samples, rate):
 def normalize(x):
     peak = max((abs(v) for v in x), default=0.0)
     return [v / peak for v in x] if peak > 0 else list(x)
+
+
+def trim(x, threshold=0.02):
+    """Retire le silence au début et à la fin (sous threshold x crête)."""
+    peak = max((abs(v) for v in x), default=0.0)
+    if peak == 0:
+        return list(x)
+    loud = [i for i, v in enumerate(x) if abs(v) >= threshold * peak]
+    return list(x[loud[0]:loud[-1] + 1])
 
 
 def drive(x, amount):
@@ -379,9 +390,9 @@ def check_sizes(raw, warn=print):
     if size > BANK_MAX_6128:
         warn("ATTENTION : la banque dépasse 64 Ko (%d octets) : trop grande "
              "même pour un 6128" % size)
-    elif size > BANK_MAX_464:
-        warn("Note : la banque dépasse 4 Ko (%d octets) : elle ne tiendra pas "
-             "sur un CPC 464/664" % size)
+    elif size > BANK_MAX_MAIN:
+        warn("Note : la banque dépasse 16 Ko (%d octets) : elle ne tiendra pas "
+             "en mémoire principale (il faudra la mémoire du 6128)" % size)
     return size
 
 
@@ -409,6 +420,8 @@ def main(argv=None):
     p.add_argument("--dither", choices=["none", "noise"], default="none")
     p.add_argument("--decim", type=int, choices=DECIMS, default=1,
                    help="décimation de lecture (réglage stocké, non destructif)")
+    p.add_argument("--trim", action="store_true",
+                   help="retire les silences au début et à la fin de chaque son")
     p.add_argument("--slice", type=int, default=1,
                    help="découpe chaque WAV en N tranches égales")
     p.add_argument("--names", help="noms des samples, séparés par des virgules")
@@ -433,6 +446,8 @@ def main(argv=None):
     samples = []
     for path in a.wav:
         x, sr = read_wav(path)
+        if a.trim:
+            x = trim(x)
         base = os.path.splitext(os.path.basename(path))[0]
         n = max(1, a.slice)
         size = len(x) // n

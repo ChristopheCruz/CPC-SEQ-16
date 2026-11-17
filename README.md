@@ -310,10 +310,31 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 | `--slice N` | découpe chaque WAV en N tranches égales |
 | `--names` | noms des samples (6 caractères), séparés par des virgules |
 | `--dsk` | ajoute la banque à `build/seq16.dsk` (ou à la disquette indiquée) |
-| `-v` | affiche la taille et la durée, et prévient au-delà de 4 Ko (464) ou de 64 Ko (6128) |
+| `--trim` | retire les silences au début et à la fin de chaque son |
+| `-v` | affiche la taille et la durée, et prévient au-delà de 16 Ko (mémoire principale) ou de 64 Ko (6128) |
 
 Chaque conversion écrit aussi les WAV d'écoute à côté de la banque.
 Pour la place : une seconde à 8 kHz occupe 4 Ko. Une banque contient 16 samples au plus, 16 Ko au plus chacun.
+Pour l'instant, une banque doit tenir dans les 16 320 octets de la mémoire principale, soit environ 4 secondes à 8 kHz. La mémoire du 6128 viendra en phase 3.
+
+### La banque de voix `VOIX.SMP`
+
+Quatre mots en français, fabriqués avec le synthétiseur vocal libre **espeak**. Les sources sont dans [`samples/voix/`](samples/voix/).
+
+| N° | Nom | Durée | Ce qu'on entend |
+|---|---|---|---|
+| 0 | BONJOU | 0,52 s | « Bonjour » |
+| 1 | AMSTRA | 0,67 s | « Amstrad » |
+| 2 | SEQ16 | 1,20 s | « Séquenceur seize » |
+| 3 | COMPTE | 1,76 s | « Un, deux, trois, quatre » |
+
+Pour l'écouter sur le CPC : écran **f3**, nom **VOIX**, touche **D**, puis **f4**.
+La voix est à 6 250 Hz. Elle doit rester compréhensible, avec un grain de « jouet parlant ». En BITS 2 ou avec la courbe SATUREE, elle devient un robot très sale.
+La banque fait 12 951 octets. Elle a été fabriquée ainsi :
+
+```bat
+python tools\wav2smp.py samples\voix\bonjour.wav samples\voix\amstrad.wav samples\voix\seq16.wav samples\voix\compte.wav --names BONJOU,AMSTRA,SEQ16,COMPTE --trim --rate 6250 -o samples\VOIX.SMP --preview-dir samples\ecoute
+```
 
 ### Le format `.SMP`
 
@@ -343,7 +364,7 @@ pip install z80
 python -m unittest discover -s tools -p "test_*.py"
 ```
 
-**Le convertisseur** : 23 tests, sans dépendance. Ils vérifient :
+**Le convertisseur** : 24 tests, sans dépendance. Ils vérifient :
 
 - un sinus converti puis relu, et sa taille ;
 - le respect des 16 niveaux de l'AY, des bits et de la décimation ;
@@ -405,7 +426,7 @@ Sous Windows :
 | [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py) | le CPC simulé et les tests du programme |
-| [`samples/`](samples/) | la banque d'usine, ses sons de synthèse et ses WAV d'écoute |
+| [`samples/`](samples/) | les banques `DRUMS.SMP` et `VOIX.SMP`, leurs sons d'origine et leurs WAV d'écoute |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |
 | [`build/seq16.dsk`](build/seq16.dsk) | la disquette prête à l'emploi |
 | [`snapshots/`](snapshots/) | les captures d'écran de ce README |
