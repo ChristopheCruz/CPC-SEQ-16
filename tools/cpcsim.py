@@ -56,7 +56,7 @@ FW = {
     0xBB6C: "TXT_CLEAR_WINDOW", 0xBB81: "TXT_CUR_ON", 0xBB84: "TXT_CUR_OFF",
     0xBB90: "TXT_SET_PEN", 0xBB96: "TXT_SET_PAPER", 0xBC0E: "SCR_SET_MODE",
     0xBC32: "SCR_SET_INK", 0xBC38: "SCR_SET_BORDER", 0xBC77: "CAS_IN_OPEN",
-    0xBC7A: "CAS_IN_CLOSE", 0xBC7D: "CAS_IN_ABANDON", 0xBC83: "CAS_IN_DIRECT",
+    0xBC7A: "CAS_IN_CLOSE", 0xBC7D: "CAS_IN_ABANDON", 0xBC83: "CAS_IN_DIRECT", 0xBC80: "CAS_IN_CHAR",
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
     0xBC98: "CAS_OUT_DIRECT", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
     0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
@@ -394,7 +394,10 @@ class CPC:
         self.m.a = JUNK
 
     def fw_KM_WAIT_CHAR(self):
-        self.m.a = self.chars.pop(0) if self.chars else 13   # RETURN par défaut
+        c = self.chars.pop(0) if self.chars else 13   # RETURN par défaut
+        if callable(c):                       # une fonction : appelée au moment
+            c = c()                           # de la frappe (pour regarder l'écran)
+        self.m.a = c
         self._carry(True)
 
     def fw_KL_FIND_COMMAND(self):
@@ -508,6 +511,7 @@ class CPC:
             self._carry(False)
             return
         self.cas_in = data
+        self.cas_pos = 0                      # CAS_IN_CHAR : prochain octet
         self.m.bc = len(data) & 0xFFFF
         self.m.de = 0
         self.m.hl = JUNK * 257
@@ -520,6 +524,19 @@ class CPC:
         self.m.set_memory_block(hl, data)
         self._corrupt("af", "bc", "de", "ix")
         self.m.hl = 0
+        self._carry(True)
+
+    def fw_CAS_IN_CHAR(self):
+        """Octet suivant du fichier ouvert ; Carry = 0 à la fin.
+        Comme sur le CPC : BC, DE et HL sont gardés, les drapeaux changent."""
+        data = self.cas_in
+        if data is None or self.cas_pos >= len(data):
+            self.m.a = JUNK
+            self.m.f = 0x40                   # Z, Carry = 0 : fin du fichier
+            return
+        self.m.a = data[self.cas_pos]
+        self.cas_pos += 1
+        self.m.f = 0x00
         self._carry(True)
 
     def fw_CAS_IN_CLOSE(self):

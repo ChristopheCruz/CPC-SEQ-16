@@ -36,6 +36,10 @@ KEY_L     equ 36
 KEY_C     equ 62
 KEY_N     equ 46
 KEY_D     equ 61
+KEY_COPY  equ 9
+KEY_P     equ 27
+KEY_O     equ 34
+KEY_I     equ 35
 
 GRID_ROW  equ 6                 ; première ligne écran de la grille
 HEAD_ROW  equ 5                 ; ligne des numéros de pas
@@ -219,7 +223,7 @@ rc_loop:
         inc hl
         ld a,(rc_index)
         inc a
-        cp 17
+        cp NB_CMDS
         jr nz,rc_loop
         ld a,#FF                ; aucune touche de commande
         ld (cmd_last),a
@@ -297,7 +301,8 @@ cmd_table:
         db KEY_SPACE,KEY_F5,KEY_DEL,KEY_CLR,KEY_TAB,KEY_CAPS   ; 0 à 5
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
-        db KEY_D                                               ; 16
+        db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I                    ; 16 à 20
+NB_CMDS equ $-cmd_table         ; nombre de touches de commande
 
 ; --- ESPACE : lecture / arrêt ---
 cmd_play:
@@ -1469,6 +1474,12 @@ ins_cmd:
         jr z,ins_up
         cp 9
         jr z,ins_down
+        cp 17
+        jp z,ins_copy           ; COPY : copier l'instrument (banks.asm)
+        cp 18
+        jp z,ins_paste          ; P : le coller
+        cp 19
+        jp z,ins_take           ; O : prendre un son dans une banque
         ret
 
 ins_up:
@@ -1967,6 +1978,12 @@ ins_text:
         db ENV_COL+6,19,2,0,"ESSAI",0
         db ENV_COL,20,3,0,"ESPACE",0
         db ENV_COL+7,20,2,0,"LECTURE",0
+        db ENV_COL,22,3,0,"COPY",0
+        db ENV_COL+5,22,2,0,"COPIER",0
+        db ENV_COL,23,3,0,"P",0
+        db ENV_COL+5,23,2,0,"COLLER",0
+        db ENV_COL,24,3,0,"O",0
+        db ENV_COL+5,24,2,0,"SON BANQUE",0
         db #FF
 
 
@@ -2005,6 +2022,10 @@ dsk_cmd:
         jp z,disk_new           ; N
         cp 16
         jp z,disk_load_bank     ; D : banque de samples (smpscreen.asm)
+        cp 19
+        jp z,disk_load_ins      ; O : charger une banque d'instruments
+        cp 20
+        jp z,disk_save_ins      ; I : sauver les instruments (banks.asm)
         ret
 
 dc_up:
@@ -2178,10 +2199,16 @@ drs_normal:
         ld a,2
         jp TXT_SET_PEN
 
-; Affiche un message sur la ligne des messages.  HL = texte
+; Affiche un message sur la ligne des messages (ligne 17 sur l'écran f3,
+; ligne 25 sur l'écran f2).  HL = texte
 dsk_message:
+        ld (last_msg),hl        ; on garde le dernier message
         push hl
+        ld a,(screen)
+        dec a                   ; écran f2 ?
         ld hl,256*1+DSK_MSG_ROW
+        jr nz,msg_row
+        ld l,INS_MSG_ROW        ; oui : ligne 25
 msg_row:                        ; HL = position, texte sur la pile
         call TXT_SET_CURSOR
         xor a
@@ -2334,8 +2361,18 @@ en_done:
 
 ; --- Sauvegarde --------------------------------------------------------------
 disk_save:
+        ld hl,txt_ext           ; NOM.SNG : tout le morceau
+        ld de,SONG_SIZE
+        ld bc,txt_m_saved
+; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
+; song_data, BC = message affiché si tout va bien.
+save_file:
+        ld (sf_size),de
+        ld (sf_msg),bc
+        push hl
         call silence
-        call build_filename
+        pop hl
+        call build_filename_ext ; nom + extension
         ret nc                  ; nom vide
         ld hl,txt_m_saving
         call dsk_message
@@ -2346,14 +2383,14 @@ disk_save:
         call CAS_OUT_OPEN
         jr nc,disk_error
         ld hl,song_data
-        ld de,SONG_SIZE
+        ld de,(sf_size)
         ld bc,0
         ld a,2                  ; fichier binaire
         call CAS_OUT_DIRECT
         jr nc,ds_abandon
         call CAS_OUT_CLOSE
         jr nc,disk_error
-        ld hl,txt_m_saved
+        ld hl,(sf_msg)
         jp dsk_message
 ds_abandon:
         call CAS_OUT_ABANDON
@@ -2532,6 +2569,10 @@ dsk_text:
         db 9,3,2,0,  "VOLUME DE CHAQUE VOIX",0
         db 1,10,1,0, "DISQUE",0
         db 1,DSK_NAME_ROW,2,0,"NOM :",0
+        db 1,12,3,0, "I",0
+        db 3,12,2,0, "SAUVER INSTR.",0
+        db 18,12,3,0,"O",0
+        db 20,12,2,0,"CHARGER INSTR. (.INS)",0
         db 1,13,3,0, "S",0
         db 3,13,2,0, "SAUVER",0
         db 12,13,3,0,"L",0
@@ -2590,8 +2631,8 @@ screen_text:
         include 'tables.asm'
         include 'factory.asm'
         include 'smpscreen.asm'
+        include 'banks.asm'
         include 'smptables.asm'
-        include 'sample.asm'
 
 ; ----------------------------------------------------------------------------
 ; Variables du programme
@@ -2667,6 +2708,25 @@ sdr_i:      db 0
 sdr_ms:     dw 0
 sdf_i:      db 0
 sc_dir:     db 0
+scan_ext:   dw 0                ; extension cherchée dans le catalogue
+ch_names:   dw 0                ; liste de choix : adresse des noms,
+ch_count:   db 0                ;   leur nombre,
+ch_rows:    db 0                ;   lignes par colonne,
+ch_len:     db 0                ;   caractères par nom (juste après ch_rows),
+ch_col0:    db 0                ;   colonne de départ,
+ch_row0:    db 0                ;   ligne de départ (juste après ch_col0),
+ch_colw:    db 0                ;   largeur d'une colonne
+last_msg:   dw txt_m_none       ; dernier message affiché
+sf_size:    dw 0                ; save_file : nombre d'octets,
+sf_msg:     dw 0                ;   message de réussite
+clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
+clip_ok:    db 0                ;   1 = il contient un instrument
+it_pick:    db 0                ; son choisi dans la banque
+
+; La routine de lecture des samples est en dernier : la source de sa partie
+; haute, recopiée en zone haute au démarrage, est ensuite recouverte par le
+; morceau (voir song_data).
+        include 'sample.asm'
 
 end_of_program:
 
@@ -2674,7 +2734,8 @@ end_of_program:
 ; Le morceau, juste après le programme (il n'est pas dans SEQ16.BIN : il est
 ; rempli au démarrage, puis sauvé et chargé à part, en fichier .SNG)
 ; ----------------------------------------------------------------------------
-song_data   equ end_of_program
+song_data   equ smp_blk_src     ; le morceau recouvre la source de la zone
+                                ; haute, déjà recopiée par smp_install
 snd_master  equ song_data+5     ; volume général des voix A, B, C, N
 snd_mute    equ song_data+9     ; voix muettes (bits 0 à 3)
 instruments equ song_data+16

@@ -96,12 +96,19 @@ class PlayerTest(unittest.TestCase):
         cpc = self.cpc
         self.assertEqual(cpc.peek(cpc.addr("smp_ok"))[0], 1)
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
-        # la routine recopiée en zone haute est identique à l'originale
+        # la routine recopiée en zone haute est identique à celle du fichier
+        # SEQ16.BIN (en mémoire, sa source est ensuite recouverte par le
+        # morceau : on compare donc avec le fichier, chargé en #4000)
         src = cpc.addr("smp_blk_src") if "SMP_BLK_SRC" in cpc.sym else None
         self.assertIsNotNone(src)
         n = cpc.addr("smp_blk_end") - cpc.addr("smp_play")
-        self.assertEqual(cpc.peek(src, n), cpc.peek(cpc.addr("smp_play"), n))
+        binary = cpcsim.amsdsk.read_file(os.path.join(ROOT, "build", "seq16.dsk"), "SEQ16.BIN")
+        self.assertEqual(binary[src - 0x4000:src - 0x4000 + n],
+                         cpc.peek(cpc.addr("smp_play"), n))
         self.assertGreaterEqual(cpc.addr("smp_play"), 0x8000)
+        # le morceau commence bien sur cette source, devenue inutile
+        self.assertEqual(cpc.addr("song_data") if "SONG_DATA" in cpc.sym else src, src)
+        self.assertEqual(cpc.peek(src, 4), b"SQ16")
 
     def test_screen_f4(self):
         txt = self.cpc.screen_text()

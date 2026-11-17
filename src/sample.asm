@@ -773,6 +773,8 @@ smp_v_mixrest: db #3F           ; mixeur à remettre à la fin
 smp_v_volrest: db 0             ; volume à remettre à la fin
 smp_v_armed:   db 0             ; 1 = ESPACE a été relâchée
 
+        include 'hizone.asm'    ; autres routines de la zone haute
+
 smp_blk_end:
 smp_blk_len equ smp_blk_end-SMP_CODE
         assert smp_blk_end <= SMP_TOP
