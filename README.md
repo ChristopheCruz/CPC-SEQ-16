@@ -26,6 +26,8 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 [![Disquette](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/seq-16/releases/latest)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-000080?style=flat-square&labelColor=FFDD00&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/ChristopheCruz)
 
+🇫🇷 Français · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
+
 <img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16 : le séquenceur en lecture">
 
 </div>
