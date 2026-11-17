@@ -297,8 +297,9 @@ class PlayerTest(unittest.TestCase):
                 s = [(t, v) for t, r, v in cpc.ay_writes[n0:] if r == 8 and start <= t <= end][:-1]
                 self.check_cadence(s, 160 * pitch[semi + 12] // 256)
 
-    def make_disk(self, extra):
-        """Une disquette : celle du build + des fichiers en plus."""
+    def make_disk(self, extra, keep=("SEQ16.BIN", "DRUMS.SMP", "VOIX.SMP")):
+        """Une disquette : celle du build, réduite aux fichiers keep (None :
+        tous), + des fichiers en plus."""
         import shutil
         import tempfile
         import amsdsk
@@ -306,6 +307,10 @@ class PlayerTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, d)
         path = os.path.join(d, "t.dsk")
         shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), path)
+        if keep is not None:
+            for name in amsdsk.list_files(path):
+                if name not in keep:
+                    amsdsk.remove_file(path, name)
         for name, data in extra.items():
             amsdsk.add_file(path, name, data)
         self.cpc.use_disk(path)

@@ -118,6 +118,23 @@ class BanksTest(unittest.TestCase):
         self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])
         self.assertEqual(cpc.peek(self.song(), 16), head)   # mixage intact
 
+    def test_real_disk_banks(self):
+        """La disquette du build : 13 banques .INS, 9 banques .SMP."""
+        cpc = self.cpc
+        self.make_disk({}, keep=None)            # la disquette entière
+        self.key(KEY_F3)
+        cpc.chars = [0xF1, 13]                   # la 2e banque : BATTERIE
+        self.key(KEY_O)
+        self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 13)
+        self.assertEqual(cpc.peek(cpc.addr("smp_files"), 16), b"USINE   BATTERIE")
+        self.assertIn("INSTRUMENTS CHARGES", cpc.row(DSK_ROW))
+        bank = open(os.path.join(ROOT, "instruments", "BATTERIE.INS"), "rb").read()
+        self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])
+        self.assertEqual(self.name(0), b"KICK1 ")
+        cpc.chars = [0xFC]                       # f3 + D : 9 banques .SMP
+        self.key(test_player.KEY_D)
+        self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 9)
+
     def test_load_not_a_bank(self):
         cpc = self.cpc
         self.make_disk({"FAUX.INS": bytes(500)})
