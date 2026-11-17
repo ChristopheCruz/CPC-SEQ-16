@@ -151,7 +151,7 @@ Les instruments 25 à 32 (`USER1` à `USER8`) sont libres pour créer ses propre
 | S | sauver le morceau |
 | L | charger le morceau |
 | C | afficher le catalogue de la disquette |
-| D | charger la banque de samples `NOM.SMP` (pour l'écran f4) |
+| D | choisir une banque de samples `.SMP` sur la disquette (pour l'écran f4) : flèches, puis RETURN ; ESC annule |
 | N | nouveau morceau (appuyer deux fois) |
 | ESPACE | écouter le motif pendant le réglage |
 
@@ -213,7 +213,7 @@ N  NOM   DUREE      REGLAGES
 | ↑/↓ | choisir un réglage |
 | ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
 | CTRL + ←/→ | sample précédent / suivant |
-| f3, puis NOM et **D** | charger une autre banque (`NOM.SMP`) |
+| f3, puis **D** | choisir une autre banque parmi les fichiers `.SMP` de la disquette |
 
 Les réglages sont ceux de la fiche du sample, en mémoire. Ils ne touchent pas aux données.
 
@@ -256,6 +256,7 @@ Je n'ai pas pu les vérifier sans CPC ni émulateur complet :
 - **La cadence** est calculée avec la table des durées propre au CPC. Elle est exacte dans le simulateur, mais il faut comparer la hauteur du kick avec le WAV d'écoute.
 - **Au-dessus d'environ 6 kHz** (moins de 167 NOP par échantillon), le test de la touche ESPACE allonge un échantillon sur 256. Cela peut donner un très léger grésillement, environ 31 fois par seconde à 8 kHz.
 - **Un « toc » au début ou à la fin** de l'écoute est possible, quand le volume passe du réglage du moteur au premier échantillon.
+- **La liste des banques** (f3, puis D) lit le répertoire de la disquette avec la commande cachée « lecture de secteur » d'AMSDOS (`#84`), sur le lecteur A seulement. Je l'ai seulement testée dans le simulateur. Si le message « CATALOGUE ILLISIBLE » ou « ERREUR DISQUE » apparaît, dis-le-moi.
 
 ### La banque d'usine `DRUMS.SMP`
 
@@ -328,7 +329,7 @@ Quatre mots en français, fabriqués avec le synthétiseur vocal libre **espeak*
 | 2 | SEQ16 | 1,20 s | « Séquenceur seize » |
 | 3 | COMPTE | 1,76 s | « Un, deux, trois, quatre » |
 
-Pour l'écouter sur le CPC : écran **f3**, nom **VOIX**, touche **D**, puis **f4**.
+Pour l'écouter sur le CPC : écran **f3**, touche **D**, choisis **VOIX** avec les flèches, RETURN, puis **f4**.
 La voix est à 6 250 Hz. Elle doit rester compréhensible, avec un grain de « jouet parlant ». En BITS 2 ou avec la courbe SATUREE, elle devient un robot très sale.
 La banque fait 12 951 octets. Elle a été fabriquée ainsi :
 
