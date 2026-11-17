@@ -16,7 +16,7 @@ RUN"SEQ16
 
 **Un séquenceur chiptune 4 voix (3 tons + bruit) pour Amstrad CPC 6128, écrit en assembleur Z80.**
 16 pas par motif, 32 motifs, 32 instruments, sauvegarde des morceaux sur disquette.
-Et maintenant des **samples** : on les écoute et on les salit en direct sur l'écran f4.
+Et un **sampler** : l'écran **f4** joue de vrais sons enregistrés (batterie, voix…) sur la puce sonore du CPC, avec un grain réglable en direct (fréquence, décimation, bits, courbe). Le parti pris : la dégradation du son est recherchée.
 
 ![Plateforme](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Langage](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
@@ -38,7 +38,7 @@ Et maintenant des **samples** : on les écoute et on les salit en direct sur l'�
 - [Les écrans](#️-les-écrans)
 - [Les touches](#️-les-touches)
 - [Le format des morceaux](#-le-format-des-morceaux)
-- [Samples et digidrums (en cours)](#-samples-et-digidrums-en-cours)
+- [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
   - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
@@ -69,7 +69,7 @@ L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/AmstradCPC)** s
 
 ## 🖥️ Les écrans
 
-Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **f1** séquenceur, **f2** instrument, **f3** disque, **f4** samples (voir [Samples et digidrums](#-samples-et-digidrums-en-cours)).
+Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **f1** séquenceur, **f2** instrument, **f3** disque, **f4** sampler (voir [Le sampler](#-le-sampler--samples-et-digidrums)).
 
 <table>
 <tr>
@@ -109,6 +109,20 @@ Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **
 </td>
 </tr>
 </table>
+
+**f4 · Sampler (Sample Composer)** : la banque de sons à gauche, le grain du son choisi à droite.
+
+```
+SEQ16 f1 SEQ f2 INST f3 DISQUE f4 SAMPLE
+BANQUE : DRUMS      MEMOIRE: 2037/16320
+
+N  NOM   DUREE      REGLAGES
+01 KICK    147MS    FREQUENCE   6250 HZ
+02 SNARE   140MS    DECIMATION 1
+03 HAT      60MS    BITS       4 BITS
+04 CLAP    140MS    COURBE     LOG
+                    PERIODE    160 NOP
+```
 
 ## ⌨️ Les touches
 
@@ -165,6 +179,20 @@ La première lettre tapée remplace l'ancien nom ; DEL corrige. L'extension `.SN
 **Le volume des voix** : le circuit sonore du CPC envoie la voie A à gauche, la voie C à droite et la voie B des deux côtés.
 Selon l'écoute (haut-parleur interne, une seule oreillette, ampli branché sur une seule sortie), une voie peut paraître plus forte que les autres : on l'équilibre ici, et le réglage est sauvé avec le morceau.
 
+### f4 — Sampler
+
+| Touches | Effet |
+|---|---|
+| ESPACE | écouter le sample choisi (ESPACE à nouveau : arrêt) |
+| Touches du piano | écouter le sample plus aigu ou plus grave (±12 demi-tons) |
+| CTRL + ←/→ | sample précédent / suivant |
+| ↑/↓ | choisir un réglage : fréquence, décimation, bits, courbe |
+| ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
+
+Pour changer de banque : écran **f3**, touche **D**, choisir le fichier `.SMP` avec les flèches, puis RETURN.
+La première fois que l'on ouvre f4, la banque `DRUMS.SMP` se charge toute seule.
+Tout est détaillé plus bas, dans le [mode d'emploi du sampler](#mode-demploi-des-samples-pas-à-pas).
+
 ## 🎵 Le format des morceaux
 
 Un fichier `.SNG` (environ 9 Ko) contient **tout le morceau** :
@@ -176,7 +204,7 @@ Un fichier `.SNG` (environ 9 Ko) contient **tout le morceau** :
 
 Si un fichier du même nom existe, AMSDOS garde l'ancien sous l'extension `.BAK`.
 
-## 🥁 Samples et digidrums (en cours)
+## 🥁 Le sampler : samples et digidrums
 
 SEQ-16 va apprendre à jouer des **samples** : un écran **f4 Sample Composer** pour écouter, découper et salir un son, et des **digidrums**, des samples déclenchés au pas comme une note.
 Le parti pris est assumé : **la dégradation est recherchée**. Grain, repliement de spectre, souffle et hachures sont des effets voulus et réglables.
