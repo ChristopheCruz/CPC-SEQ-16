@@ -209,6 +209,35 @@ class TestConversion(unittest.TestCase):
         self.assertIn("4 Ko", msgs[0])
 
 
+class TestCurves(unittest.TestCase):
+    def test_curve_tables(self):
+        t = wav2smp.CURVE_TABLES
+        self.assertEqual(len(t), 5)
+        self.assertEqual(t[wav2smp.CURVE_LOG], list(range(16)))     # fidèle
+        for row in t:
+            self.assertEqual(len(row), 16)
+            self.assertTrue(all(0 <= v <= 15 for v in row))
+        self.assertEqual(t[4][wav2smp.REST], wav2smp.REST)          # repos fixe
+
+    def test_asm_tables_match(self):
+        """src/smptables.asm contient bien les tables de wav2smp.py."""
+        import gen_smp_tables
+        txt = open(os.path.join(ROOT, "src", "smptables.asm"), encoding="utf-8").read()
+        rows = [l.split(";")[0].strip()[3:] for l in txt.splitlines()
+                if l.strip().startswith("db") and ";" in l and "," in l]
+        got = [[int(v) for v in r.split(",")] for r in rows[:5]]
+        self.assertEqual(got, wav2smp.CURVE_TABLES)
+        p = gen_smp_tables.pitch_table()
+        self.assertEqual((p[0], p[12], p[24]), (512, 256, 128))
+        self.assertIn("dw " + ",".join(str(v) for v in p[:8]), txt)
+
+    def test_render_uses_curve(self):
+        codes = [12, 15, 0]
+        lin = wav2smp.render(codes, curve=0)
+        log = wav2smp.render(codes, curve=1)
+        self.assertNotEqual(lin, log)
+
+
 class TestDsk(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()

@@ -65,7 +65,7 @@ L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/AmstradCPC)** s
 
 ## 🖥️ Les écrans
 
-Trois écrans, à choisir avec les touches de fonction du pavé numérique : **f1** séquenceur, **f2** instrument, **f3** disque.
+Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **f1** séquenceur, **f2** instrument, **f3** disque, **f4** samples (voir [Samples et digidrums](#-samples-et-digidrums-en-cours)).
 
 <table>
 <tr>
@@ -151,6 +151,7 @@ Les instruments 25 à 32 (`USER1` à `USER8`) sont libres pour créer ses propre
 | S | sauver le morceau |
 | L | charger le morceau |
 | C | afficher le catalogue de la disquette |
+| D | charger la banque de samples `NOM.SMP` (pour l'écran f4) |
 | N | nouveau morceau (appuyer deux fois) |
 | ESPACE | écouter le motif pendant le réglage |
 
@@ -178,18 +179,83 @@ Le parti pris est assumé : **la dégradation est recherchée**. Grain, replieme
 
 Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en changeant très vite le **volume** d'une voie de l'AY : 16 niveaux sur une courbe presque logarithmique. C'est ce qui donne le grain.
 
-### Où on en est : phase 1, la préparation sur PC
+### Où on en est : phase 2, les samples jouent sur le CPC
 
 | Phase | Contenu | État |
 |---|---|---|
 | 1 | convertisseur `wav2smp.py`, WAV d'écoute, banque d'usine de synthèse | ✅ fait |
-| 2 | lecture sur CPC (accès direct à l'AY), écran f4 minimal | à venir |
+| 2 | lecture sur CPC (accès direct à l'AY), écran f4 minimal | ✅ fait, à valider à l'oreille |
 | 3 | mémoire supplémentaire du 6128, jauge, repli 464 | à venir |
 | 4 | digidrums dans le séquenceur (mode BLOQUANT), `.SNG` version 2 | à venir |
 | 5 | lecture directe du clavier, mode HACHÉ | à venir |
 | 6 | finitions de f4 : forme d'onde, découpe, boucle, gravure, sauvegarde | à venir |
 
-**Rien ne change encore sur le CPC** : le programme est le même qu'à l'étape 6. La disquette contient en plus la banque **`DRUMS.SMP`**, qui servira à partir de la phase 2.
+### L'écran f4 : Sample Composer
+
+Appuie sur **f4**. La première fois, le programme charge tout seul la banque d'usine `DRUMS.SMP`, qui se trouve sur la disquette.
+
+```
+SEQ16 f1 SEQ f2 INST f3 DISQUE f4 SAMPLE
+BANQUE : DRUMS      MEMOIRE: 2037/16320
+
+N  NOM   DUREE      REGLAGES
+01 KICK    147MS    FREQUENCE   6250 HZ
+02 SNARE   140MS    DECIMATION 1
+03 HAT      60MS    BITS       4 BITS
+04 CLAP    140MS    COURBE     LOG
+                    PERIODE    160 NOP
+```
+
+| Touches | Effet |
+|---|---|
+| ESPACE | écouter le sample choisi (ESPACE à nouveau : arrêt) |
+| Touches du piano | écouter le sample à cette hauteur. La rangée du haut, à partir de la touche du DO, joue la hauteur d'origine ; la rangée du bas, une octave plus bas |
+| ↑/↓ | choisir un réglage |
+| ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
+| CTRL + ←/→ | sample précédent / suivant |
+| f3, puis NOM et **D** | charger une autre banque (`NOM.SMP`) |
+
+Les réglages sont ceux de la fiche du sample, en mémoire. Ils ne touchent pas aux données.
+
+| Réglage | Valeurs | Effet |
+|---|---|---|
+| FREQUENCE | 4 000 à 16 129 Hz | la hauteur et la brillance ; plus bas, c'est plus sale. → monte, ← descend |
+| DECIMATION | 1, 2, 3, 4, 6, 8 | un échantillon sur N, maintenu N fois : repliement de spectre marqué |
+| BITS | 4, 3, 2, 1 | moins de niveaux. En 1 bit, il ne reste que les niveaux 0 et 8 : un « bip » dur et faible |
+| COURBE | LINEAIRE, LOG, SATUREE, REPLIEE, INVERSEE | une table de 16 valeurs entre le sample et le volume (voir plus bas) |
+| PERIODE | (information) | la durée d'un échantillon en µs, c'est-à-dire en NOP |
+
+**Pendant une écoute, l'écran ne répond plus** : le processeur ne fait que jouer le sample, interruptions coupées.
+Les autres voies de l'AY continuent de sonner avec leurs derniers réglages. Si le motif jouait, ses enveloppes, arpèges et vibratos sont **gelés** jusqu'à la fin du sample. C'est voulu.
+
+Les courbes :
+
+- **LOG** est le rendu fidèle, celui des WAV d'écoute.
+- **LINEAIRE** traite chaque valeur comme une amplitude linéaire, écrite telle quelle dans l'AY qui, lui, est logarithmique. Le son est plus creux et distordu.
+- **SATUREE** multiplie le signal par 2,5 et écrête.
+- **REPLIEE** multiplie aussi par 2,5, puis replie ce qui dépasse.
+- **INVERSEE** retourne la forme d'onde.
+
+### À écouter sur le CPC (validation de la phase 2)
+
+1. **f4, puis ESPACE** sur chaque son. Ils doivent ressembler aux WAV de [`samples/ecoute/`](samples/ecoute/), à la même hauteur.
+2. **FREQUENCE** : de 6 250 Hz à 4 000 Hz, le kick devient plus grave et plus « baveux ». Vers 16 000 Hz, il devient aigu et court comme un tom.
+3. **DECIMATION 4 ou 8** sur le charley : un sifflement métallique apparaît, c'est le repliement de spectre.
+4. **BITS 1** : le charley devient un grésillement métallique et faible, et le kick un « pop » de haut-parleur.
+5. **COURBE SATUREE** : la caisse claire devient un mur de bruit. **REPLIEE** donne un timbre « cassé », **LINEAIRE** un son plus mou.
+6. **Le piano** : la rangée du haut monte demi-ton par demi-ton. Un demi-ton un peu faux fait partie du charme.
+7. **ESPACE pendant l'écoute** l'arrête. Pour l'entendre, prends un long sample ou mets la fréquence au plus bas.
+8. Après une écoute, **f1 puis ESPACE** : le séquenceur doit jouer normalement.
+
+### Points à vérifier sur la vraie machine
+
+Je n'ai pas pu les vérifier sans CPC ni émulateur complet :
+
+- **La mémoire basse.** La banque est chargée en `#0040-#3FFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
+- **La place pour la routine** (`#A000-#A5FF`) est prise sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine.
+- **La cadence** est calculée avec la table des durées propre au CPC. Elle est exacte dans le simulateur, mais il faut comparer la hauteur du kick avec le WAV d'écoute.
+- **Au-dessus d'environ 6 kHz** (moins de 167 NOP par échantillon), le test de la touche ESPACE allonge un échantillon sur 256. Cela peut donner un très léger grésillement, environ 31 fois par seconde à 8 kHz.
+- **Un « toc » au début ou à la fin** de l'écoute est possible, quand le volume passe du réglage du moteur au premier échantillon.
 
 ### La banque d'usine `DRUMS.SMP`
 
@@ -273,17 +339,38 @@ La table des 16 niveaux de l'AY vient de l'émulateur open source [Ayumi](https:
 ### Tester
 
 ```bat
+pip install z80
 python -m unittest discover -s tools -p "test_*.py"
 ```
 
-Les 20 tests vérifient :
+**Le convertisseur** : 23 tests, sans dépendance. Ils vérifient :
 
 - un sinus converti puis relu, et sa taille ;
 - le respect des 16 niveaux de l'AY, des bits et de la décimation ;
 - l'en-tête et les fiches de la banque ;
 - le découpage en tranches ;
 - l'écriture sur la disquette, relue ensuite ;
-- que `DRUMS.SMP` correspond bien au script et fait moins de 4 Ko.
+- que `DRUMS.SMP` correspond bien au script et fait moins de 4 Ko ;
+- que les tables de l'assembleur sont celles du convertisseur.
+
+**Le programme du CPC** : 17 tests dans [`tools/test_player.py`](tools/test_player.py), qui font tourner le vrai `SEQ16.BIN` dans un simulateur Z80 (paquet `z80`). Le banc d'essai [`tools/cpcsim.py`](tools/cpcsim.py) :
+
+- remplace chaque routine du firmware par une version simulée, qui modifie les registres comme le vrai firmware ;
+- modélise le PPI et l'AY ;
+- compte le temps en NOP, avec les durées propres au CPC ;
+- garde l'écran texte en mémoire.
+
+Ces tests vérifient :
+
+- la fréquence réelle : l'écart entre deux écritures du volume vaut exactement la durée voulue, aussi avec le piano ;
+- que chaque valeur écrite correspond aux données, après décimation, bits et courbe ;
+- que le bon registre est sélectionné pour les voies A, B et C ;
+- que le mixeur, le volume, les registres « bis » du firmware et les interruptions sont restaurés à la fin ;
+- l'arrêt par ESPACE, et les erreurs de chargement (fichier absent, trop grand, pas une banque) ;
+- l'écran f4 et ses touches, le chargement par f3 + D ;
+- que sauver et recharger un `.SNG` marche toujours.
+
+Les tests lisent `build/seq16.dsk` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
 
 ## 🛠️ Réassembler
 
@@ -294,7 +381,7 @@ Sous Windows :
    ```bat
    python tools\gen_factory.py
    ```
-3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`.
+3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`. Si tu modifies les courbes dans `tools/wav2smp.py`, lance `python tools\gen_smp_tables.py`.
 4. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute `samples\DRUMS.SMP` (il faut Python 3).
 
 ## 📁 Organisation du code
@@ -308,11 +395,16 @@ Sous Windows :
 | [`src/factory.asm`](src/factory.asm) | instruments, sons et motifs d'usine (fichier généré) |
 | [`src/tables.asm`](src/tables.asm) | tables des notes et des volumes (fichier généré) |
 | [`src/firmware.asm`](src/firmware.asm) | les adresses des routines système du CPC utilisées |
+| [`src/sample.asm`](src/sample.asm) | la lecture des samples : accès direct à l'AY, chargement d'une banque |
+| [`src/smpscreen.asm`](src/smpscreen.asm) | l'écran f4 (Sample Composer) |
+| [`src/smptables.asm`](src/smptables.asm) | courbes et hauteurs des samples (fichier généré) |
 | [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py) | les scripts qui génèrent ces fichiers |
 | [`tools/wav2smp.py`](tools/wav2smp.py) | convertit des WAV en banque de samples `.SMP` (et WAV d'écoute) |
 | [`tools/gen_drums.py`](tools/gen_drums.py) | fabrique la banque d'usine `DRUMS.SMP` par synthèse |
 | [`tools/amsdsk.py`](tools/amsdsk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue) |
-| [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests des trois scripts précédents |
+| [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
+| [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
+| [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py) | le CPC simulé et les tests du programme |
 | [`samples/`](samples/) | la banque d'usine, ses sons de synthèse et ses WAV d'écoute |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |
 | [`build/seq16.dsk`](build/seq16.dsk) | la disquette prête à l'emploi |
@@ -326,7 +418,8 @@ Sous Windows :
 - [ ] Renommer les instruments
 - [ ] Étape 10 : copier-coller de blocs
 - [x] Samples, phase 1 : convertisseur et banque d'usine (sur PC)
-- [ ] Samples, phases 2 à 6 : lecture sur CPC, écran f4, digidrums
+- [x] Samples, phase 2 : lecture sur CPC, écran f4 minimal
+- [ ] Samples, phases 3 à 6 : mémoire du 6128, digidrums, mode HACHÉ, finitions de f4
 
 ---
 

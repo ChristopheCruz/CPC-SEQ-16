@@ -96,6 +96,53 @@ DECIMS = [1, 2, 3, 4, 6, 8]
 BITS_MASK = {4: 0xF, 3: 0xE, 2: 0xC, 1: 0x8}
 BITS_INDEX = {4: 0, 3: 1, 2: 2, 1: 3}
 CURVES = ["lineaire", "log", "saturee", "repliee", "inversee"]
+CURVE_LOG = 1                      # courbe par défaut : rendu fidèle
+REST = 12                          # niveau de repos (signal nul) : code 12
+
+
+def nearest_code(a):
+    """Amplitude 0..1 -> code de niveau AY le plus proche."""
+    a = max(0.0, min(1.0, a))
+    return min(range(16), key=lambda i: abs(AY_LEVELS[i] - a))
+
+
+def curve_table(curve):
+    """Table de 16 codes appliquée pendant la lecture : code lu -> code écrit
+    dans le registre de volume. Les données sont des codes de niveau AY.
+      0 linéaire  : le code est pris pour une amplitude linéaire (code/15
+                    -> AY). C'est la « table linéaire écrite telle quelle dans
+                    l'AY logarithmique » : distorsion voulue.
+      1 log       : identité. Rendu fidèle (les données sont déjà des niveaux
+                    de l'AY).
+      2 saturée   : gain x2,5 autour du repos, écrêté.
+      3 repliée   : gain x2,5, ce qui dépasse est replié (wavefolding).
+      4 inversée  : forme d'onde retournée autour du repos.
+    """
+    mid = AY_LEVELS[REST]
+    out = []
+    for c in range(16):
+        a = AY_LEVELS[c]
+        if curve == 0:
+            out.append(round(15 * a))       # amplitude -> valeur linéaire 0..15
+            continue
+        if curve == 1:
+            out.append(c)
+            continue
+        if curve == 2:
+            b = mid + (a - mid) * 2.5
+        elif curve == 3:
+            b = mid + (a - mid) * 2.5
+            while b > 1 or b < 0:
+                b = 2 - b if b > 1 else -b
+        elif curve == 4:
+            b = 2 * mid - a
+        else:
+            raise ValueError("courbe inconnue : %d" % curve)
+        out.append(nearest_code(b))
+    return out
+
+
+CURVE_TABLES = [curve_table(i) for i in range(len(CURVES))]
 NO_LOOP = 0xFFFF
 F_BACKWARD, F_LOOP, F_TONE, F_JITTER = 1, 2, 4, 8
 
@@ -223,12 +270,14 @@ def unpack(data):
 
 
 # --- simulation du rendu CPC (WAV d'écoute) -------------------------------
-def render(codes, decim=1, bits=4):
+def render(codes, decim=1, bits=4, curve=CURVE_LOG):
     """Ce que l'AY sortira : niveau mesuré de chaque code, après le masque de
-    bits et la décimation (un échantillon sur N, maintenu N périodes).
+    bits, la courbe et la décimation (un échantillon sur N, maintenu N
+    périodes). C'est exactement le calcul de la routine Z80.
     La composante continue est retirée pour l'écoute."""
     m = BITS_MASK[bits]
-    lv = [AY_LEVELS[codes[(i // decim) * decim] & m] for i in range(len(codes))]
+    t = CURVE_TABLES[curve]
+    lv = [AY_LEVELS[t[codes[(i // decim) * decim] & m]] for i in range(len(codes))]
     if not lv:
         return []
     mean = sum(lv) / len(lv)
@@ -271,7 +320,7 @@ def convert(x, src_rate, name, rate=8000, drive_amount=1.0, clean=False,
     data = pack(codes)
     if len(data) > max_len:
         data = data[:max_len]
-    return Sample(clean_name(name), data, code, decim=decim)
+    return Sample(clean_name(name), data, code, flags=CURVE_LOG << 4, decim=decim)
 
 
 def build_bank(samples):
@@ -412,7 +461,8 @@ def main(argv=None):
         stem = os.path.splitext(os.path.basename(a.output))[0]
         for s in samples:
             out = os.path.join(d, "%s_%s_ecoute.wav" % (stem, s.name))
-            write_wav(out, render(unpack(s.data), s.decim, s.bits), s.rate)
+            write_wav(out, render(unpack(s.data), s.decim, s.bits, (s.flags >> 4) & 7),
+                      s.rate)
             if a.verbose:
                 print("  écoute : " + out)
 

@@ -9,7 +9,8 @@ if not exist tools\rasm.exe (
 )
 if not exist build mkdir build
 if exist build\seq16.dsk del build\seq16.dsk
-tools\rasm.exe src\main.asm -o build\seq16
+rem -s : fichier des etiquettes build\seq16.sym (pour les tests)
+tools\rasm.exe src\main.asm -o build\seq16 -s
 if errorlevel 1 (
   echo.
   echo *** ERREUR D'ASSEMBLAGE ***
