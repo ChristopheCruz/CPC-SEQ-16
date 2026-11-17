@@ -203,3 +203,75 @@ txt_i_nomem:  db "PAS ASSEZ DE MEMOIRE",0
 txt_i_saved:  db "INSTRUMENTS SAUVES (.INS)",0
 txt_i_loaded: db "INSTRUMENTS CHARGES",0
 txt_i_bad:    db "CE FICHIER N'EST PAS UNE BANQUE .INS",0
+
+; ============================================================================
+; Banque de samples : sauvegarde (f3, E) et banque associée à un morceau.
+; On n'y arrive que si une banque est chargée ou si la zone haute est
+; installée (tests faits par l'appelant).
+; ============================================================================
+; --- f3, E : sauver la banque de samples -------------------------------------
+; Le fichier porte le nom de la banque (NOM.SMP).  Les réglages faits sur
+; l'écran f4 sont dans les fiches, en mémoire : ils sont donc sauvés.
+smp_save_bank:
+        call silence
+        ld hl,smp_name          ; nom de la banque
+        ld de,txt_ext_smp
+        call make_fname         ; -> HL = "NOM.SMP", B = longueur
+        push hl
+        push bc
+        ld hl,txt_m_saving
+        call dsk_message
+        pop bc
+        pop hl
+        ld de,io_buffer
+        call CAS_OUT_OPEN
+        jp nc,disk_error
+        ld hl,BANK_START        ; la banque entière, telle qu'en mémoire
+        ld de,(smp_bank_len)
+        ld bc,0
+        ld a,2                  ; fichier binaire
+        call CAS_OUT_DIRECT
+        jp nc,ds_abandon
+        call CAS_OUT_CLOSE
+        jp nc,disk_error
+        ld hl,txt_s_saved
+        jp dsk_message
+
+txt_s_saved: db "BANQUE DE SAMPLES SAUVEE (.SMP)",0
+
+; --- Chargement d'un morceau v2 : sa banque de samples -----------------------
+; Le morceau garde le nom de la banque utilisée (song_bank).  Si ce n'est
+; pas celle qui est en mémoire, on la charge.  Sortie : message affiché.
+song_load_bank:
+        ld a,(smp_count)        ; déjà en mémoire ?
+        or a
+        jr z,sbh_load
+        ld hl,song_bank
+        ld de,smp_name
+        ld b,8
+sbh_cmp:
+        ld a,(de)
+        cp (hl)
+        jr nz,sbh_load
+        inc hl
+        inc de
+        djnz sbh_cmp
+        ld hl,txt_m_loaded      ; oui : rien à faire
+        jp dsk_message
+sbh_load:
+        ld hl,song_bank
+        ld de,txt_ext_smp
+        call make_fname         ; -> HL = "NOM.SMP", B = longueur
+        call smp_load_bank      ; -> A = 0 si chargée
+        or a
+        ld hl,txt_m_nobank
+        jp nz,dsk_message       ; absente : le morceau est quand même là
+        ld hl,song_bank
+        call smp_set_name       ; la banque prend ce nom
+        xor a
+        ld (cur_smp),a
+        ld hl,txt_m_withbank
+        jp dsk_message
+
+txt_m_withbank: db "MORCEAU ET BANQUE DE SAMPLES CHARGES",0
+txt_m_nobank:   db "MORCEAU CHARGE (BANQUE .SMP ABSENTE)",0

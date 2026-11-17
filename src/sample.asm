@@ -357,7 +357,13 @@ spr_t_loop:
         ld b,0
         add hl,bc
         ld b,a
+        ld a,(spr_att)          ; atténuation : volume d'un digidrum
+        ld c,a                  ; (0 pour une écoute sur f4)
         ld a,(hl)
+        sub c                   ; niveau - atténuation, pas sous 0
+        jr nc,spr_t_pos
+        xor a
+spr_t_pos:
         ld (de),a
         pop hl
         inc de
@@ -544,6 +550,7 @@ smp_data:     dw 0              ; adresse du début des données
 spr_chan:     db 0              ; smp_prepare : voie de l'AY
 spr_semi:     db 0              ;   demi-tons (juste après spr_chan)
 spr_mask:     db 0              ;   masque de bits
+spr_att:      db 0              ;   atténuation (digidrum : 15 - volume)
 spr_t:        ds 16             ;   les 16 valeurs, après bits et courbe
 dv_n:         ds 3              ; div24 : dividende puis quotient
 

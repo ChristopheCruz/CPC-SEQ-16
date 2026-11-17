@@ -48,8 +48,8 @@ class InsBankTest(unittest.TestCase):
                     self.assertLessEqual(b[2], 15)                    # tenue
                     self.assertLessEqual(b[4], 15)                    # volume
                     self.assertGreater(b[4], 0)
-                    self.assertLessEqual(b[5], 15)                    # drapeaux
-                    self.assertTrue(b[5] & (insbank.TON | insbank.BRUIT | insbank.ENV),
+                    self.assertLessEqual(b[5], 31)                    # drapeaux
+                    self.assertTrue(b[5] & (insbank.TON | insbank.BRUIT | insbank.ENV | insbank.DIGI),
                                     "ni ton, ni bruit, ni enveloppe : muet")
                     self.assertLessEqual(b[6], 31)                    # bruit
                     if b[5] & insbank.ENV:
@@ -68,6 +68,11 @@ class InsBankTest(unittest.TestCase):
         self.assertEqual(sounds[0][0], "LEAD  ")
         self.assertEqual(sounds[11][0], "KICK  ")
         self.assertEqual(sounds[0][1], bytes([255, 8, 10, 12, 15, 1] + [0] * 10))
+        # les 4 digidrums d'usine jouent les samples 0 à 3 (DRUMS.SMP)
+        for k, name in enumerate(("DGKICK", "DGSNAR", "DGHAT ", "DGCLAP")):
+            self.assertEqual(sounds[28 + k][0], name)
+            self.assertEqual(sounds[28 + k][1][5], insbank.DIGI)
+            self.assertEqual(sounds[28 + k][1][6], k)
 
     def test_files_up_to_date(self):
         """Les fichiers de instruments/ sont ceux que produit le script."""

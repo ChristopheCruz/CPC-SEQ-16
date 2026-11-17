@@ -593,32 +593,41 @@ cf_scanned:
 cf_chosen:
         call choose_name        ; HL = nom choisi (8 caractères)
         push hl
-        ld de,smp_fname         ; smp_fname = nom sans espaces + extension
-        ld b,8
-        ld c,0                  ; C = longueur
-cf_copy:
-        ld a,(hl)
-        cp ' '
-        jr z,cf_skip            ; les espaces ne font pas partie du nom
-        ld (de),a
-        inc de
-        inc c
-cf_skip:
-        inc hl
-        djnz cf_copy
-        ld hl,(scan_ext)        ; puis l'extension, point compris
-        ld b,4
-cf_ext:
-        ld a,(hl)
-        ld (de),a
-        inc hl
-        inc de
-        inc c
-        djnz cf_ext
-        ld b,c                  ; B = longueur du nom complet
-        ld hl,smp_fname
+        ld de,(scan_ext)        ; nom sans espaces + extension
+        call make_fname         ; -> HL = nom complet, B = longueur
         pop de                  ; DE = nom choisi (8 caractères)
         scf                     ; Carry = 1 : un fichier a été choisi
+        ret
+
+; Nom de fichier : HL = nom sur 8 caractères (espaces ou 0 à la fin),
+; DE = extension (4 caractères, point compris).
+; Sortie : HL = smp_fname ("NOM.EXT"), B = sa longueur.
+make_fname:
+        push de
+        ld de,smp_fname
+        ld b,8
+        ld c,0                  ; C = longueur
+mf_copy:
+        ld a,(hl)
+        cp ' '+1                ; les espaces (et les 0) ne comptent pas
+        jr c,mf_skip
+        ld (de),a
+        inc de
+        inc c
+mf_skip:
+        inc hl
+        djnz mf_copy
+        pop hl                  ; HL = extension
+        ld b,4
+mf_ext:
+        ld a,(hl)
+        ld (de),a
+        inc hl
+        inc de
+        inc c
+        djnz mf_ext
+        ld b,c                  ; B = longueur
+        ld hl,smp_fname
         ret
 
 ; ----------------------------------------------------------------------------

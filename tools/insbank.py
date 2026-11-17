@@ -22,7 +22,8 @@ Les octets d'un instrument (src/sound.asm) :
    14 vibrato attente              15 glissando (signé)
 
 Drapeaux : bit 0 ton, bit 1 bruit, bit 2 enveloppe matérielle, bit 3
-portamento.
+portamento, bit 4 digidrum (l'instrument joue le sample dont le numéro est
+dans l'octet 6, à la place d'une note ; le volume l'atténue).
 """
 
 NB_INST = 32                     # instruments par banque
@@ -32,7 +33,7 @@ NAME_LEN = 6                     # caractères par nom
 HEADER = b"SQ16"                 # signature commune avec les morceaux
 INS_FILE_LEN = 16 + NB_INST * INS_LEN + NB_INST * NAME_LEN + NB_SONS * 16   # 848
 
-TON, BRUIT, ENV, PORTA = 1, 2, 4, 8          # bits des drapeaux
+TON, BRUIT, ENV, PORTA, DIGI = 1, 2, 4, 8, 16   # bits des drapeaux
 
 # Sons composés par défaut (ceux du programme) : décalage, instrument,
 # volume pour chacune des 4 voix, puis 4 octets de réserve.  #FF = voix

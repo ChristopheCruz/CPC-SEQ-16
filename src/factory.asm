@@ -4,7 +4,7 @@
 
 factory:
 ; En-tête : signature, version, volume des voix A, B, C, N, voix muettes, réserve
-        db "SQ16",1, 15,15,15,15, 0, 0,0,0,0,0,0
+        db "SQ16",2, 15,15,15,15, 0, 0,0,0,0,0,0
 
 ; Instruments : 16 octets chacun (voir sound.asm)
         db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ;  1 LEAD
@@ -35,10 +35,10 @@ factory:
         db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 26 USER2
         db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 27 USER3
         db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 28 USER4
-        db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 29 USER5
-        db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 30 USER6
-        db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 31 USER7
-        db 255,  8, 10, 12, 15,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 32 USER8
+        db 255,  8, 10, 12, 15, 16,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 29 DGKICK
+        db 255,  8, 10, 12, 15, 16,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 30 DGSNAR
+        db 255,  8, 10, 12, 15, 16,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 31 DGHAT
+        db 255,  8, 10, 12, 15, 16,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0   ; 32 DGCLAP
 
 ; Noms des instruments : 6 caractères chacun
         db "LEAD  BASS  PAD   PLUCK "
@@ -48,7 +48,7 @@ factory:
         db "ARPMINZAP   SIREN BUZZTR"
         db "SOFT  STAB  CYMBALWOBBLE"
         db "USER1 USER2 USER3 USER4 "
-        db "USER5 USER6 USER7 USER8 "
+        db "DGKICKDGSNARDGHAT DGCLAP"
 
 ; Sons composés : pour chaque voix  décalage, instrument, volume ; puis 4 octets de réserve
         db   0,  0,#FF,   3,  0,#FF,   7,  0,#FF,   0,#FF,#FF, 0,0,0,0   ; accord mineur
@@ -60,43 +60,56 @@ factory:
         db   0, 20,#FF,   3, 20,#FF,  10, 20,#FF,   0,#FF,#FF, 0,0,0,0   ; accord mineur 7
         db   0, 11,#FF,   0,#FF,#FF,   0,#FF,#FF,   1,  4,#FF, 0,0,0,0   ; grosse caisse + hat
 
-; Les 2 motifs de démonstration (260 octets chacun)
-factory_patterns:
+; Les 2 motifs de démonstration, case par case : numéro de case
+; (motif x 64 + pas x 4 + voix), note, instrument ; volume #FF, effet 0.
+; #80 + motif : en-tête (mode, tempo).  #FF : fin.
+factory_cells:
 
 ; Motif 1 : voix séparées
-        db 0,125,0,0
-        db 24,1,#FF,0, 48,0,#FF,0, #FF,0,#FF,0, 31,5,#FF,0   ; pas 0
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 1
-        db #FF,0,#FF,0, 51,0,#FF,0, 43,3,#FF,0, 1,4,#FF,0   ; pas 2
-        db 24,1,#FF,0, 55,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 3
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, 12,5,#FF,0   ; pas 4
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 5
-        db 27,1,#FF,0, 58,0,#FF,0, 43,3,#FF,0, 1,4,#FF,0   ; pas 6
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 7
-        db 24,1,#FF,0, 55,0,#FF,0, #FF,0,#FF,0, 31,5,#FF,0   ; pas 8
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 9
-        db #FF,0,#FF,0, #FF,0,#FF,0, 44,3,#FF,0, 1,4,#FF,0   ; pas A
-        db 29,1,#FF,0, 53,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas B
-        db #FE,0,#FF,0, 51,0,#FF,0, #FF,0,#FF,0, 12,5,#FF,0   ; pas C
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas D
-        db 31,1,#FF,0, 50,0,#FF,0, 43,3,#FF,0, 1,4,#FF,0   ; pas E
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas F
+        db #80,0,125   ; en-tête : mode, tempo
+        db   0, 24,  1   ; pas 0, voix 0
+        db   1, 48,  0   ; pas 0, voix 1
+        db   3, 31,  5   ; pas 0, voix 3
+        db   4,254,  0   ; pas 1, voix 0
+        db   9, 51,  0   ; pas 2, voix 1
+        db  10, 43,  3   ; pas 2, voix 2
+        db  11,  1,  4   ; pas 2, voix 3
+        db  12, 24,  1   ; pas 3, voix 0
+        db  13, 55,  0   ; pas 3, voix 1
+        db  16,254,  0   ; pas 4, voix 0
+        db  19, 12,  5   ; pas 4, voix 3
+        db  24, 27,  1   ; pas 6, voix 0
+        db  25, 58,  0   ; pas 6, voix 1
+        db  26, 43,  3   ; pas 6, voix 2
+        db  27,  1,  4   ; pas 6, voix 3
+        db  28,254,  0   ; pas 7, voix 0
+        db  32, 24,  1   ; pas 8, voix 0
+        db  33, 55,  0   ; pas 8, voix 1
+        db  35, 31,  5   ; pas 8, voix 3
+        db  36,254,  0   ; pas 9, voix 0
+        db  42, 44,  3   ; pas A, voix 2
+        db  43,  1,  4   ; pas A, voix 3
+        db  44, 29,  1   ; pas B, voix 0
+        db  45, 53,  0   ; pas B, voix 1
+        db  48,254,  0   ; pas C, voix 0
+        db  49, 51,  0   ; pas C, voix 1
+        db  51, 12,  5   ; pas C, voix 3
+        db  56, 31,  1   ; pas E, voix 0
+        db  57, 50,  0   ; pas E, voix 1
+        db  58, 43,  3   ; pas E, voix 2
+        db  59,  1,  4   ; pas E, voix 3
+        db  60,254,  0   ; pas F, voix 0
 
 ; Motif 2 : son composé
-        db 1,125,0,0
-        db 36,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 0
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 1
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 2
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 3
-        db 36,2,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 4
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 5
-        db 39,1,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 6
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 7
-        db 41,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 8
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas 9
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas A
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas B
-        db 43,1,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas C
-        db #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas D
-        db 43,2,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas E
-        db #FE,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0, #FF,0,#FF,0   ; pas F
+        db #81,1,125   ; en-tête : mode, tempo
+        db  64, 36,  0   ; pas 0, voix 0
+        db  76,254,  0   ; pas 3, voix 0
+        db  80, 36,  2   ; pas 4, voix 0
+        db  88, 39,  1   ; pas 6, voix 0
+        db  92,254,  0   ; pas 7, voix 0
+        db  96, 41,  0   ; pas 8, voix 0
+        db 108,254,  0   ; pas B, voix 0
+        db 112, 43,  1   ; pas C, voix 0
+        db 120, 43,  2   ; pas E, voix 0
+        db 124,254,  0   ; pas F, voix 0
+        db #FF

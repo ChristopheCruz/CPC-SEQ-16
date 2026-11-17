@@ -2,15 +2,17 @@
 
 Ce contenu est recopié dans le morceau au démarrage :
   - l'en-tête (signature, volumes des 4 voix),
-  - 32 instruments (24 préréglés, 8 libres) et leurs noms,
+  - 32 instruments (24 préréglés, 4 libres, 4 digidrums) et leurs noms,
   - 8 sons composés,
-  - 2 motifs de démonstration.
+  - 2 motifs de démonstration, rangés case par case (seules les cases non
+    vides sont gardées : init_song remplit d'abord tous les motifs de cases
+    vides).  Cela économise environ 400 octets de mémoire.
 """
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 def note(s):                       # "C#3" -> numéro de note
     return 12 * int(s[-1]) + NAMES.index(s[:-1])
 
-TON, BRUIT, EG, PORTA = 1, 2, 4, 8
+TON, BRUIT, EG, PORTA, DIGI = 1, 2, 4, 8, 16   # DIGI : digidrum (sample)
 # nom, attaque, déclin, tenue, relâche, volume, drapeaux, bruit,
 #      forme EG, division EG, arp2, arp3, vitesse arp,
 #      vibrato prof., vitesse, attente, glissando
@@ -40,9 +42,14 @@ INSTRUMENTS = [
     ("CYMBAL", 255,  4,  0,  4, 13, BRUIT,      2,  0, 0,   0,  0, 0,  0,  0,  0,   0),
     ("WOBBLE", 255,  0, 15, 20, 14, TON,        0,  0, 0,   0,  0, 0,  5, 20,  0,   0),
 ]
-while len(INSTRUMENTS) < 32:       # instruments libres : une copie de LEAD
+while len(INSTRUMENTS) < 28:       # instruments libres : une copie de LEAD
     n = len(INSTRUMENTS) - 23
     INSTRUMENTS.append(("USER%d" % n,) + INSTRUMENTS[0][1:])
+# Digidrums : ils jouent les samples 0 à 3 de la banque chargée (DRUMS.SMP
+# par défaut : KICK, SNARE, HAT, CLAP).  L'octet du bruit donne le numéro
+# du sample, le volume règle la force ; le reste ne sert pas.
+for n, name in enumerate(("DGKICK", "DGSNAR", "DGHAT", "DGCLAP")):
+    INSTRUMENTS.append((name, 255, 8, 10, 12, 15, DIGI, n, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 I = {ins[0]: i for i, ins in enumerate(INSTRUMENTS)}
 
 X = None                           # voix non utilisée
@@ -59,22 +66,22 @@ SONS = [
 ]
 
 OFF = "off"
-def pattern(mode, bpm, lanes, comment):
-    out = ["", "; " + comment, "        db %d,%d,0,0" % (mode, bpm)]
+def pattern(p, mode, bpm, lanes, comment):
+    """Les cases non vides du motif p : (p x 64 + pas x 4 + voix, note, instr.)
+    plus une fiche d'en-tête (#80 + p, mode, tempo)."""
+    out = ["", "; " + comment, "        db #%02X,%d,%d   ; en-tête : mode, tempo" % (0x80 + p, mode, bpm)]
     for step in range(16):
-        cells = []
         for lane in range(4):
             ev = lanes[lane].get(step) if lane < len(lanes) else None
             if ev is None:
-                cells.append("#FF,0,#FF,0")
-            elif ev == OFF:
-                cells.append("#FE,0,#FF,0")
+                continue
+            if ev == OFF:
+                n, ins = 0xFE, 0
             else:
                 n, ins = ev
                 n = note(n) if isinstance(n, str) else n
                 ins = I[ins] if isinstance(ins, str) else ins
-                cells.append("%d,%d,#FF,0" % (n, ins))
-        out.append("        db " + ", ".join(cells) + "   ; pas %X" % step)
+            out.append("        db %3d,%3d,%3d   ; pas %X, voix %d" % (p * 64 + step * 4 + lane, n, ins, step, lane))
     return out
 
 out = ["; Fichier généré par tools/gen_factory.py - ne pas modifier à la main.",
@@ -82,7 +89,7 @@ out = ["; Fichier généré par tools/gen_factory.py - ne pas modifier à la mai
        "; L'ordre et les tailles doivent suivre le bloc 'morceau' de song.asm.", "",
        "factory:",
        "; En-tête : signature, version, volume des voix A, B, C, N, voix muettes, réserve",
-       '        db "SQ16",1, 15,15,15,15, 0, 0,0,0,0,0,0', "",
+       '        db "SQ16",2, 15,15,15,15, 0, 0,0,0,0,0,0', "",
        "; Instruments : 16 octets chacun (voir sound.asm)"]
 for i, ins in enumerate(INSTRUMENTS):
     vals = [v & 255 for v in ins[1:]]
@@ -106,9 +113,12 @@ drums = {0: (31, "SNARE"), 2: (1, "HAT"), 4: (12, "SNARE"), 6: (1, "HAT"),
          8: (31, "SNARE"), 10: (1, "HAT"), 12: (12, "SNARE"), 14: (1, "HAT")}
 comp = {0: ("C3", 0), 3: OFF, 4: ("C3", 2), 6: ("D#3", 1), 7: OFF, 8: ("F3", 0),
         11: OFF, 12: ("G3", 1), 14: ("G3", 2), 15: OFF}
-out += ["", "; Les 2 motifs de démonstration (260 octets chacun)", "factory_patterns:"]
-out += pattern(0, 125, [bass, lead, pluck, drums], "Motif 1 : voix séparées")
-out += pattern(1, 125, [comp], "Motif 2 : son composé")
-out.append("")
+out += ["", "; Les 2 motifs de démonstration, case par case : numéro de case",
+        "; (motif x 64 + pas x 4 + voix), note, instrument ; volume #FF, effet 0.",
+        "; #80 + motif : en-tête (mode, tempo).  #FF : fin.",
+        "factory_cells:"]
+out += pattern(0, 0, 125, [bass, lead, pluck, drums], "Motif 1 : voix séparées")
+out += pattern(1, 1, 125, [comp], "Motif 2 : son composé")
+out += ["        db #FF", ""]
 open("src/factory.asm", "w", encoding="utf-8").write("\n".join(out))
 print("src/factory.asm écrit :", len(INSTRUMENTS), "instruments,", len(SONS), "sons composés")

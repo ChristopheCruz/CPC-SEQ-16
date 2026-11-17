@@ -102,7 +102,8 @@ class BanksTest(unittest.TestCase):
         self.assertEqual(len(data), insbank.INS_FILE_LEN)
         sounds, sons = insbank.parse_ins_bank(data)
         self.assertEqual(sounds[0][0], "LEAD  ")
-        self.assertEqual(sounds[31][0], "USER8 ")
+        self.assertEqual(sounds[27][0], "USER4 ")
+        self.assertEqual(sounds[31][0], "DGCLAP")
         self.assertEqual(sons, insbank.SONS_USINE)
 
     def test_load_ins_bank(self):
