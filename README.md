@@ -17,6 +17,7 @@ RUN"SEQ16
 **Un séquenceur chiptune 4 voix (3 tons + bruit) pour Amstrad CPC 6128, écrit en assembleur Z80.**
 16 pas par motif, 32 motifs, 32 instruments, sauvegarde des morceaux sur disquette.
 Et un **sampler** : l'écran **f4** joue de vrais sons enregistrés (batterie, voix…) sur la puce sonore du CPC, avec un grain réglable en direct (fréquence, décimation, bits, courbe). Le parti pris : la dégradation du son est recherchée.
+Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette est livrée avec **13 banques d'instruments (416 sons) et 9 banques de samples**.
 
 ![Plateforme](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Langage](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
@@ -38,8 +39,11 @@ Et un **sampler** : l'écran **f4** joue de vrais sons enregistrés (batterie, v
 - [Les écrans](#️-les-écrans)
 - [Les touches](#️-les-touches)
 - [Le format des morceaux](#-le-format-des-morceaux)
+- [Les banques de sons](#-les-banques-de-sons)
 - [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
   - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
+  - [Les digidrums : des samples dans le morceau](#les-digidrums--des-samples-dans-le-morceau)
+  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--toolssmp_guipy)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
@@ -56,7 +60,10 @@ RUN"SEQ16
 
 Pour quitter, maintiens **ESC** une seconde. Un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
 
-La disquette contient aussi deux banques de samples : `DRUMS.SMP` (4 sons de batterie) et `VOIX.SMP` (4 mots en français). Appuie sur **f4** pour les écouter.
+La disquette contient aussi des banques de sons toutes prêtes (voir [Les banques de sons](#-les-banques-de-sons)) :
+
+- **9 banques de samples** `.SMP` : batterie, percussions, effets, basses, notes, voix… Appuie sur **f4** pour les écouter.
+- **13 banques d'instruments** `.INS` de 32 sons chacune. Sur **f3**, la touche **O** en charge une ; sur **f2**, la touche **O** prend un seul son.
 
 ## 🔌 Sur un vrai CPC avec un Gotek
 
@@ -155,9 +162,16 @@ Une voix muette affiche `MUET` à gauche de la grille.
 | SHIFT + ↑/↓ | octave d'essai |
 | Touches du piano | essayer l'instrument |
 | ESPACE | écouter le motif avec le son modifié |
+| COPY | copier l'instrument (réglages et nom) |
+| P | coller : l'instrument copié remplace l'instrument affiché |
+| O | prendre un son dans une banque `.INS` de la disquette : on choisit la banque, puis l'un de ses 32 sons (flèches, RETURN ; ESC annule) |
 
 Le dessin de l'enveloppe se met à jour à chaque changement d'attaque, de déclin, de tenue ou de relâche.
-Les instruments 25 à 32 (`USER1` à `USER8`) sont libres pour créer ses propres sons.
+Les instruments 25 à 28 (`USER1` à `USER4`) sont libres pour créer ses propres sons. Les instruments 29 à 32 sont les digidrums d'usine (`DGKICK`, `DGSNAR`, `DGHAT`, `DGCLAP`).
+
+**Copier un son dans un autre instrument** : choisis l'instrument de départ (CTRL + ←/→), appuie sur **COPY**, va sur l'instrument d'arrivée, appuie sur **P**.
+
+**Le réglage DIGIDRUM** (le dernier) : à `OUI`, l'instrument joue un sample au lieu d'une note. La ligne `PERIODE` devient alors `SAMPLE` suivi du nom du sample : sa valeur est le numéro du sample dans la banque (0 = le premier). Voir [Les digidrums](#les-digidrums--des-samples-dans-le-morceau).
 
 ### f3 — Mixage et disque
 
@@ -169,7 +183,10 @@ Les instruments 25 à 32 (`USER1` à `USER8`) sont libres pour créer ses propre
 | S | sauver le morceau |
 | L | charger le morceau |
 | C | afficher le catalogue de la disquette |
+| I | sauver les instruments : les 32 instruments et les 8 sons composés, dans `NOM.INS` |
+| O | charger une banque d'instruments `.INS` (flèches, puis RETURN ; ESC annule). Les motifs ne changent pas |
 | D | choisir une banque de samples `.SMP` sur la disquette (pour l'écran f4) : flèches, puis RETURN ; ESC annule |
+| E | sauver la banque de samples (avec les réglages faits sur f4), sous son nom : `DRUMS.SMP`… |
 | N | nouveau morceau (appuyer deux fois) |
 | ESPACE | écouter le motif pendant le réglage |
 
@@ -188,8 +205,10 @@ Selon l'écoute (haut-parleur interne, une seule oreillette, ampli branché sur 
 | CTRL + ←/→ | sample précédent / suivant |
 | ↑/↓ | choisir un réglage : fréquence, décimation, bits, courbe |
 | ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
+| O | prendre un sample dans une autre banque `.SMP` : il s'ajoute à la fin de la banque en mémoire (16 samples et 16 Ko au plus) |
 
 Pour changer de banque : écran **f3**, touche **D**, choisir le fichier `.SMP` avec les flèches, puis RETURN.
+Pour sauver la banque (réglages et samples ajoutés compris) : écran **f3**, touche **E**.
 La première fois que l'on ouvre f4, la banque `DRUMS.SMP` se charge toute seule.
 Tout est détaillé plus bas, dans le [mode d'emploi du sampler](#mode-demploi-des-samples-pas-à-pas).
 
@@ -200,13 +219,66 @@ Un fichier `.SNG` (environ 9 Ko) contient **tout le morceau** :
 - les 32 motifs ;
 - les 32 instruments et leurs noms ;
 - les 8 sons composés ;
-- les volumes et les voix muettes.
+- les volumes et les voix muettes ;
+- le nom de la banque de samples utilisée (format **version 2**).
+
+Au chargement d'un morceau version 2, sa banque de samples est rechargée si ce n'est pas celle qui est en mémoire (message `MORCEAU ET BANQUE DE SAMPLES CHARGES`). Si elle n'est pas sur la disquette, le morceau se charge quand même.
+Les morceaux de l'ancien format (version 1, sauvés avant les digidrums) se chargent toujours.
 
 Si un fichier du même nom existe, AMSDOS garde l'ancien sous l'extension `.BAK`.
 
+## 🎹 Les banques de sons
+
+Les sons par défaut restent **dans le programme** : au démarrage et après **N** (nouveau morceau), on retrouve toujours les mêmes 32 instruments. Les banques de la disquette s'y ajoutent.
+
+### Banques d'instruments `.INS` (13 banques, 416 sons)
+
+Une banque `.INS` contient 32 instruments, leurs noms et 8 sons composés (848 octets). On peut :
+
+- **charger une banque entière** : écran **f3**, touche **O** ;
+- **prendre un seul son** pour l'instrument affiché : écran **f2**, touche **O**, puis choisir la banque et le son ;
+- **sauver ses propres instruments** : écran **f3**, touche **I** (fichier `NOM.INS`, avec le nom de la ligne NOM).
+
+| Banque | Contenu |
+|---|---|
+| `USINE` | les 32 instruments par défaut du programme (pour les retrouver après une autre banque) |
+| `BATTERIE` | grosses caisses, caisses claires, charlestons, toms, cymbales, cloche, claves |
+| `BASSES` | basses courtes, longues, glissées, « buzzer », sales, wobble |
+| `LEADS` | sons de mélodie : vibratos, portamentos, sync, trilles |
+| `NAPPES` | nappes lentes, accords tenus, choeurs, orgues |
+| `ARPEGES` | accords arpégés à 3 vitesses : majeur, mineur, 7e, sus, diminué… |
+| `EFFETS` | lasers, sirènes, pièces, sauts, explosions, moteurs |
+| `BUZZER` | l'enveloppe matérielle de l'AY : 4 formes × 3 divisions, et variantes |
+| `CLAVIERS` | pianos, cordes pincées, cloches, orgues, vents |
+| `CHIPTUNE` | une banque complète pour un morceau de jeu vidéo |
+| `PERCUS` | congas, bongos, claves, triangle, tablas, gong |
+| `GLISSES` | portamentos, glissandos vers le haut ou vers le bas |
+| `BRUITS` | bruit tenu à 10 hauteurs, vent, pluie, mer, train |
+
+Elles sont fabriquées par [`tools/gen_instruments.py`](tools/gen_instruments.py) (`--list` affiche tous les sons).
+
+### Banques de samples `.SMP` (9 banques)
+
+`DRUMS.SMP` reste la banque par défaut : elle se charge toute seule à la première ouverture de f4.
+
+| Banque | Contenu | Taille |
+|---|---|---|
+| `DRUMS` | KICK, SNARE, HAT, CLAP (les digidrums d'usine) | 2 Ko |
+| `VOIX` | « bonjour », « Amstrad », « SEQ 16 », « 1, 2, 3, 4 » | 13 Ko |
+| `BATTERI2` | batterie façon boîte à rythmes : grosse caisse longue, toms, cloche, crash… (12 sons) | 12 Ko |
+| `PERCUS` | congas, bongo, claves, triangle, tambourin, agogo, tabla… (12 sons) | 13 Ko |
+| `EFFETS` | laser, zap, explosion, pièce, saut, sirène, alarme, OVNI… (12 sons) | 14 Ko |
+| `BASSES` | 10 notes de basse (DO), à jouer avec le piano de f4 | 15 Ko |
+| `NOTES` | pincé, piano, cloche, orgue, cuivre, choeur, orchestre… (10 notes, DO) | 14 Ko |
+| `CHIFFRES` | « zéro » à « dix » | 11 Ko |
+| `MOTS` | « allez », « oui », « non », « encore », « stop », « bravo », « CPC »… (14 mots) | 16 Ko |
+
+Tous les sons sont **synthétisés** ([`tools/gen_samples.py`](tools/gen_samples.py)) ou **dits par espeak** : aucun échantillon venu d'Internet, donc aucune question de droits.
+Sur f4, la touche **O** prend un sample dans l'une de ces banques et l'ajoute à la banque en mémoire. **f3 + E** sauve le résultat.
+
 ## 🥁 Le sampler : samples et digidrums
 
-SEQ-16 va apprendre à jouer des **samples** : un écran **f4 Sample Composer** pour écouter, découper et salir un son, et des **digidrums**, des samples déclenchés au pas comme une note.
+SEQ-16 joue des **samples** : un écran **f4 Sample Composer** pour écouter et salir un son, et des **digidrums**, des samples déclenchés au pas comme une note.
 Le parti pris est assumé : **la dégradation est recherchée**. Grain, repliement de spectre, souffle et hachures sont des effets voulus et réglables.
 
 Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en changeant très vite le **volume** d'une voie de l'AY : 16 niveaux sur une courbe presque logarithmique. C'est ce qui donne le grain.
@@ -254,16 +326,56 @@ python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --ds
 - **Les réglages ne sont pas encore sauvés.** Ils sont perdus quand on recharge la banque. La sauvegarde des banques viendra en phase 6.
 - **Si le motif jouait** pendant une écoute, il se fige le temps du sample, puis repart.
 
-### Où on en est : phase 2, les samples jouent sur le CPC
+### Où on en est : phase 4, les digidrums jouent dans le morceau
 
 | Phase | Contenu | État |
 |---|---|---|
 | 1 | convertisseur `wav2smp.py`, WAV d'écoute, banque d'usine de synthèse | ✅ fait |
 | 2 | lecture sur CPC (accès direct à l'AY), écran f4, choix de la banque (f3 + D) | ✅ fait |
 | 3 | mémoire supplémentaire du 6128, jauge, repli 464 | à venir |
-| 4 | digidrums dans le séquenceur (mode BLOQUANT), `.SNG` version 2 | à venir |
+| 4 | digidrums dans le séquenceur (mode BLOQUANT), `.SNG` version 2, instruments d'usine | ✅ fait |
 | 5 | lecture directe du clavier, mode HACHÉ | à venir |
-| 6 | finitions de f4 : forme d'onde, découpe, boucle, gravure, sauvegarde | à venir |
+| 6 | finitions de f4 : forme d'onde, découpe, boucle, gravure (la sauvegarde `.SMP` et l'ajout d'un sample sont déjà là) | à venir |
+
+### Les digidrums : des samples dans le morceau
+
+Un **digidrum** est un instrument qui joue un sample de la banque chargée au lieu d'une note. Les 4 instruments d'usine 29 à 32 (`DGKICK`, `DGSNAR`, `DGHAT`, `DGCLAP`) jouent les 4 sons de `DRUMS.SMP`.
+
+**Pour en faire un soi-même**, sur l'écran **f2** :
+
+1. Mets le dernier réglage, **DIGIDRUM**, à `OUI`.
+2. La ligne `PERIODE` devient `SAMPLE` et affiche le nom du sample. Change sa valeur avec ←/→ : 0 = le premier sample de la banque, 1 = le deuxième…
+3. Le **VOLUME** règle la force du sample (15 = plein, en dessous : plus doux). Les autres réglages ne servent pas.
+4. Essaie-le avec le piano : le sample joue tout de suite.
+
+**Dans le séquenceur**, pose ce digidrum comme une note :
+
+- **la hauteur** : la note **DO de l'octave 4** (rangée du haut du piano, octave de saisie 3) joue le sample tel quel ; chaque demi-ton au-dessus ou au-dessous le rend plus aigu ou plus grave, jusqu'à ±12 demi-tons ;
+- **la voix** choisit la voie de l'AY : A, B ou C. Sur la voix N (bruit), le sample joue sur la voie C, à sa hauteur d'origine ;
+- **une voix muette** (f7) ne joue pas ses digidrums.
+
+**Le mode BLOQUANT.** Le sample joue en entier à la fin de l'image, interruptions coupées. Ensuite, le séquenceur **rattrape le tempo** : il avance d'autant d'images que le sample a duré, pour que les pas suivants tombent à l'heure. Pendant le sample :
+
+- l'écran et le clavier ne répondent plus ;
+- les autres voix **continuent de sonner**, mais leurs enveloppes, arpèges et vibratos sont **gelés**. Ce gel fait partie du rendu : il n'est pas corrigé.
+
+Garde les digidrums **courts : moins de 150 ms** (les 4 sons de `DRUMS.SMP` le sont). Un sample plus long fait « bégayer » l'interface et les autres voix.
+
+### L'éditeur graphique de banques (sur PC) : `tools/smp_gui.py`
+
+Une petite application de bureau pour fabriquer une banque `.SMP` à partir de fichiers WAV, sans ligne de commande. Elle a l'allure d'un écran CPC, comme [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC) : bleu, jaune et cyan, ou moniteur vert (F3).
+
+```bat
+python tools\smp_gui.py
+```
+
+- **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 320 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
+- **À droite**, les réglages du sample choisi : nom (6 caractères), fréquence, saturation, coupure des silences, adoucissement, tramage, bits, décimation, courbe, découpe en tranches. La forme d'onde montre l'original en haut et le rendu du CPC en bas.
+- **Écouter** l'original ou le rendu du CPC.
+- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** (`build\seq16.dsk` par défaut ; on confirme si un fichier du même nom existe).
+
+Pour une banque `.SMP` ouverte, il n'y a plus de WAV d'origine : on peut changer le nom, la fréquence, les bits, la décimation et la courbe, mais pas les réglages qui demandent de reconvertir le son.
+Pour en faire un exécutable Windows : `tools\build_smp_gui.bat` (il faut PyInstaller).
 
 ### L'écran f4 : Sample Composer
 
@@ -325,7 +437,10 @@ Les courbes :
 ### Limites connues et points à surveiller
 
 - **La mémoire basse.** La banque est chargée en `#0040-#3FFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
-- **La place pour la routine** (`#A000-#A5FF`) est prise sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine.
+- **La place pour la routine** (`#A000-#A67B`) est prise juste sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine : les samples, les digidrums et la touche O de f2 sont alors désactivés, le reste fonctionne.
+- **La mémoire est pleine.** Il ne reste que quelques octets libres sous `#A000` et quelques dizaines en zone haute. La phase 3 (mémoire supplémentaire du 6128) devra en libérer avant d'ajouter des fonctions.
+- **Les banques d'instruments se lisent octet par octet** (`CAS IN CHAR` d'AMSDOS), faute de place pour une copie du fichier en mémoire. C'est testé dans le simulateur, pas encore sur la vraie machine.
+- **Le rattrapage du tempo** est calculé à partir de la durée théorique du sample (nombre d'échantillons × durée d'un échantillon). Sur 32 mesures, une petite dérive reste possible : à vérifier à l'oreille, avec une boucle de batterie samplée.
 - **La cadence** est calculée avec la table des durées propre au CPC. Elle est exacte dans le simulateur, mais il faut comparer la hauteur du kick avec le WAV d'écoute.
 - **Au-dessus d'environ 6 kHz** (moins de 167 NOP par échantillon), le test de la touche ESPACE allonge un échantillon sur 256. Cela peut donner un très léger grésillement, environ 31 fois par seconde à 8 kHz.
 - **Un « toc » au début ou à la fin** de l'écoute est possible, quand le volume passe du réglage du moteur au premier échantillon.
@@ -461,6 +576,20 @@ Ces tests vérifient :
 - l'écran f4 et ses touches, le chargement par f3 + D ;
 - que sauver et recharger un `.SNG` marche toujours.
 
+**Les instruments et les digidrums** : 24 tests de plus dans le simulateur.
+
+- [`tools/test_banks.py`](tools/test_banks.py) (10 tests) : copier / coller, sauver et charger une banque `.INS`, prendre un seul son (et annuler), fichier qui n'est pas une banque, les 13 banques de la vraie disquette.
+- [`tools/test_digidrum.py`](tools/test_digidrum.py) (14 tests) :
+  - le digidrum joue les bonnes valeurs sur la bonne voie, à la bonne hauteur et au bon volume ;
+  - une voix muette se tait ;
+  - le séquenceur rattrape exactement la durée du sample ;
+  - l'affichage et le piano de f2 ;
+  - un `.SNG` version 1 se charge, un version 2 recharge sa banque ;
+  - f3 + E sauve la banque ;
+  - f4 + O ajoute un sample pris dans une autre banque, et refuse s'il n'y a pas la place.
+
+**Sans simulateur** : [`tools/test_insbank.py`](tools/test_insbank.py) (6 tests : format et bornes des 416 sons, banque USINE = instruments d'usine) et [`tools/test_smp_gui.py`](tools/test_smp_gui.py) (17 tests de l'éditeur graphique ; ceux de la fenêtre sont sautés sans écran).
+
 Les tests lisent `build/seq16.dsk` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
 
 ## 🛠️ Réassembler
@@ -473,7 +602,8 @@ Sous Windows :
    python tools\gen_factory.py
    ```
 3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`. Si tu modifies les courbes dans `tools/wav2smp.py`, lance `python tools\gen_smp_tables.py`.
-4. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute `samples\DRUMS.SMP` (il faut Python 3).
+4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`, à relancer aussi après `gen_factory.py`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
+5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3).
 
 ## 📁 Organisation du code
 
@@ -487,16 +617,23 @@ Sous Windows :
 | [`src/tables.asm`](src/tables.asm) | tables des notes et des volumes (fichier généré) |
 | [`src/firmware.asm`](src/firmware.asm) | les adresses des routines système du CPC utilisées |
 | [`src/sample.asm`](src/sample.asm) | la lecture des samples : accès direct à l'AY, chargement d'une banque |
-| [`src/smpscreen.asm`](src/smpscreen.asm) | l'écran f4 (Sample Composer) |
+| [`src/smpscreen.asm`](src/smpscreen.asm) | l'écran f4 (Sample Composer), la liste de choix des fichiers |
+| [`src/banks.asm`](src/banks.asm) | copier / coller d'instruments, banques `.INS`, sauvegarde `.SMP`, digidrums |
+| [`src/hizone.asm`](src/hizone.asm) | routines recopiées en zone haute : prendre un son ou un sample dans une banque, jouer un digidrum |
 | [`src/smptables.asm`](src/smptables.asm) | courbes et hauteurs des samples (fichier généré) |
 | [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py) | les scripts qui génèrent ces fichiers |
 | [`tools/wav2smp.py`](tools/wav2smp.py) | convertit des WAV en banque de samples `.SMP` (et WAV d'écoute) |
 | [`tools/gen_drums.py`](tools/gen_drums.py) | fabrique la banque d'usine `DRUMS.SMP` par synthèse |
+| [`tools/gen_samples.py`](tools/gen_samples.py) | fabrique les autres banques `.SMP` (synthèse, espeak) |
+| [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/insbank.py`](tools/insbank.py) | fabrique les banques d'instruments `.INS` ; le format `.INS` |
+| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py) | l'éditeur graphique de banques `.SMP` |
 | [`tools/amsdsk.py`](tools/amsdsk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue) |
 | [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
-| [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py) | le CPC simulé et les tests du programme |
-| [`samples/`](samples/) | les banques `DRUMS.SMP` et `VOIX.SMP`, leurs sons d'origine et leurs WAV d'écoute |
+| [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
+| [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | les tests des banques `.INS` et de l'éditeur graphique |
+| [`samples/`](samples/) | les banques `.SMP`, leurs sons d'origine et leurs WAV d'écoute |
+| [`instruments/`](instruments/) | les banques d'instruments `.INS` |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |
 | [`build/seq16.dsk`](build/seq16.dsk) | la disquette prête à l'emploi |
 | [`snapshots/`](snapshots/) | les captures d'écran de ce README |
@@ -508,9 +645,12 @@ Sous Windows :
 - [ ] Étape 8 : enchaînement des motifs en morceau
 - [ ] Renommer les instruments
 - [ ] Étape 10 : copier-coller de blocs
+- [x] Copier-coller d'instruments, banques d'instruments `.INS` (13 banques, 416 sons)
 - [x] Samples, phase 1 : convertisseur et banque d'usine (sur PC)
 - [x] Samples, phase 2 : lecture sur CPC, écran f4 minimal
-- [ ] Samples, phases 3 à 6 : mémoire du 6128, digidrums, mode HACHÉ, finitions de f4
+- [x] Samples, phase 4 : digidrums dans le séquenceur, `.SNG` version 2, sauvegarde `.SMP`, 9 banques de samples
+- [x] Éditeur graphique de banques `.SMP` sur PC
+- [ ] Samples, phases 3, 5 et 6 : mémoire du 6128, mode HACHÉ, finitions de f4
 
 ---
 
