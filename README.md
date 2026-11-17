@@ -605,6 +605,16 @@ Sous Windows :
 4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`, à relancer aussi après `gen_factory.py`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
 5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3).
 
+**Il faut aussi le projet CPC DISK**, l'éditeur de disquettes : SEQ-16 utilise sa bibliothèque (`cpc_dsk`) pour écrire sur les disquettes. Place-le à côté de ce projet, sur une version qui contient `cpc_dsk/core/amsdos.py` :
+
+```
+_Codes/
+├── CPC-SEQ-16/    ce projet
+└── CPC-DISK/      l'éditeur de disquettes (ou AmstradCPC, son ancien nom)
+```
+
+`tools/cpcdisk.py` le trouve tout seul. Autres possibilités : `pip install -e ../CPC-DISK`, ou la variable d'environnement `CPC_DISK` qui donne son dossier.
+
 ## 📁 Organisation du code
 
 | Fichier | Rôle |
@@ -627,7 +637,7 @@ Sous Windows :
 | [`tools/gen_samples.py`](tools/gen_samples.py) | fabrique les autres banques `.SMP` (synthèse, espeak) |
 | [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/insbank.py`](tools/insbank.py) | fabrique les banques d'instruments `.INS` ; le format `.INS` |
 | [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py) | l'éditeur graphique de banques `.SMP` |
-| [`tools/amsdsk.py`](tools/amsdsk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue) |
+| [`tools/amsdsk.py`](tools/amsdsk.py), [`tools/cpcdisk.py`](tools/cpcdisk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue), avec la bibliothèque de CPC DISK |
 | [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
