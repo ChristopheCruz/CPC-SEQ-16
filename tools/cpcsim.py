@@ -60,7 +60,9 @@ FW = {
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
     0xBC98: "CAS_OUT_DIRECT", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
     0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
+    0xBCD4: "KL_FIND_COMMAND",
 }
+FAKE_READ_SECTOR = 0xC0F0          # adresse fictive de la commande AMSDOS #84
 JUNK = 0xA5                       # valeur des registres « corrompus »
 HIMEM_6128 = 0xA67B               # plus haute adresse libre après AMSDOS (6128)
 
@@ -197,6 +199,9 @@ class CPC:
         self.gate_array = []                  # écritures sur #7F
         self.key_reads = 0
         self.on_key_read = None               # fonction appelée à chaque lecture
+        self.chars = []                       # frappes rendues par KM_WAIT_CHAR
+        self.disk = None                      # image .dsk (lecture de secteurs)
+        self.sector_reads = []
         self.screen = [[" "] * 40 for _ in range(25)]
         self.attr = [[(1, 0)] * 40 for _ in range(25)]
         self.cur = [1, 1]                     # colonne, ligne
@@ -212,13 +217,18 @@ class CPC:
         self.handlers = {name: getattr(self, "fw_" + name, None) for name in FW.values()}
 
     @classmethod
-    def from_build(cls):
-        dsk = os.path.join(ROOT, "build", "seq16.dsk")
+    def from_build(cls, dsk=None):
+        dsk = dsk or os.path.join(ROOT, "build", "seq16.dsk")
         binary = amsdsk.read_file(dsk, "SEQ16.BIN")
         syms = read_symbols(os.path.join(ROOT, "build", "seq16.sym"))
         cpc = cls(binary, syms)
-        cpc.files["DRUMS.SMP"] = amsdsk.read_file(dsk, "DRUMS.SMP")
+        cpc.use_disk(dsk)
         return cpc
+
+    def use_disk(self, dsk):
+        """Met cette image .dsk dans le lecteur A (fichiers et secteurs)."""
+        self.disk = amsdsk.Disk(open(dsk, "rb").read())
+        self.files = {n: amsdsk.read_file(dsk, n) for n in amsdsk.list_files(dsk)}
 
     def addr(self, name):
         return self.sym[name.upper()]
@@ -285,6 +295,9 @@ class CPC:
             return
         if op == 0xC7 and pc >= 0x4000:       # RST 0 : le programme quitte
             self.stopped = True
+            return
+        if op == 0xDF:                        # RST #18 : appel lointain
+            self._far_call(pc)
             return
         was_on = m.iff1
         m.ticks_to_stop = 1
@@ -381,8 +394,38 @@ class CPC:
         self.m.a = JUNK
 
     def fw_KM_WAIT_CHAR(self):
-        self.m.a = 13                         # RETURN
+        self.m.a = self.chars.pop(0) if self.chars else 13   # RETURN par défaut
         self._carry(True)
+
+    def fw_KL_FIND_COMMAND(self):
+        name = self.mem[self.m.hl]
+        if name == 0x84:                      # lecture de secteur d'AMSDOS
+            self.m.hl = FAKE_READ_SECTOR
+            self.m.c = 7
+            self._carry(True)
+        else:
+            self._carry(False)
+        self.m.a = JUNK
+
+    def _far_call(self, pc):
+        """RST #18 suivi de l'adresse d'une adresse lointaine (3 octets)."""
+        ptr = self.mem[pc + 1] | self.mem[pc + 2] << 8
+        routine = self.mem[ptr] | self.mem[ptr + 1] << 8
+        if routine != FAKE_READ_SECTOR:
+            raise RuntimeError("appel lointain inconnu : #%04X" % routine)
+        m = self.m
+        track, sector, buf = m.d, m.c, m.hl
+        self.sector_reads.append((m.e, track, sector))
+        off = self.disk.sect_off.get((track, sector)) if self.disk else None
+        if m.e != 0 or off is None:
+            m.a = 0xFF                        # erreur
+            self._carry(False)
+        else:
+            m.set_memory_block(buf, bytes(self.disk.raw[off:off + 512]))
+            m.a = 0
+            self._carry(True)
+        m.pc = (pc + 3) & 0xFFFF
+        self.t += 2000
 
     def fw_TXT_OUTPUT(self):                  # tous les registres préservés
         col, row = self.cur
@@ -406,9 +449,17 @@ class CPC:
         self._corrupt("af", "hl")
 
     def fw_TXT_WIN_ENABLE(self):
+        # H, D = colonnes gauche et droite ; L, E = lignes haut et bas (0 à ...)
+        m = self.m
+        self.window = (min(m.h, m.d), max(m.h, m.d), min(m.l, m.e), max(m.l, m.e))
         self._corrupt("af", "bc", "de", "hl")
 
     def fw_TXT_CLEAR_WINDOW(self):
+        left, right, top, bottom = getattr(self, "window", (0, 39, 0, 24))
+        for r in range(top, min(bottom, 24) + 1):
+            for c in range(left, min(right, 39) + 1):
+                self.screen[r][c] = " "
+                self.attr[r][c] = (self.pen, self.paper)
         self._corrupt("af", "bc", "de", "hl")
 
     def fw_TXT_CUR_ON(self):

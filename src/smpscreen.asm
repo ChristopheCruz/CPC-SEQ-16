@@ -17,7 +17,7 @@
 ;
 ; Au premier passage sur cet écran, le programme charge DRUMS.SMP (la banque
 ; d'usine) s'il n'y a pas encore de banque.  Pour une autre banque : écran
-; f3, taper le nom, puis D.
+; f3, puis D : on choisit parmi les fichiers .SMP de la disquette.
 ;
 ; Pendant une écoute, plus rien ne bouge à l'écran : le processeur ne fait
 ; que jouer le sample, interruptions coupées.
@@ -512,29 +512,354 @@ sl_have:
         ld hl,txt_m_none        ; message effacé
         jp smp_message
 
-; --- Chargement depuis l'écran f3 (touche D) ---------------------------------
+; --- Choix d'une banque depuis l'écran f3 (touche D) -------------------------
+; On lit le catalogue de la disquette (répertoire AMSDOS) et on affiche les
+; fichiers .SMP en bas de l'écran : flèches pour choisir, RETURN pour charger,
+; ESC pour annuler.  Le champ NOM reste celui du morceau (.SNG).
+CHOOSE_ROW  equ 19              ; première ligne de la liste
+CHOOSE_ROWS equ 6               ; 6 lignes x 3 colonnes de 13 caractères
+MAX_FILES   equ 16
+
 disk_load_bank:
         call silence
+        ld hl,txt_s_reading
+        call dsk_message
+        call smp_scan_dir       ; -> A = 0 si le catalogue a été lu
+        or a
+        jr z,dlb_scanned
+        ld hl,txt_s_nocat       ; pas d'AMSDOS
+        cp 4
+        jp z,dsk_message
+        ld hl,txt_m_error       ; disquette illisible
+        jp dsk_message
+dlb_scanned:
+        ld a,(smp_nfiles)
+        or a
+        ld hl,txt_s_nofile
+        jp z,dsk_message
+        xor a                   ; le premier fichier est choisi
+        ld (smp_pick),a
+        call choose_clear
+        xor a
+dlb_draw:                       ; on affiche toute la liste
+        push af
+        call choose_draw
+        pop af
+        inc a
+        ld hl,smp_nfiles
+        cp (hl)
+        jr nz,dlb_draw
+        ld hl,txt_s_choose
+        call dsk_message
+dlb_flush:                      ; on vide les frappes en attente (le D)
+        call KM_READ_CHAR
+        jr c,dlb_flush
+dlb_wait:
+        call KM_WAIT_CHAR       ; attend une touche
+        cp 13
+        jp z,dlb_load           ; RETURN : on charge
+        cp #FC
+        jr z,dlb_esc            ; ESC : on annule
+        ld hl,smp_pick
+        ld b,(hl)               ; B = choix actuel
+        ld c,b                  ; C = nouveau choix
+        cp #F0
+        jr z,dlb_up
+        cp #F1
+        jr z,dlb_down
+        cp #F2
+        jr z,dlb_left
+        cp #F3
+        jr z,dlb_right
+        jr dlb_wait
+dlb_up:                         ; flèche haut : fichier précédent
+        ld a,b
+        or a
+        jr z,dlb_wait
+        dec c
+        jr dlb_move
+dlb_down:                       ; flèche bas : fichier suivant
+        ld a,(smp_nfiles)
+        dec a
+        cp b
+        jr z,dlb_wait
+        inc c
+        jr dlb_move
+dlb_left:                       ; flèche gauche : colonne précédente
+        ld a,b
+        sub CHOOSE_ROWS
+        jr c,dlb_wait
+        ld c,a
+        jr dlb_move
+dlb_right:                      ; flèche droite : colonne suivante
+        ld a,b
+        add a,CHOOSE_ROWS
+        ld hl,smp_nfiles
+        cp (hl)
+        jr nc,dlb_wait
+        ld c,a
+dlb_move:
+        ld a,c
+        ld (smp_pick),a
+        ld a,b
+        call choose_draw        ; l'ancien redevient normal
+        ld a,(smp_pick)
+        call choose_draw        ; le nouveau en jaune inversé
+        jr dlb_wait
+
+dlb_esc:
+        ld a,KEY_ESC            ; on attend qu'ESC soit relâchée, pour ne pas
+        call KM_TEST_KEY        ; qu'elle compte comme « quitter »
+        jr nz,dlb_esc
+        call choose_clear
+        ld hl,txt_m_none
+        jp dsk_message
+
+dlb_load:
+        call choose_clear
+        ld a,(smp_pick)         ; HL = nom choisi (8 caractères)
+        call choose_name
+        push hl
+        ld de,smp_fname         ; smp_fname = nom sans espaces + ".SMP"
+        ld b,8
+        ld c,0                  ; C = longueur
+dlb_copy:
+        ld a,(hl)
+        cp ' '
+        jr z,dlb_skip
+        ld (de),a
+        inc de
+        inc c
+dlb_skip:
+        inc hl
+        djnz dlb_copy
         ld hl,txt_ext_smp
-        call build_filename_ext ; NOM.SMP
-        ret nc
+        ld b,4
+dlb_ext:
+        ld a,(hl)
+        ld (de),a
+        inc hl
+        inc de
+        inc c
+        djnz dlb_ext
+        ld b,c
+        push bc
         ld hl,txt_m_loading
         call dsk_message
-        ld a,(fname_len)
-        ld b,a
-        ld hl,fname_full
+        pop bc
+        ld hl,smp_fname
         call smp_load_bank
+        pop hl                  ; HL = nom choisi
         push af
         or a
         jr nz,dlb_msg
-        ld hl,fname             ; la banque prend le nom du champ NOM
-        call smp_set_name
+        call smp_set_name       ; la banque prend ce nom
         xor a                   ; on revient au premier sample
         ld (cur_smp),a
 dlb_msg:
         pop af
         call smp_load_text
         jp dsk_message
+
+; HL = nom (8 caractères) du fichier A de la liste
+choose_name:
+        add a,a
+        add a,a
+        add a,a                 ; 8 octets par nom
+        ld e,a
+        ld d,0
+        ld hl,smp_files
+        add hl,de
+        ret
+
+; Affiche le fichier A de la liste, en jaune inversé s'il est choisi.
+; Colonne = 1 + 13 x (A / 6), ligne = CHOOSE_ROW + (A modulo 6).
+choose_draw:
+        ld (cd_i),a
+        ld b,0                  ; B = A / 6, A = A modulo 6
+cd_div:
+        cp CHOOSE_ROWS
+        jr c,cd_pos
+        sub CHOOSE_ROWS
+        inc b
+        jr cd_div
+cd_pos:
+        add a,CHOOSE_ROW
+        ld l,a                  ; L = ligne
+        ld a,b                  ; colonne = 13 x B + 1
+        ld c,a
+        add a,a                 ; 2B
+        add a,c                 ; 3B
+        add a,a                 ; 6B
+        add a,a                 ; 12B
+        add a,c                 ; 13B
+        inc a
+        ld h,a                  ; H = colonne
+        call TXT_SET_CURSOR
+        ld a,(cd_i)
+        ld hl,smp_pick
+        cp (hl)
+        jr nz,cd_normal
+        ld a,1                  ; choisi : fond jaune, texte bleu
+        call TXT_SET_PAPER
+        xor a
+        call TXT_SET_PEN
+        jr cd_text
+cd_normal:
+        xor a
+        call TXT_SET_PAPER
+        ld a,3
+        call TXT_SET_PEN
+cd_text:
+        ld a,(cd_i)
+        call choose_name
+        ld b,8
+        call print_n
+        xor a
+        jp TXT_SET_PAPER
+
+; Efface le bas de l'écran (lignes 19 à 25), là où s'affiche la liste
+choose_clear:
+        ld h,0                  ; fenêtre de texte : lignes 19 à 25
+        ld d,39
+        ld l,18
+        ld e,24
+        call TXT_WIN_ENABLE
+        xor a
+        call TXT_SET_PAPER
+        call TXT_CLEAR_WINDOW
+        ld h,0                  ; on rend tout l'écran au texte
+        ld d,39
+        ld l,0
+        ld e,24
+        call TXT_WIN_ENABLE
+        ld hl,quit_line         ; la ligne 25 a été effacée : on la remet
+        jp print_list
+
+quit_line:
+        db 1,25,3,0,"ESC MAINTENUE 1 SECONDE : QUITTER",0
+        db #FF
+
+; ----------------------------------------------------------------------------
+; Lecture du catalogue : remplit smp_files (noms de 8 caractères) et
+; smp_nfiles avec les fichiers .SMP de la disquette du lecteur A.
+; Sortie : A = 0 tout va bien, 1 = erreur de lecture, 4 = AMSDOS absent.
+;
+; On lit les 4 secteurs du répertoire (64 entrées de 32 octets) avec la
+; commande cachée d'AMSDOS « lecture de secteur » (#84) :
+;   HL = tampon, E = lecteur (0 = A), D = piste, C = numéro de secteur.
+; On la trouve avec KL_FIND_COMMAND, puis on l'appelle par RST #18 (appel
+; « lointain » : la routine est dans la ROM d'AMSDOS).
+; Format DATA : répertoire en piste 0, secteurs #C1 à #C4.
+; Format SYSTEME (si DATA échoue) : piste 2, secteurs #41 à #44.
+; ----------------------------------------------------------------------------
+smp_scan_dir:
+        xor a
+        ld (smp_nfiles),a
+        ld a,(rsx_found)        ; commande déjà trouvée ?
+        or a
+        jr nz,ssd_have
+        ld hl,rsx_read_name
+        call KL_FIND_COMMAND    ; -> HL = adresse, C = ROM
+        ld a,4
+        ret nc                  ; pas trouvée : pas d'AMSDOS
+        ld (rsx_far),hl
+        ld a,c
+        ld (rsx_far+2),a
+        ld a,1
+        ld (rsx_found),a
+ssd_have:
+        ld d,0                  ; format DATA
+        ld c,#C1
+        call ssd_read4
+        jr c,ssd_parse
+        ld d,2                  ; format SYSTEME
+        ld c,#41
+        call ssd_read4
+        ld a,1
+        ret nc
+ssd_parse:
+        ld hl,io_buffer         ; 64 entrées de 32 octets
+        ld b,64
+ssd_entry:
+        push bc
+        push hl
+        ld a,(hl)               ; octet 0 = utilisateur (#E5 = effacée)
+        cp 16
+        jr nc,ssd_next
+        ld de,12                ; octet 12 = numéro d'extent : 0 seulement
+        add hl,de               ; (un gros fichier a plusieurs entrées)
+        ld a,(hl)
+        or a
+        jr nz,ssd_next
+        pop hl
+        push hl
+        ld de,9                 ; octets 9 à 11 = extension (bit 7 = attribut)
+        add hl,de
+        ld de,txt_ext_smp+1     ; "SMP"
+        ld b,3
+ssd_ext:
+        ld a,(hl)
+        and #7F
+        ex de,hl
+        cp (hl)
+        ex de,hl
+        jr nz,ssd_next
+        inc hl
+        inc de
+        djnz ssd_ext
+        ld a,(smp_nfiles)       ; c'est un .SMP : on garde son nom
+        cp MAX_FILES
+        jr nc,ssd_next
+        call choose_name        ; HL = place du nom dans smp_files
+        ex de,hl
+        pop hl
+        push hl
+        inc hl                  ; octets 1 à 8 = nom
+        ld b,8
+ssd_name:
+        ld a,(hl)
+        and #7F
+        ld (de),a
+        inc hl
+        inc de
+        djnz ssd_name
+        ld hl,smp_nfiles
+        inc (hl)
+ssd_next:
+        pop hl
+        ld de,32                ; entrée suivante
+        add hl,de
+        pop bc
+        djnz ssd_entry
+        xor a
+        ret
+
+; Lit 4 secteurs consécutifs (piste D, à partir du secteur C) dans io_buffer.
+; Carry = 1 si tout s'est bien passé.
+ssd_read4:
+        ld hl,io_buffer
+        ld b,4
+ssd_rd:
+        push bc
+        push de
+        push hl
+        ld e,0                  ; lecteur A
+        rst #18                 ; appel lointain de la commande #84
+        dw rsx_far
+        pop hl
+        pop de
+        pop bc
+        ret nc                  ; erreur de lecture
+        inc h                   ; secteur suivant : 512 octets plus loin
+        inc h
+        inc c
+        djnz ssd_rd
+        scf
+        ret
+
+rsx_read_name: db #84           ; nom de la commande : un seul caractère,
+                                ; bit 7 à 1 (dernier caractère du nom)
 
 ; HL = message pour le résultat A de smp_load_bank
 smp_load_text:
@@ -616,9 +941,13 @@ txt_s_loading:  db "CHARGEMENT DE DRUMS.SMP...",0
 txt_s_loaded:   db "BANQUE CHARGEE",0
 txt_s_big:      db "BANQUE TROP GRANDE POUR LA MEMOIRE",0
 txt_s_bad:      db "CE FICHIER N'EST PAS UNE BANQUE .SMP",0
-txt_s_nobank:   db "AUCUNE BANQUE : f3, NOM, PUIS D",0
+txt_s_nobank:   db "AUCUNE BANQUE : f3 PUIS D",0
 txt_s_playing:  db "ECOUTE... (ESPACE : ARRET)",0
 txt_s_nomem:    db "PAS ASSEZ DE MEMOIRE POUR LES SAMPLES",0
+txt_s_reading:  db "LECTURE DU CATALOGUE...",0
+txt_s_nocat:    db "CATALOGUE ILLISIBLE (AMSDOS ABSENT ?)",0
+txt_s_nofile:   db "AUCUN FICHIER .SMP SUR LA DISQUETTE",0
+txt_s_choose:   db "FLECHES PUIS RETURN (ESC : ANNULER)",0
 
 smp_text:
         db 1,2,2,0,  "BANQUE :",0
@@ -643,6 +972,6 @@ smp_text:
         db SMP_FLD_COL,17,3,0,"CTRL  ",242,243,0
         db SMP_FLD_COL+9,17,2,0,"SAMPLE",0
         db 1,24,3,0, "f3",0
-        db 4,24,2,0, "NOM PUIS D : CHARGER UNE BANQUE",0
+        db 4,24,2,0, "PUIS D : CHOISIR UNE BANQUE",0
         db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
         db #FF

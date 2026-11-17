@@ -2543,7 +2543,7 @@ dsk_text:
         db 12,14,3,0,"RETURN",0
         db 19,14,2,0,"MUET (OU NOM)",0
         db 1,16,3,0, "D",0
-        db 3,16,2,0, "CHARGER LA BANQUE NOM.SMP",0
+        db 3,16,2,0, "CHOISIR UNE BANQUE DE SAMPLES",0
         db 1,15,3,0, 240,241,0
         db 4,15,2,0, "CHOIX",0
         db 12,15,3,0,242,243,0
@@ -2656,6 +2656,13 @@ cur_smp:    db 0                ; écran Samples : sample choisi
 smp_field:  db 0                ;   réglage en cours
 smp_tried:  db 0                ;   1 = DRUMS.SMP a déjà été essayé
 smp_name:   db "--------"       ;   nom de la banque chargée
+smp_files:  ds 16*8             ; f3 + D : noms des fichiers .SMP trouvés
+smp_nfiles: db 0                ;   leur nombre
+smp_pick:   db 0                ;   celui qui est choisi
+smp_fname:  ds 13               ;   nom complet "NOM.SMP"
+cd_i:       db 0
+rsx_found:  db 0                ; 1 = commande AMSDOS #84 trouvée
+rsx_far:    ds 3                ;   son adresse (2 octets) et sa ROM (1 octet)
 sdr_i:      db 0
 sdr_ms:     dw 0
 sdf_i:      db 0

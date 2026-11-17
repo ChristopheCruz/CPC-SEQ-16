@@ -290,17 +290,41 @@ class PlayerTest(unittest.TestCase):
                 s = [(t, v) for t, r, v in cpc.ay_writes[n0:] if r == 8 and start <= t <= end][:-1]
                 self.check_cadence(s, 160 * pitch[semi + 12] // 256)
 
-    def test_f3_load_named_bank(self):
+    def make_disk(self, extra):
+        """Une disquette : celle du build + des fichiers en plus."""
+        import shutil
+        import tempfile
+        import amsdsk
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        path = os.path.join(d, "t.dsk")
+        shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), path)
+        for name, data in extra.items():
+            amsdsk.add_file(path, name, data)
+        self.cpc.use_disk(path)
+
+    def test_f3_choose_bank(self):
+        """f3 + D : liste des .SMP de la disquette, flèches, RETURN."""
         cpc = self.cpc
         two = [wav2smp.Sample("ONE", b"\x11" * 50, 125), wav2smp.Sample("TWO", b"\x22" * 60, 100)]
-        cpc.files["TEST.SMP"] = wav2smp.build_bank(two)
-        cpc.poke(cpc.addr("fname"), b"TEST    ")
+        self.make_disk({"TEST.SMP": wav2smp.build_bank(two),
+                        "MORCEAU1.SNG": bytes(100)})
         cpc.frames(1, keys={KEY_F3})
         cpc.frames(1)
+        # ordre du répertoire : DRUMS, VOIX, TEST -> bas, bas, haut, bas,
+        # bas (déjà au dernier), RETURN : TEST
+        cpc.chars = [0xF1, 0xF1, 0xF0, 0xF1, 0xF1, 13]
         cpc.frames(1, keys={KEY_D})
         cpc.frames(1)
+        self.assertEqual(cpc.sector_reads[:4], [(0, 0, 0xC1), (0, 0, 0xC2),
+                                                (0, 0, 0xC3), (0, 0, 0xC4)])
+        self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 3)
+        names = cpc.peek(cpc.addr("smp_files"), 24)
+        self.assertEqual(names, b"DRUMS   VOIX    TEST    ")
         self.assertIn("BANQUE CHARGEE", cpc.row(17))
+        self.assertEqual(cpc.row(19).strip(), "")      # la liste est effacée
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 2)
+        self.assertEqual(cpc.peek(cpc.addr("fname"), 8), b"MORCEAU1")  # NOM intact
         cpc.frames(1, keys={KEY_F4})
         cpc.frames(1)
         self.assertIn("BANQUE : TEST", cpc.screen_text())
