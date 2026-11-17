@@ -51,6 +51,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 ## 💾 Essayer tout de suite
 
 1. Télécharge **[`seq16.dsk`](https://github.com/ChristopheCruz/seq-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
+   - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes banques, mêmes touches : seuls les textes de l'écran changent.
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
 3. Tape :
 
@@ -588,6 +589,8 @@ Ces tests vérifient :
   - f3 + E sauve la banque ;
   - f4 + O ajoute un sample pris dans une autre banque, et refuse s'il n'y a pas la place.
 
+**Les langues** : [`tools/test_lang.py`](tools/test_lang.py) (7 tests : chaque traduction tient dans la place du français, aucun texte oublié ; les versions anglaise et espagnole démarrent dans le simulateur et affichent leurs textes sur les quatre écrans, avec les mêmes adresses que la version française).
+
 **Sans simulateur** : [`tools/test_insbank.py`](tools/test_insbank.py) (6 tests : format et bornes des 416 sons, banque USINE = instruments d'usine) et [`tools/test_smp_gui.py`](tools/test_smp_gui.py) (17 tests de l'éditeur graphique ; ceux de la fenêtre sont sautés sans écran).
 
 Les tests lisent `build/seq16.dsk` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
@@ -603,7 +606,9 @@ Sous Windows :
    ```
 3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`. Si tu modifies les courbes dans `tools/wav2smp.py`, lance `python tools\gen_smp_tables.py`.
 4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`, à relancer aussi après `gen_factory.py`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
-5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3).
+5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3). Il fabrique aussi les versions anglaise et espagnole, `build\seq16-en.dsk` et `build\seq16-es.dsk`.
+
+**Les traductions** sont dans [`tools/lang.py`](tools/lang.py) : le source reste en français, et le script en fait une copie par langue où chaque texte affiché est remplacé. Une traduction n'est jamais plus longue que le français (elle est complétée par des espaces) : les trois programmes ont la même taille et les mêmes adresses, ce qui compte avec une mémoire pleine. Si tu ajoutes un texte au source, ajoute sa traduction ; `python tools/lang.py --check` signale les textes oubliés ou trop longs.
 
 **Il faut aussi le projet CPC DISK**, l'éditeur de disquettes : SEQ-16 utilise sa bibliothèque (`cpc_dsk`) pour écrire sur les disquettes. Place-le à côté de ce projet, sur une version qui contient `cpc_dsk/core/amsdos.py` :
 
@@ -642,6 +647,7 @@ _Codes/
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
 | [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | les tests des banques `.INS` et de l'éditeur graphique |
+| [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | les versions anglaise et espagnole (traductions, fabrication) et leurs tests |
 | [`samples/`](samples/) | les banques `.SMP`, leurs sons d'origine et leurs WAV d'écoute |
 | [`instruments/`](instruments/) | les banques d'instruments `.INS` |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |

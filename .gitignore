@@ -5,3 +5,5 @@ __pycache__/
 tools/build/
 tools/dist/
 tools/*.spec
+build/lang/
+build/seq16-*.sym
