@@ -21,6 +21,11 @@ import amsdsk      # noqa: E402
 import smp_model   # noqa: E402
 import wav2smp     # noqa: E402
 from smp_model import BankError, BankModel  # noqa: E402
+from cpc_dsk import i18n  # noqa: E402
+
+# L'éditeur (dans CPC DISK) suit la langue du système : ces tests
+# vérifient les textes français.
+i18n.set_language("fr")
 
 ROOT = os.path.join(HERE, "..")
 

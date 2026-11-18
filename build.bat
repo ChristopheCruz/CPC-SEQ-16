@@ -1,10 +1,10 @@
 @echo off
 rem ---------------------------------------------------------------
 rem  SEQ-16 : assemble le programme et fabrique build\seq16.dsk
-rem  Il faut tools\rasm.exe (voir README.md).
+rem  Il faut tools\rasm.exe (voir README.fr.md).
 rem ---------------------------------------------------------------
 if not exist tools\rasm.exe (
-  echo Il manque tools\rasm.exe - voir README.md
+  echo Il manque tools\rasm.exe - voir README.fr.md
   exit /b 1
 )
 if not exist build mkdir build
@@ -22,8 +22,20 @@ python tools\amsdsk.py build\seq16.dsk samples\DRUMS.SMP samples\VOIX.SMP sample
 if errorlevel 1 goto pas_python
 python tools\amsdsk.py build\seq16.dsk instruments\USINE.INS instruments\BATTERIE.INS instruments\BASSES.INS instruments\LEADS.INS instruments\NAPPES.INS instruments\ARPEGES.INS instruments\EFFETS.INS instruments\BUZZER.INS instruments\CLAVIERS.INS instruments\CHIPTUNE.INS instruments\PERCUS.INS instruments\GLISSES.INS instruments\BRUITS.INS
 if errorlevel 1 goto pas_python
+rem Versions anglaise et espagnole : build\seq16-en.dsk, build\seq16-es.dsk
+python tools\lang.py en es --rasm tools\rasm.exe
+if errorlevel 1 (
+  echo.
+  echo *** VERSIONS ANGLAISE ET ESPAGNOLE NON FABRIQUEES ***
+  exit /b 1
+)
+rem Disquettes de banques seules : build\seq16-sons.dsk, build\seq16-samples.dsk
+python tools\bank_disks.py
+if errorlevel 1 goto pas_python
 echo.
-echo OK : build\seq16.dsk est pret.  Sur le CPC : RUN"SEQ16
+echo OK : build\seq16.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
+echo      build\seq16-sons.dsk et seq16-samples.dsk : les banques seules.
+echo Sur le CPC : RUN"SEQ16
 exit /b 0
 :pas_python
 echo.
