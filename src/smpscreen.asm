@@ -304,7 +304,17 @@ smp_cmd:
         jr z,smp_up
         cp 9
         jr z,smp_down
+        cp 19
+        jr z,smp_take           ; O : prendre un sample dans une banque
         ret
+
+; O : la routine est en zone haute ; il faut une banque en mémoire
+smp_take:
+        ld a,(smp_count)
+        or a
+        ld hl,txt_s_nobank
+        jp z,smp_message
+        jp smp_take_hi
 
 smp_up:
         ld a,(smp_field)        ; réglage précédent
@@ -516,184 +526,249 @@ sl_have:
 ; On lit le catalogue de la disquette (répertoire AMSDOS) et on affiche les
 ; fichiers .SMP en bas de l'écran : flèches pour choisir, RETURN pour charger,
 ; ESC pour annuler.  Le champ NOM reste celui du morceau (.SNG).
-CHOOSE_ROW  equ 19              ; première ligne de la liste
+CHOOSE_ROW  equ 19              ; première ligne de la liste des fichiers
 CHOOSE_ROWS equ 6               ; 6 lignes x 3 colonnes de 13 caractères
-MAX_FILES   equ 16
+MAX_FILES   equ 16              ; au plus 16 fichiers dans la liste
 
 disk_load_bank:
-        call silence
-        ld hl,txt_s_reading
+        ld hl,txt_ext_smp       ; on choisit parmi les fichiers .SMP
+        call choose_file        ; -> Carry si choisi, HL = nom complet,
+        ret nc                  ;    B = sa longueur, DE = nom sur 8 caractères
+        push de                 ; on garde le nom pour la banque
+        push bc                 ; et le nom complet pour le chargement
+        push hl
+        ld hl,txt_m_loading     ; « chargement en cours »
+        call dsk_message
+        pop hl                  ; HL = nom complet
+        pop bc                  ; B = sa longueur
+        call smp_load_bank      ; -> A = résultat
+        pop hl                  ; HL = nom choisi (8 caractères)
+        push af
+        or a
+        jr nz,dlb_msg           ; échec : la banque ne change pas de nom
+        call smp_set_name       ; la banque prend ce nom
+        xor a                   ; on revient au premier sample
+        ld (cur_smp),a
+dlb_msg:
+        pop af
+        call smp_load_text      ; HL = message pour ce résultat
+        jp dsk_message
+
+; ----------------------------------------------------------------------------
+; Choix d'un fichier de la disquette.  HL = extension (".SMP", ".INS"...)
+; On lit le catalogue, on affiche les fichiers de cette extension en bas de
+; l'écran (lignes 19 à 24) et on laisse choisir avec les flèches.
+; Sortie : Carry = 1 si un fichier a été choisi.  HL = nom complet
+;          (smp_fname, "NOM.EXT"), B = sa longueur, DE = nom sur 8 caractères.
+;          Carry = 0 : annulé, ou erreur (le message est déjà affiché).
+; ----------------------------------------------------------------------------
+choose_file:
+        ld (scan_ext),hl        ; extension cherchée dans le catalogue
+        call silence            ; plus de son pendant l'accès disque
+        ld hl,txt_s_reading     ; « lecture du catalogue »
         call dsk_message
         call smp_scan_dir       ; -> A = 0 si le catalogue a été lu
         or a
-        jr z,dlb_scanned
-        ld hl,txt_s_nocat       ; pas d'AMSDOS
+        jr z,cf_scanned
+        ld hl,txt_s_nocat       ; 4 : pas d'AMSDOS
         cp 4
-        jp z,dsk_message
-        ld hl,txt_m_error       ; disquette illisible
-        jp dsk_message
-dlb_scanned:
-        ld a,(smp_nfiles)
+        jr z,cf_fail
+        ld hl,txt_m_error       ; 1 : disquette illisible
+cf_fail:
+        call dsk_message        ; on explique pourquoi
+        or a                    ; Carry = 0 : rien de choisi
+        ret
+cf_scanned:
+        ld a,(smp_nfiles)       ; aucun fichier de cette extension ?
         or a
         ld hl,txt_s_nofile
-        jp z,dsk_message
-        xor a                   ; le premier fichier est choisi
+        jr z,cf_fail
+        ld hl,smp_files         ; liste : les noms de 8 caractères,
+        ld (ch_names),hl
+        ld (ch_count),a         ;   leur nombre,
+        ld hl,8*256+CHOOSE_ROWS ;   8 caractères par nom, 6 lignes,
+        ld (ch_rows),hl         ;   (ch_rows puis ch_len)
+        ld hl,CHOOSE_ROW*256+1  ;   colonne 1, ligne 19,
+        ld (ch_col0),hl         ;   (ch_col0 puis ch_row0)
+        ld a,13                 ;   colonnes de 13 caractères
+        ld (ch_colw),a
+        call choose_clear       ; bas de l'écran effacé
+        call choose_run         ; -> Carry si RETURN, A = fichier choisi
+        push af
+        call choose_clear       ; on efface la liste
+        pop af
+        jr c,cf_chosen
+        ld hl,txt_m_none        ; annulé : message effacé
+        jr cf_fail
+cf_chosen:
+        call choose_name        ; HL = nom choisi (8 caractères)
+        push hl
+        ld de,(scan_ext)        ; nom sans espaces + extension
+        call make_fname         ; -> HL = nom complet, B = longueur
+        pop de                  ; DE = nom choisi (8 caractères)
+        scf                     ; Carry = 1 : un fichier a été choisi
+        ret
+
+; Nom de fichier : HL = nom sur 8 caractères (espaces ou 0 à la fin),
+; DE = extension (4 caractères, point compris).
+; Sortie : HL = smp_fname ("NOM.EXT"), B = sa longueur.
+make_fname:
+        push de
+        ld de,smp_fname
+        ld b,8
+        ld c,0                  ; C = longueur
+mf_copy:
+        ld a,(hl)
+        cp ' '+1                ; les espaces (et les 0) ne comptent pas
+        jr c,mf_skip
+        ld (de),a
+        inc de
+        inc c
+mf_skip:
+        inc hl
+        djnz mf_copy
+        pop hl                  ; HL = extension
+        ld b,4
+mf_ext:
+        ld a,(hl)
+        ld (de),a
+        inc hl
+        inc de
+        inc c
+        djnz mf_ext
+        ld b,c                  ; B = longueur
+        ld hl,smp_fname
+        ret
+
+; ----------------------------------------------------------------------------
+; Liste de choix, réglée par ch_names, ch_count, ch_len, ch_rows, ch_colw,
+; ch_col0 et ch_row0.  Les noms sont rangés en colonnes de ch_rows lignes.
+; Flèches haut / bas : nom précédent / suivant ; gauche / droite : colonne
+; précédente / suivante ; RETURN : choisir ; ESC : annuler.
+; Sortie : Carry = 1 et A = numéro choisi, ou Carry = 0 si ESC.
+; ----------------------------------------------------------------------------
+choose_run:
+        xor a                   ; le premier nom est choisi
         ld (smp_pick),a
-        call choose_clear
-        xor a
-dlb_draw:                       ; on affiche toute la liste
+cr_draw:                        ; on affiche toute la liste
         push af
         call choose_draw
         pop af
         inc a
-        ld hl,smp_nfiles
+        ld hl,ch_count
         cp (hl)
-        jr nz,dlb_draw
-        ld hl,txt_s_choose
+        jr nz,cr_draw
+        ld hl,txt_s_choose      ; « flèches puis RETURN »
         call dsk_message
-dlb_flush:                      ; on vide les frappes en attente (le D)
+cr_flush:                       ; on vide les frappes en attente
         call KM_READ_CHAR
-        jr c,dlb_flush
-dlb_wait:
+        jr c,cr_flush
+cr_wait:
         call KM_WAIT_CHAR       ; attend une touche
         cp 13
-        jp z,dlb_load           ; RETURN : on charge
+        jr z,cr_ok              ; RETURN : choisi
         cp #FC
-        jr z,dlb_esc            ; ESC : on annule
+        jr z,cr_esc             ; ESC : on annule
         ld hl,smp_pick
         ld b,(hl)               ; B = choix actuel
         ld c,b                  ; C = nouveau choix
         cp #F0
-        jr z,dlb_up
+        jr z,cr_up
         cp #F1
-        jr z,dlb_down
+        jr z,cr_down
         cp #F2
-        jr z,dlb_left
+        jr z,cr_left
         cp #F3
-        jr z,dlb_right
-        jr dlb_wait
-dlb_up:                         ; flèche haut : fichier précédent
+        jr z,cr_right
+        jr cr_wait              ; autre touche : ignorée
+cr_up:                          ; flèche haut : nom précédent
         ld a,b
         or a
-        jr z,dlb_wait
+        jr z,cr_wait
         dec c
-        jr dlb_move
-dlb_down:                       ; flèche bas : fichier suivant
-        ld a,(smp_nfiles)
+        jr cr_move
+cr_down:                        ; flèche bas : nom suivant
+        ld a,(ch_count)
         dec a
         cp b
-        jr z,dlb_wait
+        jr z,cr_wait
         inc c
-        jr dlb_move
-dlb_left:                       ; flèche gauche : colonne précédente
-        ld a,b
-        sub CHOOSE_ROWS
-        jr c,dlb_wait
+        jr cr_move
+cr_left:                        ; flèche gauche : colonne précédente
+        ld a,(ch_rows)
         ld c,a
-        jr dlb_move
-dlb_right:                      ; flèche droite : colonne suivante
         ld a,b
-        add a,CHOOSE_ROWS
-        ld hl,smp_nfiles
+        sub c
+        jr c,cr_wait
+        ld c,a
+        jr cr_move
+cr_right:                       ; flèche droite : colonne suivante
+        ld a,(ch_rows)
+        add a,b
+        ld hl,ch_count
         cp (hl)
-        jr nc,dlb_wait
+        jr nc,cr_wait
         ld c,a
-dlb_move:
+cr_move:
         ld a,c
         ld (smp_pick),a
         ld a,b
         call choose_draw        ; l'ancien redevient normal
         ld a,(smp_pick)
         call choose_draw        ; le nouveau en jaune inversé
-        jr dlb_wait
-
-dlb_esc:
+        jr cr_wait
+cr_ok:
+        ld a,(smp_pick)         ; A = numéro choisi
+        scf
+        ret
+cr_esc:
         ld a,KEY_ESC            ; on attend qu'ESC soit relâchée, pour ne pas
         call KM_TEST_KEY        ; qu'elle compte comme « quitter »
-        jr nz,dlb_esc
-        call choose_clear
-        ld hl,txt_m_none
-        jp dsk_message
-
-dlb_load:
-        call choose_clear
-        ld a,(smp_pick)         ; HL = nom choisi (8 caractères)
-        call choose_name
-        push hl
-        ld de,smp_fname         ; smp_fname = nom sans espaces + ".SMP"
-        ld b,8
-        ld c,0                  ; C = longueur
-dlb_copy:
-        ld a,(hl)
-        cp ' '
-        jr z,dlb_skip
-        ld (de),a
-        inc de
-        inc c
-dlb_skip:
-        inc hl
-        djnz dlb_copy
-        ld hl,txt_ext_smp
-        ld b,4
-dlb_ext:
-        ld a,(hl)
-        ld (de),a
-        inc hl
-        inc de
-        inc c
-        djnz dlb_ext
-        ld b,c
-        push bc
-        ld hl,txt_m_loading
-        call dsk_message
-        pop bc
-        ld hl,smp_fname
-        call smp_load_bank
-        pop hl                  ; HL = nom choisi
-        push af
-        or a
-        jr nz,dlb_msg
-        call smp_set_name       ; la banque prend ce nom
-        xor a                   ; on revient au premier sample
-        ld (cur_smp),a
-dlb_msg:
-        pop af
-        call smp_load_text
-        jp dsk_message
-
-; HL = nom (8 caractères) du fichier A de la liste
-choose_name:
-        add a,a
-        add a,a
-        add a,a                 ; 8 octets par nom
-        ld e,a
-        ld d,0
-        ld hl,smp_files
-        add hl,de
+        jr nz,cr_esc
+        or a                    ; Carry = 0 : annulé
         ret
 
-; Affiche le fichier A de la liste, en jaune inversé s'il est choisi.
-; Colonne = 1 + 13 x (A / 6), ligne = CHOOSE_ROW + (A modulo 6).
+; HL = nom numéro A de la liste (ch_names + A x ch_len)
+choose_name:
+        ld hl,(ch_names)
+        or a
+        ret z                   ; le premier : rien à ajouter
+        ld b,a
+        ld a,(ch_len)
+        ld e,a
+        ld d,0
+cn_add:
+        add hl,de               ; un nom plus loin
+        djnz cn_add
+        ret
+
+; Affiche le nom A de la liste, en jaune inversé s'il est choisi.
+; Colonne = ch_col0 + ch_colw x (A / ch_rows), ligne = ch_row0 + (A mod ch_rows).
 choose_draw:
         ld (cd_i),a
-        ld b,0                  ; B = A / 6, A = A modulo 6
+        ld hl,ch_rows
+        ld c,(hl)               ; C = lignes par colonne
+        ld b,0                  ; B = A / ch_rows, A = A modulo ch_rows
 cd_div:
-        cp CHOOSE_ROWS
+        cp c
         jr c,cd_pos
-        sub CHOOSE_ROWS
+        sub c
         inc b
         jr cd_div
 cd_pos:
-        add a,CHOOSE_ROW
+        ld hl,ch_row0
+        add a,(hl)
         ld l,a                  ; L = ligne
-        ld a,b                  ; colonne = 13 x B + 1
-        ld c,a
-        add a,a                 ; 2B
-        add a,c                 ; 3B
-        add a,a                 ; 6B
-        add a,a                 ; 12B
-        add a,c                 ; 13B
-        inc a
+        ld a,(ch_col0)          ; colonne = ch_col0 + ch_colw x B
+        inc b
+cd_col:
+        dec b
+        jr z,cd_col_ok
+        ld h,a
+        ld a,(ch_colw)
+        add a,h
+        jr cd_col
+cd_col_ok:
         ld h,a                  ; H = colonne
         call TXT_SET_CURSOR
         ld a,(cd_i)
@@ -706,15 +781,16 @@ cd_pos:
         call TXT_SET_PEN
         jr cd_text
 cd_normal:
-        xor a
+        xor a                   ; les autres : fond bleu, texte orange
         call TXT_SET_PAPER
         ld a,3
         call TXT_SET_PEN
 cd_text:
         ld a,(cd_i)
-        call choose_name
-        ld b,8
-        call print_n
+        call choose_name        ; HL = le nom
+        ld a,(ch_len)
+        ld b,a
+        call print_n            ; on l'affiche
         xor a
         jp TXT_SET_PAPER
 
@@ -742,7 +818,8 @@ quit_line:
 
 ; ----------------------------------------------------------------------------
 ; Lecture du catalogue : remplit smp_files (noms de 8 caractères) et
-; smp_nfiles avec les fichiers .SMP de la disquette du lecteur A.
+; smp_nfiles avec les fichiers de la disquette du lecteur A dont l'extension
+; est celle pointée par scan_ext (".SMP", ".INS"...).
 ; Sortie : A = 0 tout va bien, 1 = erreur de lecture, 4 = AMSDOS absent.
 ;
 ; On lit les 4 secteurs du répertoire (64 entrées de 32 octets) avec la
@@ -796,7 +873,8 @@ ssd_entry:
         push hl
         ld de,9                 ; octets 9 à 11 = extension (bit 7 = attribut)
         add hl,de
-        ld de,txt_ext_smp+1     ; "SMP"
+        ld de,(scan_ext)        ; extension cherchée (".SMP", ".INS"...)
+        inc de                  ; sans le point
         ld b,3
 ssd_ext:
         ld a,(hl)
@@ -811,7 +889,13 @@ ssd_ext:
         ld a,(smp_nfiles)       ; c'est un .SMP : on garde son nom
         cp MAX_FILES
         jr nc,ssd_next
-        call choose_name        ; HL = place du nom dans smp_files
+        add a,a                 ; HL = place du nom dans smp_files :
+        add a,a                 ;   smp_files + 8 x numéro
+        add a,a
+        ld l,a
+        ld h,0
+        ld de,smp_files
+        add hl,de
         ex de,hl
         pop hl
         push hl
@@ -946,7 +1030,7 @@ txt_s_playing:  db "ECOUTE... (ESPACE : ARRET)",0
 txt_s_nomem:    db "PAS ASSEZ DE MEMOIRE POUR LES SAMPLES",0
 txt_s_reading:  db "LECTURE DU CATALOGUE...",0
 txt_s_nocat:    db "CATALOGUE ILLISIBLE (AMSDOS ABSENT ?)",0
-txt_s_nofile:   db "AUCUN FICHIER .SMP SUR LA DISQUETTE",0
+txt_s_nofile:   db "AUCUN FICHIER DE CE TYPE SUR LA DISQUETTE",0
 txt_s_choose:   db "FLECHES PUIS RETURN (ESC : ANNULER)",0
 
 smp_text:
@@ -971,7 +1055,6 @@ smp_text:
         db SMP_FLD_COL+9,16,2,0,"PAR 10",0
         db SMP_FLD_COL,17,3,0,"CTRL  ",242,243,0
         db SMP_FLD_COL+9,17,2,0,"SAMPLE",0
-        db 1,24,3,0, "f3",0
-        db 4,24,2,0, "PUIS D : CHOISIR UNE BANQUE",0
+        db 1,24,2,0, "f3 D/E : BANQUE   O : PRENDRE 1 SAMPLE",0
         db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
         db #FF

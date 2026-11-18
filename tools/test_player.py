@@ -96,12 +96,19 @@ class PlayerTest(unittest.TestCase):
         cpc = self.cpc
         self.assertEqual(cpc.peek(cpc.addr("smp_ok"))[0], 1)
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
-        # la routine recopiée en zone haute est identique à l'originale
+        # la routine recopiée en zone haute est identique à celle du fichier
+        # SEQ16.BIN (en mémoire, sa source est ensuite recouverte par le
+        # morceau : on compare donc avec le fichier, chargé en #4000)
         src = cpc.addr("smp_blk_src") if "SMP_BLK_SRC" in cpc.sym else None
         self.assertIsNotNone(src)
         n = cpc.addr("smp_blk_end") - cpc.addr("smp_play")
-        self.assertEqual(cpc.peek(src, n), cpc.peek(cpc.addr("smp_play"), n))
+        binary = cpcsim.amsdsk.read_file(os.path.join(ROOT, "build", "seq16.dsk"), "SEQ16.BIN")
+        self.assertEqual(binary[src - 0x4000:src - 0x4000 + n],
+                         cpc.peek(cpc.addr("smp_play"), n))
         self.assertGreaterEqual(cpc.addr("smp_play"), 0x8000)
+        # le morceau commence bien sur cette source, devenue inutile
+        self.assertEqual(cpc.addr("song_data") if "SONG_DATA" in cpc.sym else src, src)
+        self.assertEqual(cpc.peek(src, 4), b"SQ16")
 
     def test_screen_f4(self):
         txt = self.cpc.screen_text()
@@ -290,8 +297,9 @@ class PlayerTest(unittest.TestCase):
                 s = [(t, v) for t, r, v in cpc.ay_writes[n0:] if r == 8 and start <= t <= end][:-1]
                 self.check_cadence(s, 160 * pitch[semi + 12] // 256)
 
-    def make_disk(self, extra):
-        """Une disquette : celle du build + des fichiers en plus."""
+    def make_disk(self, extra, keep=("SEQ16.BIN", "DRUMS.SMP", "VOIX.SMP")):
+        """Une disquette : celle du build, réduite aux fichiers keep (None :
+        tous), + des fichiers en plus."""
         import shutil
         import tempfile
         import amsdsk
@@ -299,6 +307,10 @@ class PlayerTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, d)
         path = os.path.join(d, "t.dsk")
         shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), path)
+        if keep is not None:
+            for name in amsdsk.list_files(path):
+                if name not in keep:
+                    amsdsk.remove_file(path, name)
         for name, data in extra.items():
             amsdsk.add_file(path, name, data)
         self.cpc.use_disk(path)
@@ -335,7 +347,7 @@ class PlayerTest(unittest.TestCase):
     def test_song_save_and_load_still_work(self):
         """Non-régression : S puis L sur l'écran f3 (fichier .SNG)."""
         cpc = self.cpc
-        song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16)
+        song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16) + 16   # v2
         cpc.frames(1, keys={KEY_F3})
         cpc.frames(1)
         cpc.frames(1, keys={60})                 # S

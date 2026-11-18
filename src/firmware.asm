@@ -21,6 +21,8 @@ SCR_SET_BORDER    equ #BC38   ; B et C = couleur de la bordure
 CAS_IN_OPEN       equ #BC77   ; B = longueur du nom, HL = nom, DE = tampon 2 Ko
                               ;   -> BC = longueur du fichier
 CAS_IN_CLOSE      equ #BC7A
+CAS_IN_CHAR       equ #BC80   ; -> A = octet suivant du fichier ouvert,
+                              ; Carry = 0 à la fin (garde BC, DE, HL)
 CAS_IN_ABANDON    equ #BC7D
 CAS_IN_DIRECT     equ #BC83   ; HL = adresse où charger le fichier
 CAS_OUT_OPEN      equ #BC8C   ; B = longueur du nom, HL = nom, DE = tampon 2 Ko

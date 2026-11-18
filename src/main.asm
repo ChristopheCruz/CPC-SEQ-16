@@ -36,6 +36,11 @@ KEY_L     equ 36
 KEY_C     equ 62
 KEY_N     equ 46
 KEY_D     equ 61
+KEY_COPY  equ 9
+KEY_P     equ 27
+KEY_O     equ 34
+KEY_I     equ 35
+KEY_E     equ 58
 
 GRID_ROW  equ 6                 ; première ligne écran de la grille
 HEAD_ROW  equ 5                 ; ligne des numéros de pas
@@ -77,6 +82,9 @@ main_loop:
         call aud_release        ; fin de l'écoute quand la touche est lâchée
         call seq_frame          ; le séquenceur déclenche les notes du pas
         call snd_frame          ; le moteur de son les fait vivre
+        ld a,(dg_pending)       ; un digidrum attend ?
+        or a
+        call nz,dg_play         ; il joue, puis le tempo est rattrapé
         ld a,(screen)
         or a
         call z,show_playhead    ; repère du pas en cours (écran séquenceur)
@@ -219,7 +227,7 @@ rc_loop:
         inc hl
         ld a,(rc_index)
         inc a
-        cp 17
+        cp NB_CMDS
         jr nz,rc_loop
         ld a,#FF                ; aucune touche de commande
         ld (cmd_last),a
@@ -297,7 +305,8 @@ cmd_table:
         db KEY_SPACE,KEY_F5,KEY_DEL,KEY_CLR,KEY_TAB,KEY_CAPS   ; 0 à 5
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
-        db KEY_D                                               ; 16
+        db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I,KEY_E              ; 16 à 21
+NB_CMDS equ $-cmd_table         ; nombre de touches de commande
 
 ; --- ESPACE : lecture / arrêt ---
 cmd_play:
@@ -1450,7 +1459,9 @@ pl_char:
 ; ============================================================================
 ; ECRAN INSTRUMENT
 ; ============================================================================
-NB_FIELDS equ 19                ; nombre de réglages
+NB_FIELDS equ 20                ; nombre de réglages
+FLD_DIGI  equ 19                ; le réglage DIGIDRUM
+FLD_NOISE equ 7                 ; la période du bruit (ou le sample)
 FIELD_ROW equ 4                 ; ligne écran du premier réglage
 FLD_SIZE  equ 19                ; taille d'une fiche de réglage
 ENV_COL   equ 24                ; position du dessin de l'enveloppe
@@ -1469,6 +1480,12 @@ ins_cmd:
         jr z,ins_up
         cp 9
         jr z,ins_down
+        cp 17
+        jp z,ins_copy           ; COPY : copier l'instrument (banks.asm)
+        cp 18
+        jp z,ins_paste          ; P : le coller
+        cp 19
+        jp z,ins_take           ; O : prendre un son dans une banque
         ret
 
 ins_up:
@@ -1594,6 +1611,8 @@ ic_write:
         ld (hl),a
 ic_done:
         ld a,(cur_field)
+        cp FLD_DIGI             ; DIGIDRUM : la ligne du bruit change de sens
+        jp z,ins_show_all
         call ins_draw_field
         ld a,(cur_field)
         cp 4
@@ -1651,6 +1670,9 @@ ins_draw_field:
         ld (df_i),a
         call field_ptr          ; HL = nom du réglage
         ld (df_text),hl
+        ld a,(df_i)             ; la période du bruit d'un digidrum est le
+        cp FLD_NOISE            ; numéro de son sample
+        call z,df_sample_label
         ld a,(df_i)
         add a,FIELD_ROW
         ld l,a
@@ -1720,6 +1742,23 @@ df_end:
         xor a
         jp TXT_SET_PAPER
 
+; Réglage 7 d'un digidrum : « SAMPLE » et le nom du sample, au lieu de
+; « PERIODE ».  Change df_text.
+df_sample_label:
+        ld a,(cur_inst)
+        call inst_ptr
+        ld de,INS_FLAGS
+        add hl,de
+        bit 4,(hl)              ; digidrum ?
+        ret z                   ; non : « PERIODE »
+        ld hl,txt_dg_nosmp
+        ld a,(smp_ok)           ; le nom du sample est lu en zone haute
+        or a
+        call nz,dg_label_hi
+        ld (df_text),hl
+        ret
+
+txt_dg_nosmp: db "  SAMPLE       "
 txt_oui: db "OUI ",0
 txt_non: db "NON ",0
 
@@ -1801,6 +1840,7 @@ fields:
         db 0,INS_VIBDELAY,0,255, "  ATTENTE      "
         db 2,INS_SLIDE,0,255,    "GLISSANDO      "
         db 1,0,8,0,              "PORTAMENTO     "
+        db 1,0,16,0,             "DIGIDRUM       "
 
 ; --- Dessin de l'enveloppe ADSR ----------------------------------------------
 ; On fait tourner le vrai calcul d'enveloppe du moteur sur une voix de travail,
@@ -1967,6 +2007,12 @@ ins_text:
         db ENV_COL+6,19,2,0,"ESSAI",0
         db ENV_COL,20,3,0,"ESPACE",0
         db ENV_COL+7,20,2,0,"LECTURE",0
+        db ENV_COL,22,3,0,"COPY",0
+        db ENV_COL+5,22,2,0,"COPIER",0
+        db ENV_COL,23,3,0,"P",0
+        db ENV_COL+5,23,2,0,"COLLER",0
+        db ENV_COL,24,3,0,"O",0
+        db ENV_COL+5,24,2,0,"SON BANQUE",0
         db #FF
 
 
@@ -2005,7 +2051,21 @@ dsk_cmd:
         jp z,disk_new           ; N
         cp 16
         jp z,disk_load_bank     ; D : banque de samples (smpscreen.asm)
+        cp 19
+        jp z,disk_load_ins      ; O : charger une banque d'instruments
+        cp 20
+        jp z,disk_save_ins      ; I : sauver les instruments (banks.asm)
+        cp 21
+        jr z,disk_save_smp      ; E : sauver la banque de samples
         ret
+
+; E : sauver la banque de samples (la routine est en zone haute)
+disk_save_smp:
+        ld a,(smp_count)        ; une banque est-elle chargée ?
+        or a                    ; (0 aussi sans zone haute)
+        ld hl,txt_s_nobank
+        jp z,dsk_message
+        jp smp_save_bank
 
 dc_up:
         ld a,(dsk_row)
@@ -2178,10 +2238,16 @@ drs_normal:
         ld a,2
         jp TXT_SET_PEN
 
-; Affiche un message sur la ligne des messages.  HL = texte
+; Affiche un message sur la ligne des messages (ligne 17 sur l'écran f3,
+; ligne 25 sur l'écran f2).  HL = texte
 dsk_message:
+        ld (last_msg),hl        ; on garde le dernier message
         push hl
+        ld a,(screen)
+        cp 2                    ; écran f3 : ligne 17
         ld hl,256*1+DSK_MSG_ROW
+        jr z,msg_row
+        ld l,INS_MSG_ROW        ; écrans f2 et f4 : ligne 25
 msg_row:                        ; HL = position, texte sur la pile
         call TXT_SET_CURSOR
         xor a
@@ -2334,8 +2400,32 @@ en_done:
 
 ; --- Sauvegarde --------------------------------------------------------------
 disk_save:
+        ld hl,song_bank         ; bloc v2 : la banque de samples utilisée
+        ld b,8
+dsv_clear:
+        ld (hl),0
+        inc hl
+        djnz dsv_clear
+        ld a,(smp_count)
+        or a
+        jr z,dsv_go             ; pas de banque : nom vide
+        ld hl,smp_name
+        ld de,song_bank
+        ld bc,8
+        ldir
+dsv_go:
+        ld hl,txt_ext           ; NOM.SNG : tout le morceau
+        ld de,SONG_SIZE
+        ld bc,txt_m_saved
+; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
+; song_data, BC = message affiché si tout va bien.
+save_file:
+        ld (sf_size),de
+        ld (sf_msg),bc
+        push hl
         call silence
-        call build_filename
+        pop hl
+        call build_filename_ext ; nom + extension
         ret nc                  ; nom vide
         ld hl,txt_m_saving
         call dsk_message
@@ -2344,16 +2434,16 @@ disk_save:
         ld hl,fname_full
         ld de,io_buffer
         call CAS_OUT_OPEN
-        jr nc,disk_error
+        jp nc,disk_error
         ld hl,song_data
-        ld de,SONG_SIZE
+        ld de,(sf_size)
         ld bc,0
         ld a,2                  ; fichier binaire
         call CAS_OUT_DIRECT
-        jr nc,ds_abandon
+        jp nc,ds_abandon
         call CAS_OUT_CLOSE
-        jr nc,disk_error
-        ld hl,txt_m_saved
+        jp nc,disk_error
+        ld hl,(sf_msg)
         jp dsk_message
 ds_abandon:
         call CAS_OUT_ABANDON
@@ -2373,11 +2463,16 @@ disk_load:
         ld hl,fname_full
         ld de,io_buffer
         call CAS_IN_OPEN
-        jr nc,disk_error
-        ld hl,SONG_SIZE         ; la taille doit être exactement la bonne
+        jp nc,disk_error
+        ld hl,SONG_SIZE         ; la taille doit être exactement la bonne :
+        or a                    ; version 2...
+        sbc hl,bc
+        jr z,dl_size
+        ld hl,SONG_V1           ; ... ou version 1 (sans le bloc v2)
         or a
         sbc hl,bc
         jr nz,dl_bad
+dl_size:
         ld hl,song_data
         call CAS_IN_DIRECT
         jr nc,dl_abandon
@@ -2392,7 +2487,26 @@ dl_sig:
         inc hl
         inc de
         djnz dl_sig
+        ld a,(song_data+4)      ; version 1 : bloc v2 par défaut
+        cp SONG_VER
+        jr nc,dl_v2
+        ld hl,song_v2
+        ld b,SONG_EXTRA
+dl_clear:
+        ld (hl),0
+        inc hl
+        djnz dl_clear
+        ld a,SONG_VER
+        ld (song_data+4),a
+dl_v2:
         call song_loaded
+        ld a,(song_bank)        ; une banque de samples associée ?
+        or a
+        jr z,dl_done
+        ld a,(smp_ok)
+        or a
+        jp nz,song_load_bank    ; oui : on la charge
+dl_done:
         ld hl,txt_m_loaded
         jp dsk_message
 dl_bad:
@@ -2401,7 +2515,7 @@ dl_bad:
         jp dsk_message
 dl_abandon:
         call CAS_IN_ABANDON
-        jr disk_error
+        jp disk_error
 dl_corrupt:                     ; contenu illisible : on repart du morceau d'usine
         call init_song
         call song_loaded
@@ -2532,6 +2646,10 @@ dsk_text:
         db 9,3,2,0,  "VOLUME DE CHAQUE VOIX",0
         db 1,10,1,0, "DISQUE",0
         db 1,DSK_NAME_ROW,2,0,"NOM :",0
+        db 1,12,3,0, "I",0
+        db 3,12,2,0, "SAUVER INSTR.",0
+        db 18,12,3,0,"O",0
+        db 20,12,2,0,"CHARGER INSTR. (.INS)",0
         db 1,13,3,0, "S",0
         db 3,13,2,0, "SAUVER",0
         db 12,13,3,0,"L",0
@@ -2543,7 +2661,9 @@ dsk_text:
         db 12,14,3,0,"RETURN",0
         db 19,14,2,0,"MUET (OU NOM)",0
         db 1,16,3,0, "D",0
-        db 3,16,2,0, "CHOISIR UNE BANQUE DE SAMPLES",0
+        db 3,16,2,0, "CHARGER",0
+        db 11,16,3,0,"E",0
+        db 13,16,2,0,"SAUVER LES SAMPLES (.SMP)",0
         db 1,15,3,0, 240,241,0
         db 4,15,2,0, "CHOIX",0
         db 12,15,3,0,242,243,0
@@ -2590,8 +2710,8 @@ screen_text:
         include 'tables.asm'
         include 'factory.asm'
         include 'smpscreen.asm'
+        include 'banks.asm'
         include 'smptables.asm'
-        include 'sample.asm'
 
 ; ----------------------------------------------------------------------------
 ; Variables du programme
@@ -2667,6 +2787,31 @@ sdr_i:      db 0
 sdr_ms:     dw 0
 sdf_i:      db 0
 sc_dir:     db 0
+scan_ext:   dw 0                ; extension cherchée dans le catalogue
+ch_names:   dw 0                ; liste de choix : adresse des noms,
+ch_count:   db 0                ;   leur nombre,
+ch_rows:    db 0                ;   lignes par colonne,
+ch_len:     db 0                ;   caractères par nom (juste après ch_rows),
+ch_col0:    db 0                ;   colonne de départ,
+ch_row0:    db 0                ;   ligne de départ (juste après ch_col0),
+ch_colw:    db 0                ;   largeur d'une colonne
+last_msg:   dw txt_m_none       ; dernier message affiché
+sf_size:    dw 0                ; save_file : nombre d'octets,
+sf_msg:     dw 0                ;   message de réussite
+clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
+clip_ok:    db 0                ;   1 = il contient un instrument
+it_pick:    db 0                ; son choisi dans la banque
+dg_pending: db 0                ; 1 = un digidrum attend d'être joué
+dg_smp:     db 0                ;   son numéro de sample,
+dg_chan:    db 0                ;   la voie de l'AY,
+dg_semi:    db 0                ;   la hauteur (demi-tons),
+dg_att:     db 0                ;   l'atténuation
+dg_debt:    db 0                ; images de séquenceur à rattraper
+
+; La routine de lecture des samples est en dernier : la source de sa partie
+; haute, recopiée en zone haute au démarrage, est ensuite recouverte par le
+; morceau (voir song_data).
+        include 'sample.asm'
 
 end_of_program:
 
@@ -2674,14 +2819,18 @@ end_of_program:
 ; Le morceau, juste après le programme (il n'est pas dans SEQ16.BIN : il est
 ; rempli au démarrage, puis sauvé et chargé à part, en fichier .SNG)
 ; ----------------------------------------------------------------------------
-song_data   equ end_of_program
+song_data   equ smp_blk_src     ; le morceau recouvre la source de la zone
+                                ; haute, déjà recopiée par smp_install
 snd_master  equ song_data+5     ; volume général des voix A, B, C, N
 snd_mute    equ song_data+9     ; voix muettes (bits 0 à 3)
 instruments equ song_data+16
 inst_names  equ instruments+NB_INST*16
 sons        equ inst_names+NB_INST*6
 patterns    equ sons+NB_SONS*16
-song_end    equ patterns+NB_PAT*PAT_SIZE
+song_v2  equ patterns+NB_PAT*PAT_SIZE   ; bloc v2 (voir song.asm)
+song_mode   equ song_v2      ; mode de lecture des samples
+song_bank   equ song_v2+1    ; nom de la banque .SMP (8 caractères)
+song_end    equ song_v2+SONG_EXTRA
 io_buffer   equ song_end        ; 2 Ko de travail pour AMSDOS
         assert io_buffer+2048 < #A000
         print "fin du programme=",{hex}end_of_program," io_buffer=",{hex}io_buffer," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end

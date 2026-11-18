@@ -28,7 +28,7 @@
 ;   supplémentaire du 6128, visible en #4000-#7FFF : c'est pourquoi tout ce
 ;   qui sert pendant la lecture (code, tables, variables) est au-dessus de
 ;   #8000.
-;   La zone #A000-#A5FF est libre : AMSDOS, relancé par KL_INIT_BACK au
+;   La zone #A000-#A67B est libre : AMSDOS, relancé par KL_INIT_BACK au
 ;   démarrage, se réserve la mémoire tout en haut (au-dessus de #A67B sur
 ;   6128).  On le vérifie au démarrage avec les adresses que renvoie
 ;   KL_INIT_BACK (plus basse et plus haute adresse libres) : si la place
@@ -58,7 +58,9 @@
 SMP_LUT_HI  equ #A000           ; table du poids fort (alignée sur 256 octets)
 SMP_LUT_LO  equ #A100           ; table du poids faible
 SMP_CODE    equ #A200           ; adresse d'exécution de la routine de lecture
-SMP_TOP     equ #A600           ; la zone haute ne doit pas dépasser cette adresse
+SMP_TOP     equ #A67C           ; la zone haute ne doit pas dépasser cette adresse
+                                ; (#A67B = HIMEM d'AMSDOS sur 6128, vérifié
+                                ; au démarrage par smp_install)
 BANK_START  equ #0040           ; la banque : mémoire basse, libre après RUN"
 BANK_END    equ #4000           ;   jusqu'au début du programme
 BANK_MAX    equ BANK_END-BANK_START
@@ -131,6 +133,9 @@ smp_load_bank:
         call CAS_IN_DIRECT      ; on charge tout le fichier d'un coup
         jr nc,slb_disk
         call CAS_IN_CLOSE
+; Vérifie la banque en mémoire (taille smp_bank_len) et met à jour
+; smp_count, smp_data, smp_bank_end.  A = 0 si elle est bonne, 3 sinon.
+smp_check:
         ld hl,BANK_START        ; signature "SQSM" ?
         ld de,smp_sig
         ld b,4
@@ -357,7 +362,13 @@ spr_t_loop:
         ld b,0
         add hl,bc
         ld b,a
+        ld a,(spr_att)          ; atténuation : volume d'un digidrum
+        ld c,a                  ; (0 pour une écoute sur f4)
         ld a,(hl)
+        sub c                   ; niveau - atténuation, pas sous 0
+        jr nc,spr_t_pos
+        xor a
+spr_t_pos:
         ld (de),a
         pop hl
         inc de
@@ -544,6 +555,7 @@ smp_data:     dw 0              ; adresse du début des données
 spr_chan:     db 0              ; smp_prepare : voie de l'AY
 spr_semi:     db 0              ;   demi-tons (juste après spr_chan)
 spr_mask:     db 0              ;   masque de bits
+spr_att:      db 0              ;   atténuation (digidrum : 15 - volume)
 spr_t:        ds 16             ;   les 16 valeurs, après bits et courbe
 dv_n:         ds 3              ; div24 : dividende puis quotient
 
@@ -772,6 +784,8 @@ smp_v_mixplay: db #3F           ; mixeur pendant la lecture
 smp_v_mixrest: db #3F           ; mixeur à remettre à la fin
 smp_v_volrest: db 0             ; volume à remettre à la fin
 smp_v_armed:   db 0             ; 1 = ESPACE a été relâchée
+
+        include 'hizone.asm'    ; autres routines de la zone haute
 
 smp_blk_end:
 smp_blk_len equ smp_blk_end-SMP_CODE

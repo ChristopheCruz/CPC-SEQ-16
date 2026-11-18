@@ -122,6 +122,15 @@ snd_note_on:
         add hl,de
         ld a,(hl)
         ld (sno_flags),a
+        bit 4,a                 ; digidrum ? (drapeau 4)
+        jr z,sno_tone
+        pop hl                  ; HL = instrument
+        ld (ix+CH_PHASE),0      ; la voix se tait : le sample prend sa voie
+        ld a,(smp_ok)           ; pas de zone haute : pas de sample
+        or a
+        ret z
+        jp dg_queue             ; on met le sample en attente (hizone.asm)
+sno_tone:
 
         xor a                   ; par défaut : pas de décalage de hauteur
         ld (ix+CH_OFFL),a

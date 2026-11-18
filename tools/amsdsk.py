@@ -200,6 +200,23 @@ def add_file(dsk_path, name, data, load=0x0000):
     return len(payload)
 
 
+def remove_file(dsk_path, name):
+    """Efface un fichier de l'image .dsk (ses entrées de catalogue passent à
+    #E5, ses blocs redeviennent libres).  Renvoie True s'il existait."""
+    disk = Disk(open(dsk_path, "rb").read())
+    base, ext = amsdos_name(name)
+    entries = disk.read_dir()
+    found = False
+    for e in entries:
+        if _matches(e, base, ext):
+            e[0] = 0xE5
+            found = True
+    if found:
+        disk.write_dir(entries)
+        open(dsk_path, "wb").write(disk.raw)
+    return found
+
+
 def read_file(dsk_path, name, keep_header=False):
     """Relit un fichier ; renvoie les données sans l'en-tête AMSDOS."""
     disk = Disk(open(dsk_path, "rb").read())
