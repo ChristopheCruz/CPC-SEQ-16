@@ -71,7 +71,7 @@ El disquete trae también bancos de sonidos listos para usar (ver [Los bancos de
 ## 🔌 En un CPC real con un Gotek
 
 Para tocar en la máquina de verdad, hay que copiar `seq16-es.dsk` en el pendrive USB de una disquetera Gotek (firmware FlashFloppy o HxC).
-La herramienta compañera **[CPC DISK](https://github.com/ChristopheCruz/AmstradCPC)** se encarga de ello: es un editor de imágenes `.dsk` con aspecto de pantalla de CPC, en Python puro, sin dependencias. Sirve para:
+La herramienta compañera **[CPC DISK](https://github.com/ChristopheCruz/CPC-DISK)** se encarga de ello: es un editor de imágenes `.dsk` con aspecto de pantalla de CPC, en Python puro, sin dependencias. Sirve para:
 
 - abrir `seq16-es.dsk` y recorrer su catálogo AMSDOS;
 - recuperar los temas `.SNG` grabados en el disquete, o añadir otros;
@@ -326,7 +326,7 @@ python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --ds
 
 - El banco se añade directamente a `build\seq16.dsk`.
 - El script escribe también un WAV de escucha, para oír el resultado en el PC antes de copiar el disquete.
-- También puedes añadir el fichero `.SMP` a un disquete con [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC).
+- También puedes añadir el fichero `.SMP` a un disquete con [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK).
 
 **Conviene saber**
 - **Tamaño de un banco**: 16 KB como máximo, o sea unos 4 segundos a 8 kHz, o 5 segundos a 6,25 kHz. Un banco contiene 16 sonidos como máximo.
@@ -678,6 +678,6 @@ _Codes/
 
 <div align="center">
 
-<sub>Hecho con ♥ para el CPC · ver también <a href="https://github.com/ChristopheCruz/AmstradCPC">CPC DISK</a>, el editor de disquetes <code>.dsk</code></sub>
+<sub>Hecho con ♥ para el CPC · ver también <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a>, el editor de disquetes <code>.dsk</code></sub>
 
 </div>

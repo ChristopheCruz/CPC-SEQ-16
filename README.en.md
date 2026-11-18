@@ -71,7 +71,7 @@ The disk also holds ready-made sound banks (see [The sound banks](#-the-sound-ba
 ## 🔌 On a real CPC with a Gotek
 
 To play on the real machine, copy `seq16-en.dsk` to the USB stick of a Gotek drive (FlashFloppy or HxC firmware).
-The companion tool **[CPC DISK](https://github.com/ChristopheCruz/AmstradCPC)** takes care of that: it's a `.dsk` image editor that looks like a CPC screen, in pure Python, with no dependencies. Use it to:
+The companion tool **[CPC DISK](https://github.com/ChristopheCruz/CPC-DISK)** takes care of that: it's a `.dsk` image editor that looks like a CPC screen, in pure Python, with no dependencies. Use it to:
 
 - open `seq16-en.dsk` and browse its AMSDOS catalog;
 - get the `.SNG` songs saved on the disk, or add some;
@@ -326,7 +326,7 @@ python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --ds
 
 - The bank is added straight to `build\seq16.dsk`.
 - The script also writes a preview WAV, so you can hear the result on the PC before copying the disk.
-- You can also add the `.SMP` file to a disk with [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC).
+- You can also add the `.SMP` file to a disk with [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK).
 
 **Good to know**
 - **Bank size**: 16 KB at most, i.e. about 4 seconds at 8 kHz, or 5 seconds at 6.25 kHz. A bank holds 16 sounds at most.
@@ -678,6 +678,6 @@ _Codes/
 
 <div align="center">
 
-<sub>Made with ♥ for the CPC · see also <a href="https://github.com/ChristopheCruz/AmstradCPC">CPC DISK</a>, the <code>.dsk</code> disk editor</sub>
+<sub>Made with ♥ for the CPC · see also <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a>, the <code>.dsk</code> disk editor</sub>
 
 </div>
