@@ -23,8 +23,10 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 ![Langage](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
 ![Assembleur](https://img.shields.io/badge/assembl%C3%A9%20avec-rasm-000080?style=flat-square&labelColor=00FF00)
 ![Son](https://img.shields.io/badge/son-AY--3--8912-000080?style=flat-square&labelColor=FF8000)
-[![Disquette](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/seq-16/releases/latest)
+[![Disquette](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-000080?style=flat-square&labelColor=FFDD00&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/ChristopheCruz)
+
+🇫🇷 Français · [🇬🇧 English](README.en.md) · [🇪🇸 Español](README.es.md)
 
 <img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16 : le séquenceur en lecture">
 
@@ -43,14 +45,15 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 - [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
   - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
   - [Les digidrums : des samples dans le morceau](#les-digidrums--des-samples-dans-le-morceau)
-  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--toolssmp_guipy)
+  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--longlet-samples-seq-16-de-cpc-disk)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
 
 ## 💾 Essayer tout de suite
 
-1. Télécharge **[`seq16.dsk`](https://github.com/ChristopheCruz/seq-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
+1. Télécharge **[`seq16.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
+   - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes banques, mêmes touches : seuls les textes de l'écran changent.
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
 3. Tape :
 
@@ -68,7 +71,7 @@ La disquette contient aussi des banques de sons toutes prêtes (voir [Les banque
 ## 🔌 Sur un vrai CPC avec un Gotek
 
 Pour jouer sur la machine réelle, il faut copier `seq16.dsk` sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC).
-L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/AmstradCPC)** s'en charge : c'est un éditeur d'images `.dsk` à l'allure d'écran CPC, en Python pur, sans dépendance. Il sert à :
+L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/CPC-DISK)** s'en charge : c'est un éditeur d'images `.dsk` à l'allure d'écran CPC, en Python pur, sans dépendance. Il sert à :
 
 - ouvrir `seq16.dsk` et parcourir son catalogue AMSDOS ;
 - récupérer les morceaux `.SNG` sauvés sur la disquette, ou en ajouter ;
@@ -319,7 +322,7 @@ python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --ds
 
 - La banque est ajoutée directement à `build\seq16.dsk`.
 - Le script écrit aussi un WAV d'écoute, qui permet d'entendre le résultat sur le PC avant de copier la disquette.
-- On peut aussi ajouter le fichier `.SMP` sur une disquette avec [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC).
+- On peut aussi ajouter le fichier `.SMP` sur une disquette avec [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK).
 
 **À savoir**
 - **Taille d'une banque** : 16 Ko au plus, soit environ 4 secondes à 8 kHz, ou 5 secondes à 6,25 kHz. Une banque contient 16 sons au plus.
@@ -361,21 +364,22 @@ Un **digidrum** est un instrument qui joue un sample de la banque chargée au li
 
 Garde les digidrums **courts : moins de 150 ms** (les 4 sons de `DRUMS.SMP` le sont). Un sample plus long fait « bégayer » l'interface et les autres voix.
 
-### L'éditeur graphique de banques (sur PC) : `tools/smp_gui.py`
+### L'éditeur graphique de banques (sur PC) : l'onglet SAMPLES SEQ-16 de CPC DISK
 
-Une petite application de bureau pour fabriquer une banque `.SMP` à partir de fichiers WAV, sans ligne de commande. Elle a l'allure d'un écran CPC, comme [CPC DISK](https://github.com/ChristopheCruz/AmstradCPC) : bleu, jaune et cyan, ou moniteur vert (F3).
+Une application de bureau pour fabriquer une banque `.SMP` à partir de fichiers WAV, sans ligne de commande. Elle fait partie de **CPC DISK**, l'éditeur de disquettes : c'est son onglet **SAMPLES SEQ-16**, en français, en anglais ou en espagnol. Un seul programme Windows, `cpc-dsk-gui.exe`, sert donc à faire les banques et à les mettre sur la disquette (et sur la clé du Gotek).
 
 ```bat
-python tools\smp_gui.py
+python tools\smp_gui.py          rem l'éditeur seul, dans sa fenêtre
 ```
 
 - **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 320 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
 - **À droite**, les réglages du sample choisi : nom (6 caractères), fréquence, saturation, coupure des silences, adoucissement, tramage, bits, décimation, courbe, découpe en tranches. La forme d'onde montre l'original en haut et le rendu du CPC en bas.
 - **Écouter** l'original ou le rendu du CPC.
-- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** (`build\seq16.dsk` par défaut ; on confirme si un fichier du même nom existe).
+- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** : dans CPC DISK, la disquette ouverte dans l'onglet Disquette est proposée directement.
 
 Pour une banque `.SMP` ouverte, il n'y a plus de WAV d'origine : on peut changer le nom, la fréquence, les bits, la décimation et la courbe, mais pas les réglages qui demandent de reconvertir le son.
-Pour en faire un exécutable Windows : `tools\build_smp_gui.bat` (il faut PyInstaller).
+
+Le code est dans CPC DISK (`cpc_dsk/seq16/`) ; `tools/smp_gui.py`, `tools/smp_model.py` et `tools/wav2smp.py` y renvoient (voir [Réassembler](#️-réassembler)).
 
 ### L'écran f4 : Sample Composer
 
@@ -528,7 +532,7 @@ python tools\wav2smp.py samples\voix\bonjour.wav samples\voix\amstrad.wav sample
 
 ### Le format `.SMP`
 
-Le format est décrit en détail en tête de [`tools/wav2smp.py`](tools/wav2smp.py) :
+Le format est décrit en détail en tête de `cpc_dsk/seq16/wav2smp.py`, dans CPC DISK :
 
 - un en-tête `SQSM` de 16 octets (version 1) ;
 - une fiche de 16 octets par sample : nom, position, longueur, fréquence, boucle, drapeaux, réglages ;
@@ -588,6 +592,8 @@ Ces tests vérifient :
   - f3 + E sauve la banque ;
   - f4 + O ajoute un sample pris dans une autre banque, et refuse s'il n'y a pas la place.
 
+**Les langues** : [`tools/test_lang.py`](tools/test_lang.py) (7 tests : chaque traduction tient dans la place du français, aucun texte oublié ; les versions anglaise et espagnole démarrent dans le simulateur et affichent leurs textes sur les quatre écrans, avec les mêmes adresses que la version française).
+
 **Sans simulateur** : [`tools/test_insbank.py`](tools/test_insbank.py) (6 tests : format et bornes des 416 sons, banque USINE = instruments d'usine) et [`tools/test_smp_gui.py`](tools/test_smp_gui.py) (17 tests de l'éditeur graphique ; ceux de la fenêtre sont sautés sans écran).
 
 Les tests lisent `build/seq16.dsk` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
@@ -603,7 +609,19 @@ Sous Windows :
    ```
 3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`. Si tu modifies les courbes dans `tools/wav2smp.py`, lance `python tools\gen_smp_tables.py`.
 4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`, à relancer aussi après `gen_factory.py`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
-5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3).
+5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3). Il fabrique aussi les versions anglaise et espagnole, `build\seq16-en.dsk` et `build\seq16-es.dsk`.
+
+**Les traductions** sont dans [`tools/lang.py`](tools/lang.py) : le source reste en français, et le script en fait une copie par langue où chaque texte affiché est remplacé. Une traduction n'est jamais plus longue que le français (elle est complétée par des espaces) : les trois programmes ont la même taille et les mêmes adresses, ce qui compte avec une mémoire pleine. Si tu ajoutes un texte au source, ajoute sa traduction ; `python tools/lang.py --check` signale les textes oubliés ou trop longs.
+
+**Il faut aussi le projet CPC DISK**, l'éditeur de disquettes : SEQ-16 utilise sa bibliothèque (`cpc_dsk`) pour écrire sur les disquettes. Place-le à côté de ce projet, sur une version qui contient `cpc_dsk/core/amsdos.py` :
+
+```
+_Codes/
+├── CPC-SEQ-16/    ce projet
+└── CPC-DISK/      l'éditeur de disquettes (ou AmstradCPC, son ancien nom)
+```
+
+`tools/cpcdisk.py` le trouve tout seul. Autres possibilités : `pip install -e ../CPC-DISK`, ou la variable d'environnement `CPC_DISK` qui donne son dossier.
 
 ## 📁 Organisation du code
 
@@ -622,16 +640,16 @@ Sous Windows :
 | [`src/hizone.asm`](src/hizone.asm) | routines recopiées en zone haute : prendre un son ou un sample dans une banque, jouer un digidrum |
 | [`src/smptables.asm`](src/smptables.asm) | courbes et hauteurs des samples (fichier généré) |
 | [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py) | les scripts qui génèrent ces fichiers |
-| [`tools/wav2smp.py`](tools/wav2smp.py) | convertit des WAV en banque de samples `.SMP` (et WAV d'écoute) |
 | [`tools/gen_drums.py`](tools/gen_drums.py) | fabrique la banque d'usine `DRUMS.SMP` par synthèse |
 | [`tools/gen_samples.py`](tools/gen_samples.py) | fabrique les autres banques `.SMP` (synthèse, espeak) |
 | [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/insbank.py`](tools/insbank.py) | fabrique les banques d'instruments `.INS` ; le format `.INS` |
-| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py) | l'éditeur graphique de banques `.SMP` |
-| [`tools/amsdsk.py`](tools/amsdsk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue) |
+| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py), [`tools/wav2smp.py`](tools/wav2smp.py) | renvois vers l'éditeur de banques et le convertisseur, qui sont dans CPC DISK (`cpc_dsk/seq16/`) |
+| [`tools/amsdsk.py`](tools/amsdsk.py), [`tools/cpcdisk.py`](tools/cpcdisk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue), avec la bibliothèque de CPC DISK |
 | [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
 | [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
 | [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | les tests des banques `.INS` et de l'éditeur graphique |
+| [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | les versions anglaise et espagnole (traductions, fabrication) et leurs tests |
 | [`samples/`](samples/) | les banques `.SMP`, leurs sons d'origine et leurs WAV d'écoute |
 | [`instruments/`](instruments/) | les banques d'instruments `.INS` |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |
@@ -656,6 +674,6 @@ Sous Windows :
 
 <div align="center">
 
-<sub>Fait avec ♥ pour le CPC · voir aussi <a href="https://github.com/ChristopheCruz/AmstradCPC">CPC DISK</a>, l'éditeur de disquettes <code>.dsk</code></sub>
+<sub>Fait avec ♥ pour le CPC · voir aussi <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a>, l'éditeur de disquettes <code>.dsk</code></sub>
 
 </div>

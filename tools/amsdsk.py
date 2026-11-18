@@ -3,18 +3,12 @@
 Rôle
 ----
 RASM fabrique build/seq16.dsk avec le programme SEQ16.BIN. Ce module ajoute
-d'autres fichiers sur la même disquette (par exemple la banque DRUMS.SMP),
-sans passer par un éditeur de disquettes.
+d'autres fichiers sur la même disquette (banques .SMP et .INS).
 
-Format géré
------------
-- Image « EXTENDED CPC DSK » (celle que produit RASM) ou « MV - CPC » standard.
-- Format AMSDOS « DATA » : 9 secteurs de 512 octets par piste, numérotés
-  #C1 à #C9, une seule face.
-- Blocs de 1 Ko (2 secteurs). Les blocs 0 et 1 forment le catalogue :
-  64 entrées de 32 octets. 180 blocs en tout (40 pistes).
-- Chaque fichier reçoit un en-tête AMSDOS de 128 octets (fichier binaire,
-  type 2), comme ceux qu'écrit le CPC lui-même.
+Depuis la fusion avec CPC DISK, le format est géré par la bibliothèque de
+CPC DISK (cpc_dsk/core/amsdos.py : catalogue AMSDOS, formats DATA et
+SYSTEM), trouvée par tools/cpcdisk.py. Ce module garde seulement
+l'interface qu'utilisent build.bat, les générateurs et les tests.
 
 Mode d'emploi
 -------------
@@ -26,230 +20,89 @@ Depuis Python :  add_file(chemin_dsk, "DRUMS.SMP", données)
 """
 import argparse
 import os
-import struct
 import sys
 
-SECT_SIZE = 512
-SECT_PER_TRACK = 9
-FIRST_ID = 0xC1
-BLOCK_SIZE = 1024
-NB_BLOCKS = 180          # format DATA : 40 pistes x 9 secteurs / 2
-DIR_ENTRIES = 64
-DIR_BLOCKS = 2
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cpcdisk  # noqa: E402
+
+amsdos = cpcdisk.charger()
+from cpc_dsk.core.adf import ADFDisk, ADFError  # noqa: E402
+from cpc_dsk.core.cpcfs import CpcError  # noqa: E402
 
 
 class Disk:
-    """Une image .dsk chargée en mémoire, accès par secteur logique."""
+    """Accès brut aux secteurs par ID (pour le simulateur : BIOS READ SECTOR).
+
+    ``raw`` : l'image ; ``sect_off[(piste, ID)]`` : position du secteur."""
 
     def __init__(self, raw):
+        try:
+            disk = ADFDisk(bytes(raw))
+        except ADFError as exc:
+            raise ValueError(str(exc))
         self.raw = bytearray(raw)
-        sig = bytes(self.raw[:8])
-        if sig == b"EXTENDED":
-            self.extended = True
-        elif sig == b"MV - CPC":
-            self.extended = False
-        else:
-            raise ValueError("ce fichier n'est pas une image .dsk de CPC")
-        self.nb_tracks = self.raw[0x30]
-        self.nb_sides = self.raw[0x31]
-        if self.nb_sides != 1:
-            raise ValueError("seules les disquettes une face sont gérées")
-        # Position de chaque piste dans le fichier
-        self.track_off = []
-        off = 0x100
-        for t in range(self.nb_tracks):
-            if self.extended:
-                size = self.raw[0x34 + t] * 256
-            else:
-                size = struct.unpack_from("<H", self.raw, 0x32)[0]
-            self.track_off.append(off if size else None)
-            off += size
-        # Position de chaque secteur (piste, numéro) dans le fichier
         self.sect_off = {}
-        for t, toff in enumerate(self.track_off):
-            if toff is None:
+        for t in range(disk.num_tracks):
+            ids = amsdos._track_ids(disk, t)
+            if not ids:
                 continue
-            if bytes(self.raw[toff:toff + 10]) != b"Track-Info":
-                raise ValueError("piste %d illisible" % t)
-            nb = self.raw[toff + 0x15]
-            data = toff + 0x100
-            for s in range(nb):
-                info = toff + 0x18 + 8 * s
-                sid = self.raw[info + 2]
-                if self.extended:
-                    length = struct.unpack_from("<H", self.raw, info + 6)[0]
-                else:
-                    length = 128 << self.raw[info + 3]
-                self.sect_off[(t, sid)] = data
-                data += length
-        if (0, FIRST_ID) not in self.sect_off:
-            raise ValueError("disquette au format DATA (#C1) attendue")
-
-    def _sector(self, logical):
-        """Décalage dans le fichier du secteur logique n (0 = piste 0, #C1)."""
-        t, s = divmod(logical, SECT_PER_TRACK)
-        key = (t, FIRST_ID + s)
-        if key not in self.sect_off:
-            raise ValueError("secteur absent : piste %d, #%02X" % key)
-        return self.sect_off[key]
-
-    def read_block(self, b):
-        out = bytearray()
-        for k in range(2):
-            off = self._sector(2 * b + k)
-            out += self.raw[off:off + SECT_SIZE]
-        return out
-
-    def write_block(self, b, data):
-        data = bytes(data).ljust(BLOCK_SIZE, b"\x1a")
-        for k in range(2):
-            off = self._sector(2 * b + k)
-            self.raw[off:off + SECT_SIZE] = data[k * SECT_SIZE:(k + 1) * SECT_SIZE]
-
-    # --- catalogue ---------------------------------------------------------
-    def read_dir(self):
-        d = self.read_block(0) + self.read_block(1)
-        return [bytearray(d[i * 32:(i + 1) * 32]) for i in range(DIR_ENTRIES)]
-
-    def write_dir(self, entries):
-        d = b"".join(bytes(e) for e in entries)
-        self.write_block(0, d[:BLOCK_SIZE])
-        self.write_block(1, d[BLOCK_SIZE:])
-
-    def max_blocks(self):
-        """Nombre de blocs réellement présents sur l'image (au plus 180)."""
-        n = 0
-        while n < NB_BLOCKS:
-            try:
-                self._sector(2 * n + 1)
-            except ValueError:
-                break
-            n += 1
-        return n
-
-
-def amsdos_name(name):
-    """'drums.smp' -> (b'DRUMS   ', b'SMP')"""
-    base, _, ext = name.upper().partition(".")
-    if not base or len(base) > 8 or len(ext) > 3:
-        raise ValueError("nom AMSDOS invalide (8 + 3 caractères) : " + name)
-    return base.ljust(8).encode("ascii"), ext.ljust(3).encode("ascii")
+            size = (disk.track_sizes[t] - 256) // len(ids)
+            base = disk.track_offsets[t] + 256
+            for i, sid in enumerate(ids):
+                self.sect_off[(t, sid)] = base + i * size
 
 
 def amsdos_header(name, length, load=0x0000, entry=0x0000):
     """En-tête AMSDOS de 128 octets pour un fichier binaire (type 2)."""
-    base, ext = amsdos_name(name)
-    h = bytearray(128)
-    h[1:9] = base
-    h[9:12] = ext
-    h[18] = 2                                   # binaire
-    struct.pack_into("<H", h, 21, load)         # adresse de chargement
-    struct.pack_into("<H", h, 24, length & 0xFFFF)
-    struct.pack_into("<H", h, 26, entry)        # adresse d'exécution
-    h[64] = length & 0xFF                       # longueur sur 24 bits
-    h[65] = (length >> 8) & 0xFF
-    h[66] = (length >> 16) & 0xFF
-    struct.pack_into("<H", h, 67, sum(h[:67]) & 0xFFFF)   # somme de contrôle
-    return bytes(h)
+    return amsdos.build_header(amsdos.to_field11(name), length, 2, load, entry)
 
 
-def _matches(entry, base, ext):
-    return (entry[0] != 0xE5 and bytes(entry[1:9]) == base
-            and bytes(b & 0x7F for b in entry[9:12]) == ext)
+def _ouvrir(dsk_path):
+    try:
+        disk = ADFDisk.load(dsk_path)
+        if amsdos.detect_format(disk) is not amsdos.DATA:
+            raise ValueError("disquette au format DATA (#C1) attendue")
+        return disk, amsdos.AmsdosFilesystem(disk)
+    except (ADFError, CpcError) as exc:
+        raise ValueError(str(exc))
 
 
 def add_file(dsk_path, name, data, load=0x0000):
-    """Ajoute (ou remplace) un fichier binaire AMSDOS dans l'image .dsk."""
-    disk = Disk(open(dsk_path, "rb").read())
-    base, ext = amsdos_name(name)
-    entries = disk.read_dir()
-    for e in entries:                           # efface l'ancienne version
-        if _matches(e, base, ext):
-            e[0] = 0xE5
-    used = set(range(DIR_BLOCKS))
-    for e in entries:
-        if e[0] != 0xE5:
-            used.update(b for b in e[16:32] if b)
-    payload = amsdos_header(name, len(data), load) + bytes(data)
-    nb_blocks = -(-len(payload) // BLOCK_SIZE)
-    free = [b for b in range(disk.max_blocks()) if b not in used]
-    if nb_blocks > len(free):
-        raise ValueError("disquette pleine : il faut %d Ko, il reste %d Ko"
-                         % (nb_blocks, len(free)))
-    blocks = free[:nb_blocks]
-    for i, b in enumerate(blocks):
-        disk.write_block(b, payload[i * BLOCK_SIZE:(i + 1) * BLOCK_SIZE])
-    # Une entrée de catalogue (« extent ») couvre 16 blocs = 16 Ko
-    records_total = -(-len(payload) // 128)
-    free_entries = [e for e in entries if e[0] == 0xE5]
-    nb_ext = -(-nb_blocks // 16)
-    if nb_ext > len(free_entries):
-        raise ValueError("catalogue plein (64 entrées)")
-    for x in range(nb_ext):
-        e = free_entries[x]
-        e[:] = bytes(32)
-        e[0] = 0                                # utilisateur 0
-        e[1:9] = base
-        e[9:12] = ext
-        e[12] = x                               # numéro d'extent
-        e[15] = min(128, records_total - 128 * x)
-        part = blocks[16 * x:16 * (x + 1)]
-        e[16:16 + len(part)] = bytes(part)
-    disk.write_dir(entries)
-    open(dsk_path, "wb").write(disk.raw)
-    return len(payload)
+    """Ajoute (ou remplace) un fichier binaire AMSDOS dans l'image .dsk.
+
+    Renvoie la taille écrite, en-tête compris."""
+    disk, fs = _ouvrir(dsk_path)
+    try:
+        fs.write_file(name, bytes(data), load_addr=load, exec_addr=0,
+                      mode="amsdos", overwrite=True)
+    except CpcError as exc:
+        raise ValueError(str(exc))
+    disk.save(dsk_path)
+    return 128 + len(data)
 
 
 def remove_file(dsk_path, name):
-    """Efface un fichier de l'image .dsk (ses entrées de catalogue passent à
-    #E5, ses blocs redeviennent libres).  Renvoie True s'il existait."""
-    disk = Disk(open(dsk_path, "rb").read())
-    base, ext = amsdos_name(name)
-    entries = disk.read_dir()
-    found = False
-    for e in entries:
-        if _matches(e, base, ext):
-            e[0] = 0xE5
-            found = True
-    if found:
-        disk.write_dir(entries)
-        open(dsk_path, "wb").write(disk.raw)
-    return found
+    """Efface un fichier (ses entrées passent à #E5). True s'il existait."""
+    disk, fs = _ouvrir(dsk_path)
+    if fs.find(name) is None:
+        return False
+    fs.delete_file(name)
+    disk.save(dsk_path)
+    return True
 
 
 def read_file(dsk_path, name, keep_header=False):
     """Relit un fichier ; renvoie les données sans l'en-tête AMSDOS."""
-    disk = Disk(open(dsk_path, "rb").read())
-    base, ext = amsdos_name(name)
-    parts = sorted((e[12], e) for e in disk.read_dir() if _matches(e, base, ext))
-    if not parts:
+    _, fs = _ouvrir(dsk_path)
+    if fs.find(name) is None:
         raise FileNotFoundError(name + " absent de la disquette")
-    raw = bytearray()
-    for _, e in parts:
-        chunk = bytearray()
-        for b in e[16:32]:
-            if b:
-                chunk += disk.read_block(b)
-        raw += chunk[:e[15] * 128]
-    if keep_header:
-        return bytes(raw)
-    h = raw[:128]
-    if struct.unpack_from("<H", h, 67)[0] == sum(h[:67]) & 0xFFFF:
-        length = h[64] | h[65] << 8 | h[66] << 16
-        return bytes(raw[128:128 + length])
-    return bytes(raw)                           # fichier sans en-tête
+    return fs.read_raw(name) if keep_header else fs.read_file(name)
 
 
 def list_files(dsk_path):
-    disk = Disk(open(dsk_path, "rb").read())
-    files = {}
-    for e in disk.read_dir():
-        if e[0] == 0xE5:
-            continue
-        n = (bytes(e[1:9]).decode().strip() + "." +
-             bytes(b & 0x7F for b in e[9:12]).decode().strip())
-        files[n] = files.get(n, 0) + e[15] * 128
-    return files
+    """{nom: taille au catalogue (multiple de 128 octets)}."""
+    _, fs = _ouvrir(dsk_path)
+    return {f.name: f.records * 128 for f in fs.list_files()}
 
 
 def main():
