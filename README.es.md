@@ -26,7 +26,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 [![Disquete](https://img.shields.io/badge/disquette-v0.8-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-000080?style=flat-square&labelColor=FFDD00&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/ChristopheCruz)
 
-[🇫🇷 Français](README.md) · [🇬🇧 English](README.en.md) · 🇪🇸 Español
+[🇫🇷 Français](README.fr.md) · [🇬🇧 English](README.md) · 🇪🇸 Español
 
 <img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
 
