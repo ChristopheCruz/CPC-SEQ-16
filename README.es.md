@@ -23,7 +23,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 ![Lenguaje](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
 ![Ensamblador](https://img.shields.io/badge/assembl%C3%A9%20avec-rasm-000080?style=flat-square&labelColor=00FF00)
 ![Sonido](https://img.shields.io/badge/son-AY--3--8912-000080?style=flat-square&labelColor=FF8000)
-[![Disquete](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)
+[![Disquete](https://img.shields.io/badge/disquette-v0.8-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-000080?style=flat-square&labelColor=FFDD00&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/ChristopheCruz)
 
 [🇫🇷 Français](README.md) · [🇬🇧 English](README.en.md) · 🇪🇸 Español
@@ -54,6 +54,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 
 1. Descarga **[`seq16-es.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** de la última release (también hay una copia en [`build/`](build/)).
    - **Version française :** `seq16.dsk`. **English version:** `seq16-en.dsk`. El mismo programa, los mismos bancos, las mismas teclas: solo cambian los textos de la pantalla.
+   - **Solo los bancos:** `seq16-sons.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), disquetes de datos sin el programa: cambia de disquete y carga un banco (f3: **O** o **D**).
 2. Mete el disquete en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como **CPC 6128**.
 3. Teclea:
 
