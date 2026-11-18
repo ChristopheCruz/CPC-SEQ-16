@@ -23,7 +23,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 ![Language](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
 ![Assembler](https://img.shields.io/badge/assembl%C3%A9%20avec-rasm-000080?style=flat-square&labelColor=00FF00)
 ![Sound](https://img.shields.io/badge/son-AY--3--8912-000080?style=flat-square&labelColor=FF8000)
-[![Disk](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/seq-16/releases/latest)
+[![Disk](https://img.shields.io/badge/disquette-v0.7-000080?style=flat-square&labelColor=FF00FF)](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-000080?style=flat-square&labelColor=FFDD00&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/ChristopheCruz)
 
 [🇫🇷 Français](README.md) · 🇬🇧 English · [🇪🇸 Español](README.es.md)
@@ -52,7 +52,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 
 ## 💾 Try it right now
 
-1. Download **[`seq16-en.dsk`](https://github.com/ChristopheCruz/seq-16/releases/latest)** from the latest release (a copy is also in [`build/`](build/)).
+1. Download **[`seq16-en.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** from the latest release (a copy is also in [`build/`](build/)).
    - **Version française :** `seq16.dsk`. **Versión en español:** `seq16-es.dsk`. Same program, same banks, same keys: only the on-screen texts change.
 2. Put the disk in an emulator (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) set to **CPC 6128**.
 3. Type:
