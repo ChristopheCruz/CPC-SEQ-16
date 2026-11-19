@@ -7,3 +7,4 @@ tools/dist/
 tools/*.spec
 build/lang/
 build/seq16-*.sym
+build/video/
