@@ -51,6 +51,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 - [Organización del código](#-organización-del-código)
 - [Hoja de ruta](#️-hoja-de-ruta)
 - [Agradecimientos](#-agradecimientos)
+- [Licencia](#-licencia)
 
 ## 💾 Pruébalo ya
 
@@ -714,6 +715,10 @@ SEQ-16 se apoya en el trabajo de otras personas. Gracias a ellas.
 
 **Pruebas**
 - [WinAPE](http://www.winape.net/): el emulador con el que se probaron los disquetes.
+
+## 📜 Licencia
+
+[MIT](LICENSE): puedes usar, copiar, modificar y compartir SEQ-16, incluidos sus bancos de sonidos y patrones de fábrica, siempre que conserves el aviso de copyright. Amstrad y CPC son marcas de sus respectivos propietarios; SEQ-16 es un proyecto independiente.
 
 ---
 

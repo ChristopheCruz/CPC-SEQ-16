@@ -51,6 +51,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 - [Code layout](#-code-layout)
 - [Roadmap](#️-roadmap)
 - [Acknowledgements](#-acknowledgements)
+- [License](#-license)
 
 ## 💾 Try it right now
 
@@ -714,6 +715,10 @@ SEQ-16 is built on the work of others. Thank you to them.
 
 **Testing**
 - [WinAPE](http://www.winape.net/): the emulator used to try the disks.
+
+## 📜 License
+
+[MIT](LICENSE): you may use, copy, modify and share SEQ-16, including its sound banks and factory patterns, as long as the copyright notice is kept. Amstrad and CPC are trademarks of their respective owners; SEQ-16 is an independent project.
 
 ---
 
