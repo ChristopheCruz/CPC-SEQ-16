@@ -62,7 +62,7 @@ SMP_TOP     equ #A67C           ; la zone haute ne doit pas dépasser cette adre
                                 ; (#A67B = HIMEM d'AMSDOS sur 6128, vérifié
                                 ; au démarrage par smp_install)
 BANK_START  equ #0040           ; la banque : mémoire basse, libre après RUN"
-BANK_END    equ #4000           ;   jusqu'au début du programme
+BANK_END    equ #3F00           ;   jusqu'au début du programme (16 064 octets)
 BANK_MAX    equ BANK_END-BANK_START
 
 ; Fiche d'un sample dans la banque (voir tools/wav2smp.py)

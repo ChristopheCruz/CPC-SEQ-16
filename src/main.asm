@@ -10,7 +10,7 @@
 ; Lancement sur le CPC :  RUN"SEQ16
 ; ============================================================================
 
-        org #4000
+        org #3F00               ; (#3F00 et non #4000 : 256 octets de plus pour le programme)
         run start
 
         include 'firmware.asm'
@@ -41,6 +41,7 @@ KEY_P     equ 27
 KEY_O     equ 34
 KEY_I     equ 35
 KEY_E     equ 58
+KEY_M     equ 38
 
 GRID_ROW  equ 6                 ; première ligne écran de la grille
 HEAD_ROW  equ 5                 ; ligne des numéros de pas
@@ -306,6 +307,7 @@ cmd_table:
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
         db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I,KEY_E              ; 16 à 21
+        db KEY_M                                               ; 22
 NB_CMDS equ $-cmd_table         ; nombre de touches de commande
 
 ; --- ESPACE : lecture / arrêt ---
@@ -2051,6 +2053,10 @@ dsk_cmd:
         jp z,disk_new           ; N
         cp 16
         jp z,disk_load_bank     ; D : banque de samples (smpscreen.asm)
+        cp 18
+        jp z,disk_load_pat      ; P : charger un motif (banks.asm)
+        cp 22
+        jp z,disk_save_pat      ; M : sauver le motif affiché
         cp 19
         jp z,disk_load_ins      ; O : charger une banque d'instruments
         cp 20
@@ -2420,6 +2426,12 @@ dsv_go:
 ; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
 ; song_data, BC = message affiché si tout va bien.
 save_file:
+        push hl
+        ld hl,song_data
+        ld (sf_addr),hl
+        pop hl
+; Même chose, mais depuis l'adresse (sf_addr) : un motif seul, par exemple.
+save_block:
         ld (sf_size),de
         ld (sf_msg),bc
         push hl
@@ -2435,7 +2447,7 @@ save_file:
         ld de,io_buffer
         call CAS_OUT_OPEN
         jp nc,disk_error
-        ld hl,song_data
+        ld hl,(sf_addr)
         ld de,(sf_size)
         ld bc,0
         ld a,2                  ; fichier binaire
@@ -2670,6 +2682,10 @@ dsk_text:
         db 15,15,2,0,"VOLUME",0
         db 24,15,3,0,"f7",0
         db 27,15,2,0,"MUET",0
+        db 1,18,3,0, "M",0
+        db 3,18,2,0, "SAUVER MOTIF",0
+        db 17,18,3,0,"P",0
+        db 19,18,2,0,"CHARGER MOTIF (.PAT)",0
         db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
         db #FF
 
@@ -2798,6 +2814,7 @@ ch_colw:    db 0                ;   largeur d'une colonne
 last_msg:   dw txt_m_none       ; dernier message affiché
 sf_size:    dw 0                ; save_file : nombre d'octets,
 sf_msg:     dw 0                ;   message de réussite
+sf_addr:    dw 0                ;   et adresse du premier octet (save_block)
 clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
 clip_ok:    db 0                ;   1 = il contient un instrument
 it_pick:    db 0                ; son choisi dans la banque

@@ -98,12 +98,13 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
         # la routine recopiée en zone haute est identique à celle du fichier
         # SEQ16.BIN (en mémoire, sa source est ensuite recouverte par le
-        # morceau : on compare donc avec le fichier, chargé en #4000)
+        # morceau : on compare donc avec le fichier, chargé en START)
         src = cpc.addr("smp_blk_src") if "SMP_BLK_SRC" in cpc.sym else None
         self.assertIsNotNone(src)
         n = cpc.addr("smp_blk_end") - cpc.addr("smp_play")
         binary = cpcsim.amsdsk.read_file(os.path.join(ROOT, "build", "seq16.dsk"), "SEQ16.BIN")
-        self.assertEqual(binary[src - 0x4000:src - 0x4000 + n],
+        load = cpc.addr("start")
+        self.assertEqual(binary[src - load:src - load + n],
                          cpc.peek(cpc.addr("smp_play"), n))
         self.assertGreaterEqual(cpc.addr("smp_play"), 0x8000)
         # le morceau commence bien sur cette source, devenue inutile
@@ -115,7 +116,7 @@ class PlayerTest(unittest.TestCase):
         self.assertIn("f4 SAMPLE", self.cpc.row(1))
         self.assertEqual(len(self.cpc.row(1).rstrip()), 40)
         self.assertIn("BANQUE : DRUMS", txt)
-        self.assertIn("2037/16320", txt)
+        self.assertIn("2037/16064", txt)
         for i, name in enumerate(["KICK", "SNARE", "HAT", "CLAP"]):
             self.assertIn("%02d %-6s" % (i + 1, name), self.cpc.row(5 + i))
         self.assertIn("147MS", self.cpc.row(5))
