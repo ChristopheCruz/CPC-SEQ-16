@@ -54,7 +54,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 
 ## 💾 Essayer tout de suite
 
-1. Télécharge **[`seq16.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
+1. Télécharge **[`seq16-fr.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/), sous le nom `seq16.dsk`).
    - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes banques, mêmes touches : seuls les textes de l'écran changent.
    - **Banques seules :** `seq16-inst.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme : change de disquette, puis charge une banque (f3 : **O** ou **D**).
    - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs mono, en son composé) et `seq16-motifs-poly.dsk` (63 motifs poly, en voix séparées) : sur f3, **P** en charge un dans le motif affiché. Voir [Les motifs d'usine](#-les-motifs-dusine).
@@ -74,10 +74,10 @@ La disquette contient aussi des banques de sons toutes prêtes (voir [Les banque
 
 ## 🔌 Sur un vrai CPC avec un Gotek
 
-Pour jouer sur la machine réelle, il faut copier `seq16.dsk` sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC).
+Pour jouer sur la machine réelle, il faut copier `seq16-fr.dsk` sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC).
 L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/CPC-DISK)** s'en charge : c'est un éditeur d'images `.dsk` à l'allure d'écran CPC, en Python pur, sans dépendance. Il sert à :
 
-- ouvrir `seq16.dsk` et parcourir son catalogue AMSDOS ;
+- ouvrir `seq16-fr.dsk` et parcourir son catalogue AMSDOS ;
 - récupérer les morceaux `.SNG` sauvés sur la disquette, ou en ajouter ;
 - préparer la clé USB du Gotek.
 
@@ -307,7 +307,7 @@ Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en chan
 
 ### Mode d'emploi des samples, pas à pas
 
-**1. Lancer.** Insère `seq16.dsk` et tape `RUN"SEQ16`.
+**1. Lancer.** Insère `seq16-fr.dsk` et tape `RUN"SEQ16`.
 
 **2. Ouvrir l'écran des samples.** Appuie sur **f4**, la touche 4 du pavé numérique. La première fois, la banque `DRUMS.SMP` se charge toute seule, et ses 4 sons s'affichent à gauche.
 

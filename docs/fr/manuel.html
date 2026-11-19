@@ -45,7 +45,7 @@
 <div class="wrap">
 <p class="tag">MODE D'EMPLOI</p>
 <h1 id="man-h">Manuel de SEQ-16</h1>
-<p class="lead">Chaque écran et chaque touche de SEQ-16, avec les textes exactement tels que la disquette française (<code>seq16.dsk</code>) les affiche.</p>
+<p class="lead">Chaque écran et chaque touche de SEQ-16, avec les textes exactement tels que la disquette française (<code>seq16-fr.dsk</code>) les affiche.</p>
 <p>Les textes en jaune, comme <samp class="scr">VERROU SON</samp>, sont ceux de l'écran du CPC. Les touches sont dessinées comme des touches de clavier : <kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd> veut dire : maintiens CTRL et appuie sur la flèche gauche ou droite.</p>
 <ul class="toc">
 <li><a href="#start">Démarrer et quitter</a></li><li><a href="#f1">f1 Séquenceur</a></li><li><a href="#f2">f2 Instrument</a></li>
@@ -59,7 +59,7 @@
 <div class="wrap">
 <h2 id="start-h">Démarrer et quitter</h2>
 <ol class="steps">
-<li>Insère <code>seq16.dsk</code> dans le lecteur (ou dans un émulateur réglé en <strong>CPC 6128</strong>).</li>
+<li>Insère <code>seq16-fr.dsk</code> dans le lecteur (ou dans un émulateur réglé en <strong>CPC 6128</strong>).</li>
 <li>Tape <code>RUN"SEQ16</code> puis <kbd>RETURN</kbd>.</li>
 <li>Choisis un écran avec les touches de fonction du pavé numérique : <kbd class="fn">f1</kbd> séquenceur, <kbd class="fn">f2</kbd> instrument, <kbd class="fn">f3</kbd> mixage et disque, <kbd class="fn">f4</kbd> sampler. Les onglets en haut affichent <samp class="scr">f1 SEQ</samp> <samp class="scr">f2 INST</samp> <samp class="scr">f3 DISQUE</samp> <samp class="scr">f4 SAMPLE</samp>.</li>
 </ol>
@@ -193,7 +193,7 @@
 <h2 id="samples-h">Les samples, pas à pas</h2>
 <p>Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en changeant très vite le volume d'une voie de l'AY : 16 niveaux sur une courbe presque logarithmique. C'est ce qui donne le grain, et la dégradation est recherchée : grain, repliement de spectre, souffle et hachures sont des effets voulus et réglables.</p>
 <ol class="steps">
-<li><strong>Lancer.</strong> Insère <code>seq16.dsk</code> et tape <code>RUN"SEQ16</code>.</li>
+<li><strong>Lancer.</strong> Insère <code>seq16-fr.dsk</code> et tape <code>RUN"SEQ16</code>.</li>
 <li><strong>Ouvrir l'écran des samples.</strong> Appuie sur <kbd class="fn">f4</kbd>, la touche 4 du pavé numérique. La première fois, la banque <code>DRUMS.SMP</code> se charge toute seule, et ses 4 sons s'affichent à gauche.</li>
 <li><strong>Écouter.</strong> Choisis un sample avec <kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd>. <kbd>ESPACE</kbd> le joue à sa hauteur d'origine ; <kbd>ESPACE</kbd> à nouveau l'arrête. Les touches du piano le jouent plus aigu ou plus grave : la rangée du haut, à partir de la touche du DO, part de la hauteur d'origine et monte de demi-ton en demi-ton ; la rangée du bas joue une octave plus bas. Pendant l'écoute, l'écran ne bouge plus : c'est normal.</li>
 <li><strong>Salir le son.</strong> À droite, choisis un réglage avec <kbd>↑</kbd>/<kbd>↓</kbd> et change sa valeur avec <kbd>←</kbd>/<kbd>→</kbd> (pour la fréquence, avec <kbd>SHIFT</kbd>, par pas de 10). Réécoute après chaque changement.
