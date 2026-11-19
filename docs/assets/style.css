@@ -154,3 +154,6 @@ td.wrapok{white-space:normal}
 @media (min-width:900px){.thanks{grid-template-columns:1fr 1fr}}
 .thanks h3{margin-top:1rem}
 .thanks li{margin:.4rem 0}
+
+.crt video{display:block;width:100%;height:auto;border-radius:8px;background:#00007f;image-rendering:pixelated}
+.crt-video::after{display:none}

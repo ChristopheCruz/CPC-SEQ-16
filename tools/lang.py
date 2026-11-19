@@ -37,7 +37,7 @@ TEXTS = {
     # --- onglets et écran f1 (séquenceur) ---
     " f3 DISQUE": (" f3 DISK", " f3 DISCO"),
     "MOTIF :": ("PATTERN", "PATRON:"),
-    "ETAT :": ("STATE:", "ESTADO"),
+    "ETAT :": ("STATE:", "EST.: "),
     "OCTAVE:": ("OCTAVE:", "OCTAVA:"),
     "PAS": ("STP", "PAS"),
     "CURSEUR": ("CURSOR", "CURSOR"),
