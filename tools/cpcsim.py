@@ -177,9 +177,12 @@ def read_symbols(path):
 
 
 class CPC:
-    def __init__(self, binary, symbols, load=0x4000):
+    def __init__(self, binary, symbols, load=None):
         self.m = z80.Z80Machine()
         self.mem = self.m.memory
+        if load is None:                      # adresse de chargement : START
+            load = symbols.get("START", 0x3F00)
+        self.load = load
         self.m.set_memory_block(load, binary)
         self.sym = symbols
         self.t = 0                            # temps en NOP
@@ -294,7 +297,7 @@ class CPC:
             m.pc = (pc + 1) & 0xFFFF
             self.t += 1
             return
-        if op == 0xC7 and pc >= 0x4000:       # RST 0 : le programme quitte
+        if op == 0xC7 and pc >= self.load:    # RST 0 : le programme quitte
             self.stopped = True
             return
         if op == 0xDF:                        # RST #18 : appel lointain

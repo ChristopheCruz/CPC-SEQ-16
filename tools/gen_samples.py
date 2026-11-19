@@ -224,7 +224,8 @@ def mots(rng):
              ("STOP", "stop"), ("GO", "go"), ("HE", "hé"), ("BOUM", "boum"),
              ("DANSE", "danse"), ("SUPER", "super"), ("OUAIS", "ouais"), ("BRAVO", "bravo"),
              ("CPC", "cé pé cé"), ("MUSIQ", "musique")]
-    return [(n, x, 6250, 2.0, r) for n, x, r in espeak_words(words, "mot")]
+    # 6 000 Hz (et non 6 250) : la banque doit tenir en 16 064 octets
+    return [(n, x, 6000, 2.0, r) for n, x, r in espeak_words(words, "mot")]
 
 
 BANKS = [("BATTERI2", batteri2), ("PERCUS", percus), ("EFFETS", effets),

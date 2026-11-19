@@ -25,6 +25,8 @@
 ; ============================================================================
 
 SCRATCH      equ SMP_LUT_HI     ; 512 octets de travail (zone haute)
+smp_files    equ SCRATCH        ; liste des fichiers d'une extension (64 x 8) :
+                                ; libre pendant le choix d'un fichier
 INS_MSG_ROW  equ 25             ; écran f2 : ligne des messages
 INS_FILE_LEN equ SONG_FIXED     ; taille d'une banque .INS
 
@@ -134,6 +136,59 @@ dli_err:
         call CAS_IN_ABANDON
         jp disk_error
 
+; --- f3, M : sauver le motif affiché (NOM.PAT, 260 octets) -------------------
+disk_save_pat:
+        ld a,(cur_pat)
+        call pat_addr
+        ld (sf_addr),hl
+        ld hl,txt_ext_pat
+        ld de,PAT_SIZE
+        ld bc,txt_p_saved
+        jp save_block
+
+; --- f3, P : charger un motif .PAT à la place du motif affiché ----------------
+; Le fichier doit faire exactement PAT_SIZE octets ; un mode inconnu devient
+; « voix séparées ».  Le motif garde son tempo (octet 1 du fichier).
+disk_load_pat:
+        ld hl,txt_ext_pat       ; on choisit un motif sur la disquette
+        call choose_file        ; (coupe aussi le son)
+        ret nc
+        push hl
+        push bc
+        ld hl,txt_m_loading
+        call dsk_message
+        pop bc
+        pop hl
+        ld de,io_buffer
+        call CAS_IN_OPEN        ; -> BC = taille du fichier
+        jp nc,disk_error
+        ld hl,PAT_SIZE
+        or a
+        sbc hl,bc
+        jr nz,dlp_bad
+        ld a,(cur_pat)
+        call pat_addr
+        push hl
+        call CAS_IN_DIRECT
+        pop hl
+        jr nc,dlp_abandon
+        ld a,(hl)               ; mode : 0 ou 1
+        cp 2
+        jr c,dlp_mode
+        ld (hl),0
+dlp_mode:
+        call seq_set_pattern    ; le séquenceur prend le motif et son tempo
+        call CAS_IN_CLOSE
+        ld hl,txt_p_loaded
+        jp dsk_message
+dlp_bad:
+        call CAS_IN_ABANDON
+        ld hl,txt_p_bad
+        jp dsk_message
+dlp_abandon:
+        call CAS_IN_ABANDON
+        jp disk_error
+
 ; --- Lecture d'une banque, octet par octet -----------------------------------
 ; Ouvre la banque HL (nom), B (longueur) et lit son en-tête.
 ; Sortie : Carry = 1, le fichier est ouvert, prêt à lire les instruments.
@@ -203,6 +258,10 @@ txt_i_nomem:  db "PAS ASSEZ DE MEMOIRE",0
 txt_i_saved:  db "INSTRUMENTS SAUVES (.INS)",0
 txt_i_loaded: db "INSTRUMENTS CHARGES",0
 txt_i_bad:    db "CE FICHIER N'EST PAS UNE BANQUE .INS",0
+txt_ext_pat:  db ".PAT",0
+txt_p_saved:  db "MOTIF SAUVE (.PAT)",0
+txt_p_loaded: db "MOTIF CHARGE",0
+txt_p_bad:    db "CE FICHIER N'EST PAS UN MOTIF .PAT",0
 
 ; ============================================================================
 ; Banque de samples : sauvegarde (f3, E) et banque associée à un morceau.

@@ -167,7 +167,7 @@ class TestModel(ModelBase):
         self.assertFalse(m.dirty)
 
     def test_over_limit_refused(self):
-        """Au-delà de 16 320 octets : save et add_to_dsk refusent, rien n'est écrit."""
+        """Au-delà de 16 064 octets : save et add_to_dsk refusent, rien n'est écrit."""
         long_wav = os.path.join(self.tmp, "long.wav")
         wav2smp.write_wav(long_wav, sine(300, 4.5, rate=8000), 8000)   # 18 000 oct.
         m = BankModel()
@@ -177,7 +177,7 @@ class TestModel(ModelBase):
         out = os.path.join(self.tmp, "TROP.SMP")
         with self.assertRaises(BankError) as cm:
             m.save(out)
-        self.assertIn("16320", cm.exception.args[0].replace(" ", ""))
+        self.assertIn("16064", cm.exception.args[0].replace(" ", ""))
         self.assertFalse(os.path.exists(out))
         dsk = os.path.join(self.tmp, "t.dsk")
         shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), dsk)

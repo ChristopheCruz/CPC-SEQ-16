@@ -42,6 +42,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 - [The keys](#️-the-keys)
 - [The song format](#-the-song-format)
 - [The sound banks](#-the-sound-banks)
+- [Factory patterns](#-factory-patterns)
 - [The sampler: samples and digidrums](#-the-sampler-samples-and-digidrums)
   - [Samples, step by step](#samples-step-by-step)
   - [Digidrums: samples in the song](#digidrums-samples-in-the-song)
@@ -56,6 +57,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 1. Download **[`seq16-en.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** from the latest release (a copy is also in [`build/`](build/)).
    - **Version française :** `seq16.dsk`. **Versión en español:** `seq16-es.dsk`. Same program, same banks, same keys: only the on-screen texts change.
    - **Banks only:** `seq16-sons.dsk` (13 instrument banks `.INS`) and `seq16-samples.dsk` (9 sample banks `.SMP`), data disks without the program: swap disks, then load a bank (f3: **O** or **D**).
+   - **Factory patterns:** `seq16-motifs-mono.dsk` (62 mono patterns, layered sound) and `seq16-motifs-poly.dsk` (63 poly patterns, split voices): on f3, **P** loads one into the displayed pattern. See [Factory patterns](#-factory-patterns).
 2. Put the disk in an emulator (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) set to **CPC 6128**.
 3. Type:
 
@@ -184,6 +186,8 @@ Instruments 25 to 28 (`USER1` to `USER4`) are free for making your own sounds. I
 | O | load a `.INS` instrument bank (arrows, then RETURN; ESC cancels). Patterns don't change |
 | D | pick a `.SMP` sample bank on the disk (for the f4 screen): arrows, then RETURN; ESC cancels |
 | E | save the sample bank (with the settings made on f4), under its own name: `DRUMS.SMP`… |
+| M | save the displayed pattern (the one on f1) alone, into `NAME.PAT`: its mode, tempo and 16 steps |
+| P | load a `.PAT` pattern from the disk in place of the displayed pattern (arrows, then RETURN; ESC cancels). It plays with the current instruments |
 | N | new song (press twice) |
 | SPACE | listen to the pattern while adjusting |
 
@@ -274,6 +278,29 @@ They are made by [`tools/gen_instruments.py`](tools/gen_instruments.py) (`--list
 
 All the sounds are **synthesized** ([`tools/gen_samples.py`](tools/gen_samples.py)) or **spoken by espeak**: no samples taken from the Internet, so no rights issues.
 On f4, the **O** key takes a sample from one of these banks and adds it to the bank in memory. **f3 + E** saves the result.
+
+## 🎼 Factory patterns
+
+Two disks full of ready-made patterns, to start a song, learn the sequencer or borrow a groove. Each pattern is a `.PAT` file (260 bytes: mode, tempo and the 16 steps).
+
+| Disk | Patterns | What's in it |
+|---|---|---|
+| `seq16-motifs-mono.dsk` | 62 **mono** patterns | **layered sound** mode: a single line of notes played by one of the 8 layered sounds (chords, bass + percussion…): riffs, arpeggios, basslines, chord stabs, game jingles |
+| `seq16-motifs-poly.dsk` | 63 **poly** patterns | **split voices** mode: 4 independent voices: full grooves (drums on N, bass, chords or lead), plus drums-only and bass + drums building blocks |
+
+Styles: techno, house, electro, hip-hop, trap, rock, funk, reggae, dub, bossa, salsa, drum & bass, synth-pop, synthwave, disco, chiptune and game jingles, blues, jazz, waltz, march, ambient… from 80 to 170 BPM. The full list, with a description of each pattern, is in [`patterns/LISTE.md`](patterns/LISTE.md).
+
+**Load a pattern**:
+1. On f1, show the pattern slot to fill (CTRL + ←/→).
+2. Insert a pattern disk, go to **f3** and press **P**.
+3. The list shows every `.PAT` of the disk, in pages of 24: arrows to choose (going past the edge turns the page), RETURN to load, ESC to cancel.
+4. The pattern replaces the displayed one, with its mode and tempo. The other patterns don't change.
+
+**Save a pattern**: on f3, type a name on the `NAME` line, then press **M**: the displayed pattern is saved alone into `NAME.PAT`.
+
+The patterns are written for the **factory instruments and layered sounds** (those of the start-up song, also in `USINE.INS`). With other instruments, they play the same notes with other sounds. Four poly patterns (`DIGIHOP1`, `DIGIHSE1`, `DIGIFNK1`, `DIGIBRK1`) use the digidrums: load a sample bank first (f4, or f3 then D).
+
+They are made by [`tools/gen_patterns.py`](tools/gen_patterns.py), which also checks that every note is in the pattern's key, in the range of its instrument, and that no two voices clash.
 
 ## 🥁 The sampler: samples and digidrums
 
@@ -368,7 +395,7 @@ A desktop application for making a `.SMP` bank from WAV files, with no command l
 python tools\smp_gui.py          rem the editor alone, in its own window
 ```
 
-- **On the left**, the list of samples (16 at most): add WAVs (Ctrl+W, several at once), open an existing `.SMP` bank (Ctrl+O), remove, move up, move down. A gauge shows the space used out of the 16,320 bytes of CPC memory; it turns red if the bank is too big.
+- **On the left**, the list of samples (16 at most): add WAVs (Ctrl+W, several at once), open an existing `.SMP` bank (Ctrl+O), remove, move up, move down. A gauge shows the space used out of the 16,064 bytes of CPC memory; it turns red if the bank is too big.
 - **On the right**, the settings of the chosen sample: name (6 characters), frequency, saturation, silence trimming, smoothing, dithering, bits, decimation, curve, slicing. The waveform shows the original at the top and the CPC rendering at the bottom.
 - **Listen** to the original or the CPC rendering.
 - **Save .SMP** (Ctrl+S), then **Add to disk**: in CPC DISK, the disk open in the Disk tab is offered directly.
@@ -436,7 +463,7 @@ The curves:
 
 ### Known limits and things to watch
 
-- **Low memory.** The bank is loaded at `#0040-#3FFF`. After `RUN"`, this area, the one for BASIC programs, is free and reads as RAM (the lower ROM isn't visible there). If the sounds were replaced by a continuous noise, the lower ROM was visible during playback.
+- **Low memory.** The bank is loaded at `#0040-#3EFF`. After `RUN"`, this area, the one for BASIC programs, is free and reads as RAM (the lower ROM isn't visible there). If the sounds were replaced by a continuous noise, the lower ROM was visible during playback.
 - **The space for the routine** (`#A000-#A67B`) is taken just below the memory reserved by AMSDOS (above `#A67B` on a 6128). The program checks this at startup. If f4 shows `NOT ENOUGH MEMORY`, that assumption is wrong on your machine: samples, digidrums and the O key on f2 are then disabled, everything else works.
 - **Memory is full.** Only a few bytes are free below `#A000` and a few dozen in the high area. Phase 3 (extra 6128 memory) will have to free some before adding features.
 - **Instrument banks are read byte by byte** (AMSDOS `CAS IN CHAR`), since there's no room for a copy of the file in memory. This is tested in the simulator, not yet on the real machine.
@@ -505,7 +532,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 
 Each conversion also writes the preview WAVs next to the bank.
 For space: one second at 8 kHz takes 4 KB. A bank holds 16 samples at most, 16 KB at most each.
-For now, a bank must fit in the 16,320 bytes of main memory, i.e. about 4 seconds at 8 kHz. The 6128's memory will come in phase 3.
+For now, a bank must fit in the 16,064 bytes of main memory, i.e. about 4 seconds at 8 kHz. The 6128's memory will come in phase 3.
 
 ### The voice bank `VOIX.SMP`
 
@@ -646,6 +673,8 @@ _Codes/
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | the simulated CPC and the program's tests |
 | [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | the tests of the `.INS` banks and of the graphical editor |
 | [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | the English and Spanish versions (translations, build) and their tests |
+| [`tools/gen_patterns.py`](tools/gen_patterns.py), [`patterns/`](patterns/) | builds the factory patterns (`.PAT`) and their two disks |
+| [`tools/test_patterns.py`](tools/test_patterns.py), [`tools/test_gen_patterns.py`](tools/test_gen_patterns.py) | the tests of pattern saving/loading (f3 M and P) and of the factory patterns |
 | [`samples/`](samples/) | the `.SMP` banks, their original sounds and their preview WAVs |
 | [`instruments/`](instruments/) | the `.INS` instrument banks |
 | [`build.bat`](build.bat) | assembles and builds the disk |
