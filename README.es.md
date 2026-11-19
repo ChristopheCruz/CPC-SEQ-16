@@ -49,6 +49,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 - [Reensamblar](#️-reensamblar)
 - [Organización del código](#-organización-del-código)
 - [Hoja de ruta](#️-hoja-de-ruta)
+- [Agradecimientos](#-agradecimientos)
 
 ## 💾 Pruébalo ya
 
@@ -674,6 +675,26 @@ _Codes/
 - [x] Samples, fase 4: digidrums en el secuenciador, `.SNG` versión 2, grabación `.SMP`, 9 bancos de samples
 - [x] Editor gráfico de bancos `.SMP` en PC
 - [ ] Samples, fases 3, 5 y 6: memoria del 6128, modo TROCEADO, acabados de f4
+
+## 🙏 Agradecimientos
+
+SEQ-16 se apoya en el trabajo de otras personas. Gracias a ellas.
+
+**Herramientas y bibliotecas**
+- [RASM](https://github.com/EdouardBERGE/rasm), el ensamblador Z80 de Édouard Bergé: ensambla el programa y escribe el disquete.
+- [z80](https://github.com/kosarev/z80), el emulador Z80 para Python de Ivan Kosarev: ejecuta el CPC simulado de las pruebas.
+- [Ayumi](https://github.com/true-grue/ayumi), el emulador del AY-3-8912 de Peter Sovietov (licencia MIT): su tabla de volúmenes del DAC la usa el conversor de samples.
+- [eSpeak NG](https://github.com/espeak-ng/espeak-ng): las voces de los bancos de samples `VOIX`, `CHIFFRES` y `MOTS`.
+- [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK): la biblioteca de disquetes y el editor de bancos de samples (su pestaña SAMPLES SEQ-16).
+- [Python](https://www.python.org/) y [tkinter](https://docs.python.org/3/library/tkinter.html): las herramientas, las pruebas y el editor.
+- Fuentes [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) de CodeMan38 y [VT323](https://fonts.google.com/specimen/VT323) de Peter Hull ([SIL Open Font License 1.1](https://openfontlicense.org/)).
+
+**Documentación y referencias**
+- [CPCWiki](https://www.cpcwiki.eu/): el firmware del CPC, el chip de sonido AY-3-8912, AMSDOS y el formato de imágenes DSK.
+- [HxC2001](https://hxc2001.com/) y [FlashFloppy](https://github.com/keirf/FlashFloppy): los firmwares del Gotek y su documentación.
+
+**Pruebas**
+- [WinAPE](http://www.winape.net/): el emulador con el que se probaron los disquetes.
 
 ---
 

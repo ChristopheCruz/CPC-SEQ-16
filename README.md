@@ -49,6 +49,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 - [Rebuilding](#️-rebuilding)
 - [Code layout](#-code-layout)
 - [Roadmap](#️-roadmap)
+- [Acknowledgements](#-acknowledgements)
 
 ## 💾 Try it right now
 
@@ -674,6 +675,26 @@ _Codes/
 - [x] Samples, phase 4: digidrums in the sequencer, `.SNG` version 2, `.SMP` saving, 9 sample banks
 - [x] Graphical `.SMP` bank editor on PC
 - [ ] Samples, phases 3, 5 and 6: 6128 memory, CHOPPED mode, f4 finishing touches
+
+## 🙏 Acknowledgements
+
+SEQ-16 is built on the work of others. Thank you to them.
+
+**Tools and libraries**
+- [RASM](https://github.com/EdouardBERGE/rasm), the Z80 assembler by Édouard Bergé: assembles the program and writes the disk.
+- [z80](https://github.com/kosarev/z80), the Z80 emulator for Python by Ivan Kosarev: runs the simulated CPC used by the tests.
+- [Ayumi](https://github.com/true-grue/ayumi), the AY-3-8912 emulator by Peter Sovietov (MIT licence): its DAC volume table is used by the sample converter.
+- [eSpeak NG](https://github.com/espeak-ng/espeak-ng): the voices of the `VOIX`, `CHIFFRES` and `MOTS` sample banks.
+- [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK): the disk library, and the sample-bank editor (its SAMPLES SEQ-16 tab).
+- [Python](https://www.python.org/) and [tkinter](https://docs.python.org/3/library/tkinter.html): the tools, the tests and the editor.
+- Fonts [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38 and [VT323](https://fonts.google.com/specimen/VT323) by Peter Hull ([SIL Open Font License 1.1](https://openfontlicense.org/)).
+
+**Documentation and references**
+- [CPCWiki](https://www.cpcwiki.eu/): the CPC firmware, the AY-3-8912 sound chip, AMSDOS and the DSK image format.
+- [HxC2001](https://hxc2001.com/) and [FlashFloppy](https://github.com/keirf/FlashFloppy): the Gotek firmwares and their documentation.
+
+**Testing**
+- [WinAPE](http://www.winape.net/): the emulator used to try the disks.
 
 ---
 
