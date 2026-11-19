@@ -42,6 +42,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 - [Les touches](#️-les-touches)
 - [Le format des morceaux](#-le-format-des-morceaux)
 - [Les banques de sons](#-les-banques-de-sons)
+- [Les motifs d'usine](#-les-motifs-dusine)
 - [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
   - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
   - [Les digidrums : des samples dans le morceau](#les-digidrums--des-samples-dans-le-morceau)
@@ -56,6 +57,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 1. Télécharge **[`seq16.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
    - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes banques, mêmes touches : seuls les textes de l'écran changent.
    - **Banques seules :** `seq16-sons.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme : change de disquette, puis charge une banque (f3 : **O** ou **D**).
+   - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs mono, en son composé) et `seq16-motifs-poly.dsk` (63 motifs poly, en voix séparées) : sur f3, **P** en charge un dans le motif affiché. Voir [Les motifs d'usine](#-les-motifs-dusine).
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
 3. Tape :
 
@@ -182,6 +184,8 @@ Les instruments 25 à 28 (`USER1` à `USER4`) sont libres pour créer ses propre
 | O | charger une banque d'instruments `.INS` (flèches, puis RETURN ; ESC annule). Les motifs ne changent pas |
 | D | choisir une banque de samples `.SMP` sur la disquette (pour l'écran f4) : flèches, puis RETURN ; ESC annule |
 | E | sauver la banque de samples (avec les réglages faits sur f4), sous son nom : `DRUMS.SMP`… |
+| M | sauver le motif affiché (celui de f1), seul, dans `NOM.PAT` : son mode, son tempo et ses 16 pas |
+| P | charger un motif `.PAT` de la disquette à la place du motif affiché (flèches, puis RETURN ; ESC annule). Il joue avec les instruments du moment |
 | N | nouveau morceau (appuyer deux fois) |
 | ESPACE | écouter le motif pendant le réglage |
 
@@ -270,6 +274,29 @@ Elles sont fabriquées par [`tools/gen_instruments.py`](tools/gen_instruments.py
 
 Tous les sons sont **synthétisés** ([`tools/gen_samples.py`](tools/gen_samples.py)) ou **dits par espeak** : aucun échantillon venu d'Internet, donc aucune question de droits.
 Sur f4, la touche **O** prend un sample dans l'une de ces banques et l'ajoute à la banque en mémoire. **f3 + E** sauve le résultat.
+
+## 🎼 Les motifs d'usine
+
+Deux disquettes pleines de motifs tout prêts, pour commencer un morceau, apprendre le séquenceur ou emprunter un groove. Chaque motif est un fichier `.PAT` (260 octets : mode, tempo et les 16 pas).
+
+| Disquette | Motifs | Contenu |
+|---|---|---|
+| `seq16-motifs-mono.dsk` | 62 motifs **mono** | mode **son composé** : une seule ligne de notes jouée par l'un des 8 sons composés (accords, basse + percussion…) : riffs, arpèges, basses, accords plaqués, jingles de jeu |
+| `seq16-motifs-poly.dsk` | 63 motifs **poly** | mode **voix séparées** : 4 voix indépendantes : grooves complets (batterie sur N, basse, accords ou mélodie), plus des briques batterie seule et basse + batterie |
+
+Styles : techno, house, electro, hip-hop, trap, rock, funk, reggae, dub, bossa, salsa, drum & bass, synth-pop, synthwave, disco, chiptune et jingles de jeu, blues, jazz, valse, marche, ambient… de 80 à 170 BPM. La liste complète, avec la description de chaque motif, est dans [`patterns/LISTE.md`](patterns/LISTE.md).
+
+**Charger un motif** :
+1. Sur f1, affiche l'emplacement à remplir (CTRL + ←/→).
+2. Mets une disquette de motifs, va sur **f3** et appuie sur **P**.
+3. La liste montre tous les `.PAT` de la disquette, par pages de 24 : flèches pour choisir (en sortant du bord, la page change), RETURN pour charger, ESC pour annuler.
+4. Le motif remplace celui qui est affiché, avec son mode et son tempo. Les autres motifs ne changent pas.
+
+**Sauver un motif** : sur f3, tape un nom sur la ligne `NOM`, puis appuie sur **M** : le motif affiché est sauvé seul dans `NOM.PAT`.
+
+Les motifs sont écrits pour les **instruments et sons composés d'usine** (ceux du morceau au démarrage, aussi dans `USINE.INS`). Avec d'autres instruments, ils jouent les mêmes notes avec d'autres sons. Quatre motifs poly (`DIGIHOP1`, `DIGIHSE1`, `DIGIFNK1`, `DIGIBRK1`) utilisent les digidrums : charge d'abord une banque de samples (f4, ou f3 puis D).
+
+Ils sont fabriqués par [`tools/gen_patterns.py`](tools/gen_patterns.py), qui vérifie aussi que chaque note est dans la tonalité du motif, dans la tessiture de son instrument, et que deux voix ne se heurtent jamais.
 
 ## 🥁 Le sampler : samples et digidrums
 
@@ -364,7 +391,7 @@ Une application de bureau pour fabriquer une banque `.SMP` à partir de fichiers
 python tools\smp_gui.py          rem l'éditeur seul, dans sa fenêtre
 ```
 
-- **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 320 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
+- **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 064 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
 - **À droite**, les réglages du sample choisi : nom (6 caractères), fréquence, saturation, coupure des silences, adoucissement, tramage, bits, décimation, courbe, découpe en tranches. La forme d'onde montre l'original en haut et le rendu du CPC en bas.
 - **Écouter** l'original ou le rendu du CPC.
 - **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** : dans CPC DISK, la disquette ouverte dans l'onglet Disquette est proposée directement.
@@ -432,7 +459,7 @@ Les courbes :
 
 ### Limites connues et points à surveiller
 
-- **La mémoire basse.** La banque est chargée en `#0040-#3FFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
+- **La mémoire basse.** La banque est chargée en `#0040-#3EFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
 - **La place pour la routine** (`#A000-#A67B`) est prise juste sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine : les samples, les digidrums et la touche O de f2 sont alors désactivés, le reste fonctionne.
 - **La mémoire est pleine.** Il ne reste que quelques octets libres sous `#A000` et quelques dizaines en zone haute. La phase 3 (mémoire supplémentaire du 6128) devra en libérer avant d'ajouter des fonctions.
 - **Les banques d'instruments se lisent octet par octet** (`CAS IN CHAR` d'AMSDOS), faute de place pour une copie du fichier en mémoire. C'est testé dans le simulateur, pas encore sur la vraie machine.
@@ -501,7 +528,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 
 Chaque conversion écrit aussi les WAV d'écoute à côté de la banque.
 Pour la place : une seconde à 8 kHz occupe 4 Ko. Une banque contient 16 samples au plus, 16 Ko au plus chacun.
-Pour l'instant, une banque doit tenir dans les 16 320 octets de la mémoire principale, soit environ 4 secondes à 8 kHz. La mémoire du 6128 viendra en phase 3.
+Pour l'instant, une banque doit tenir dans les 16 064 octets de la mémoire principale, soit environ 4 secondes à 8 kHz. La mémoire du 6128 viendra en phase 3.
 
 ### La banque de voix `VOIX.SMP`
 
@@ -642,6 +669,8 @@ _Codes/
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
 | [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | les tests des banques `.INS` et de l'éditeur graphique |
 | [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | les versions anglaise et espagnole (traductions, fabrication) et leurs tests |
+| [`tools/gen_patterns.py`](tools/gen_patterns.py), [`patterns/`](patterns/) | fabrique les motifs d'usine (`.PAT`) et leurs deux disquettes |
+| [`tools/test_patterns.py`](tools/test_patterns.py), [`tools/test_gen_patterns.py`](tools/test_gen_patterns.py) | les tests de la sauvegarde et du chargement des motifs (f3 M et P) et des motifs d'usine |
 | [`samples/`](samples/) | les banques `.SMP`, leurs sons d'origine et leurs WAV d'écoute |
 | [`instruments/`](instruments/) | les banques d'instruments `.INS` |
 | [`build.bat`](build.bat) | assemble et fabrique la disquette |

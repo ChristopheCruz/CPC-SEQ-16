@@ -42,6 +42,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 - [Las teclas](#️-las-teclas)
 - [El formato de los temas](#-el-formato-de-los-temas)
 - [Los bancos de sonidos](#-los-bancos-de-sonidos)
+- [Los patrones de fábrica](#-los-patrones-de-fábrica)
 - [El sampler: samples y digidrums](#-el-sampler-samples-y-digidrums)
   - [Los samples, paso a paso](#los-samples-paso-a-paso)
   - [Los digidrums: samples dentro del tema](#los-digidrums-samples-dentro-del-tema)
@@ -56,6 +57,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 1. Descarga **[`seq16-es.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** de la última release (también hay una copia en [`build/`](build/)).
    - **Version française :** `seq16.dsk`. **English version:** `seq16-en.dsk`. El mismo programa, los mismos bancos, las mismas teclas: solo cambian los textos de la pantalla.
    - **Solo los bancos:** `seq16-sons.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), disquetes de datos sin el programa: cambia de disquete y carga un banco (f3: **O** o **D**).
+   - **Patrones de fábrica:** `seq16-motifs-mono.dsk` (62 patrones mono, en sonido de 4 voces) y `seq16-motifs-poly.dsk` (63 patrones poli, en voces sueltas): en f3, **P** carga uno en el patrón mostrado. Ver [Los patrones de fábrica](#-los-patrones-de-fábrica).
 2. Mete el disquete en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como **CPC 6128**.
 3. Teclea:
 
@@ -184,6 +186,8 @@ Los instrumentos 25 a 28 (`USER1` a `USER4`) están libres para crear tus propio
 | O | cargar un banco de instrumentos `.INS` (flechas y luego RETURN; ESC cancela). Los patrones no cambian |
 | D | elegir un banco de samples `.SMP` del disquete (para la pantalla f4): flechas y luego RETURN; ESC cancela |
 | E | grabar el banco de samples (con los ajustes hechos en f4), con su nombre: `DRUMS.SMP`… |
+| M | grabar el patrón mostrado (el de f1), solo, en `NOMBRE.PAT`: su modo, su tempo y sus 16 pasos |
+| P | cargar un patrón `.PAT` del disquete en lugar del patrón mostrado (flechas y luego RETURN; ESC cancela). Suena con los instrumentos del momento |
 | N | tema nuevo (pulsar dos veces) |
 | ESPACIO | escuchar el patrón mientras ajustas |
 
@@ -274,6 +278,29 @@ Los fabrica [`tools/gen_instruments.py`](tools/gen_instruments.py) (`--list` mue
 
 Todos los sonidos están **sintetizados** ([`tools/gen_samples.py`](tools/gen_samples.py)) o **los dice espeak**: ninguna muestra sacada de Internet, así que ningún problema de derechos.
 En f4, la tecla **O** toma un sample de uno de estos bancos y lo añade al banco en memoria. **f3 + E** graba el resultado.
+
+## 🎼 Los patrones de fábrica
+
+Dos disquetes llenos de patrones listos para usar, para empezar un tema, aprender el secuenciador o tomar prestado un groove. Cada patrón es un fichero `.PAT` (260 bytes: modo, tempo y los 16 pasos).
+
+| Disquete | Patrones | Contenido |
+|---|---|---|
+| `seq16-motifs-mono.dsk` | 62 patrones **mono** | modo **sonido de 4 voces**: una sola línea de notas tocada por uno de los 8 sonidos de 4 voces (acordes, bajo + percusión…): riffs, arpegios, bajos, acordes, jingles de videojuego |
+| `seq16-motifs-poly.dsk` | 63 patrones **poli** | modo **voces sueltas**: 4 voces independientes: grooves completos (batería en N, bajo, acordes o melodía), y además bloques de solo batería y de bajo + batería |
+
+Estilos: techno, house, electro, hip-hop, trap, rock, funk, reggae, dub, bossa, salsa, drum & bass, synth-pop, synthwave, disco, chiptune y jingles de videojuego, blues, jazz, vals, marcha, ambient… de 80 a 170 BPM. La lista completa, con la descripción de cada patrón, está en [`patterns/LISTE.md`](patterns/LISTE.md).
+
+**Cargar un patrón**:
+1. En f1, muestra el hueco que quieres llenar (CTRL + ←/→).
+2. Mete un disquete de patrones, ve a **f3** y pulsa **P**.
+3. La lista muestra todos los `.PAT` del disquete, en páginas de 24: flechas para elegir (al salir del borde cambia la página), RETURN para cargar, ESC para cancelar.
+4. El patrón sustituye al mostrado, con su modo y su tempo. Los demás patrones no cambian.
+
+**Grabar un patrón**: en f3, escribe un nombre en la línea `NOMB`, y pulsa **M**: el patrón mostrado se graba solo en `NOMBRE.PAT`.
+
+Los patrones están escritos para los **instrumentos y sonidos de 4 voces de fábrica** (los del tema al arrancar, también en `USINE.INS`). Con otros instrumentos, tocan las mismas notas con otros sonidos. Cuatro patrones poli (`DIGIHOP1`, `DIGIHSE1`, `DIGIFNK1`, `DIGIBRK1`) usan los digidrums: carga antes un banco de samples (f4, o f3 y luego D).
+
+Los fabrica [`tools/gen_patterns.py`](tools/gen_patterns.py), que también comprueba que cada nota está en la tonalidad del patrón, en el registro de su instrumento, y que dos voces nunca chocan.
 
 ## 🥁 El sampler: samples y digidrums
 
@@ -368,7 +395,7 @@ Una aplicación de escritorio para fabricar un banco `.SMP` a partir de ficheros
 python tools\smp_gui.py          rem el editor solo, en su propia ventana
 ```
 
-- **A la izquierda**, la lista de samples (16 como máximo): añadir WAV (Ctrl+W, varios a la vez), abrir un banco `.SMP` existente (Ctrl+O), quitar, subir, bajar. Un indicador muestra el espacio ocupado de los 16 320 bytes de memoria del CPC; se pone en rojo si el banco es demasiado grande.
+- **A la izquierda**, la lista de samples (16 como máximo): añadir WAV (Ctrl+W, varios a la vez), abrir un banco `.SMP` existente (Ctrl+O), quitar, subir, bajar. Un indicador muestra el espacio ocupado de los 16 064 bytes de memoria del CPC; se pone en rojo si el banco es demasiado grande.
 - **A la derecha**, los ajustes del sample elegido: nombre (6 caracteres), frecuencia, saturación, recorte de silencios, suavizado, tramado (dither), bits, decimación, curva, troceado. La forma de onda muestra el original arriba y el resultado del CPC abajo.
 - **Escuchar** el original o el resultado del CPC.
 - **Grabar .SMP** (Ctrl+S) y luego **Añadir al disquete**: en CPC DISK, se propone directamente el disquete abierto en la pestaña Disquete.
@@ -436,7 +463,7 @@ Las curvas:
 
 ### Límites conocidos y puntos a vigilar
 
-- **La memoria baja.** El banco se carga en `#0040-#3FFF`. Después de `RUN"`, esta zona, la de los programas BASIC, está libre y se lee en RAM (la ROM baja no es visible ahí). Si los sonidos se sustituyeran por un ruido continuo, sería que la ROM baja estaba visible durante la reproducción.
+- **La memoria baja.** El banco se carga en `#0040-#3EFF`. Después de `RUN"`, esta zona, la de los programas BASIC, está libre y se lee en RAM (la ROM baja no es visible ahí). Si los sonidos se sustituyeran por un ruido continuo, sería que la ROM baja estaba visible durante la reproducción.
 - **El espacio para la rutina** (`#A000-#A67B`) se toma justo debajo de la memoria reservada por AMSDOS (por encima de `#A67B` en el 6128). El programa lo comprueba al arrancar. Si f4 muestra `MEMORIA INSUFICIENTE`, es que esta suposición es falsa en tu máquina: los samples, los digidrums y la tecla O de f2 se desactivan entonces, y el resto funciona.
 - **La memoria está llena.** Solo quedan unos pocos bytes libres por debajo de `#A000` y unas decenas en la zona alta. La fase 3 (memoria adicional del 6128) tendrá que liberar algo antes de añadir funciones.
 - **Los bancos de instrumentos se leen byte a byte** (`CAS IN CHAR` de AMSDOS), porque no hay sitio para una copia del fichero en memoria. Está probado en el simulador, todavía no en la máquina real.
@@ -505,7 +532,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 
 Cada conversión escribe también los WAV de escucha junto al banco.
 En cuanto al espacio: un segundo a 8 kHz ocupa 4 KB. Un banco contiene 16 samples como máximo, de 16 KB como máximo cada uno.
-Por ahora, un banco debe caber en los 16 320 bytes de la memoria principal, o sea unos 4 segundos a 8 kHz. La memoria del 6128 llegará en la fase 3.
+Por ahora, un banco debe caber en los 16 064 bytes de la memoria principal, o sea unos 4 segundos a 8 kHz. La memoria del 6128 llegará en la fase 3.
 
 ### El banco de voces `VOIX.SMP`
 
@@ -646,6 +673,8 @@ _Codes/
 | [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | el CPC simulado y las pruebas del programa |
 | [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | las pruebas de los bancos `.INS` y del editor gráfico |
 | [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | las versiones inglesa y española (traducciones, fabricación) y sus pruebas |
+| [`tools/gen_patterns.py`](tools/gen_patterns.py), [`patterns/`](patterns/) | fabrica los patrones de fábrica (`.PAT`) y sus dos disquetes |
+| [`tools/test_patterns.py`](tools/test_patterns.py), [`tools/test_gen_patterns.py`](tools/test_gen_patterns.py) | las pruebas de grabar y cargar patrones (f3 M y P) y de los patrones de fábrica |
 | [`samples/`](samples/) | los bancos `.SMP`, sus sonidos originales y sus WAV de escucha |
 | [`instruments/`](instruments/) | los bancos de instrumentos `.INS` |
 | [`build.bat`](build.bat) | ensambla y fabrica el disquete |
