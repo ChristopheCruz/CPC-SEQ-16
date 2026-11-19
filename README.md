@@ -55,8 +55,8 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 ## 💾 Try it right now
 
 1. Download **[`seq16-en.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** from the latest release (a copy is also in [`build/`](build/)).
-   - **Version française :** `seq16.dsk`. **Versión en español:** `seq16-es.dsk`. Same program, same banks, same keys: only the on-screen texts change.
-   - **Banks only:** `seq16-sons.dsk` (13 instrument banks `.INS`) and `seq16-samples.dsk` (9 sample banks `.SMP`), data disks without the program: swap disks, then load a bank (f3: **O** or **D**).
+   - **Version française :** `seq16-fr.dsk`. **Versión en español:** `seq16-es.dsk`. Same program, same banks, same keys: only the on-screen texts change.
+   - **Banks only:** `seq16-inst.dsk` (13 instrument banks `.INS`) and `seq16-samples.dsk` (9 sample banks `.SMP`), data disks without the program: swap disks, then load a bank (f3: **O** or **D**).
    - **Factory patterns:** `seq16-motifs-mono.dsk` (62 mono patterns, layered sound) and `seq16-motifs-poly.dsk` (63 poly patterns, split voices): on f3, **P** loads one into the displayed pattern. See [Factory patterns](#-factory-patterns).
 2. Put the disk in an emulator (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) set to **CPC 6128**.
 3. Type:
@@ -147,7 +147,7 @@ Four screens, picked with the function keys on the numeric keypad: **f1** sequen
 | SHIFT + ↑/↓ | input octave |
 | SHIFT + ←/→ | input instrument (and that of the note under the cursor) |
 | CTRL + ↑/↓ | tempo in BPM |
-| CTRL + ←/→ | previous / next pattern (32 patterns) |
+| CTRL + ←/→ | previous / next pattern (32 patterns); during playback, the music goes on, at the same step |
 
 A muted voice shows `MUTE` to the left of the grid.
 

@@ -34,7 +34,7 @@
 <a class="logo" href="../fr/index.html" aria-label="SEQ-16, page d'accueil">SEQ<span>-</span>16</a>
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
 <nav aria-label="Principale" class="nav-wrap">
-<ul class="nav" id="nav"><li><a href="#features">Fonctions</a></li><li><a href="#screens">Écrans</a></li><li><a href="#download">Télécharger</a></li><li><a href="../fr/manuel.html">Manuel</a></li><li><a href="#pc">Sur PC</a></li><li><a href="#dev">Développeurs</a></li><li><a href="#thanks">Remerciements</a></li></ul>
+<ul class="nav" id="nav"><li><a href="#video">Vidéo</a></li><li><a href="#features">Fonctions</a></li><li><a href="#screens">Écrans</a></li><li><a href="#download">Télécharger</a></li><li><a href="../fr/manuel.html">Manuel</a></li><li><a href="#pc">Sur PC</a></li><li><a href="#dev">Développeurs</a></li><li><a href="#thanks">Remerciements</a></li></ul>
 </nav>
 <ul class="langs" aria-label="Langue"><li><a href="../index.html" hreflang="en" lang="en" title="English" aria-label="English">EN</a></li><li><span aria-current="true" title="Français">FR</span></li><li><a href="../es/index.html" hreflang="es" lang="es" title="Español" aria-label="Español">ES</a></li></ul>
 </div>
@@ -49,7 +49,7 @@
 <p class="lead">Un séquenceur chiptune 4 voix (3 tons + bruit) pour Amstrad CPC 6128, écrit en assembleur Z80.</p>
 <p>16 pas par motif, 32 motifs, 32 instruments, sauvegarde des morceaux sur disquette. Et un sampler qui joue de vrais sons enregistrés sur la puce sonore du CPC, avec un grain réglable en direct : la dégradation du son est recherchée.</p>
 <div class="actions">
-<a class="btn" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16.dsk">Télécharger<small>seq16.dsk · version française</small></a>
+<a class="btn" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-fr.dsk">Télécharger<small>seq16-fr.dsk · version française</small></a>
 <a class="btn ghost" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Toutes les disquettes<small>dernière release</small></a>
 </div>
 <p class="muted">Puis, sur le CPC (réglé en 6128 dans un émulateur) :</p>
@@ -60,6 +60,13 @@
 </div>
 </section>
 
+<section id="video" aria-labelledby="video-h">
+<div class="wrap">
+<h2 id="video-h">Vidéo</h2>
+<p>Un tour de deux minutes, filmé dans le CPC simulé avec le vrai programme : le séquenceur, les instruments, le sampler, les motifs d'usine, les digidrums, les sons composés… et le CPC qui parle. Le son est refait à partir de chaque écriture du programme dans l'AY-3-8912.</p>
+<figure class="crt-fig"><div class="crt crt-video"><video controls preload="none" playsinline width="672" height="432" poster="../assets/video/seq16-demo-fr.png" aria-label="Vidéo de présentation de SEQ-16"><source src="../assets/video/seq16-demo-fr.mp4" type="video/mp4">Ton navigateur ne sait pas lire cette vidéo : <a href="../assets/video/seq16-demo-fr.mp4">la télécharger (MP4)</a>.</video></div><figcaption>Autres langues : <a href="../assets/video/seq16-demo-en.mp4">English</a> · <a href="../assets/video/seq16-demo-es.mp4">español</a></figcaption></figure>
+</div>
+</section>
 <section id="features" aria-labelledby="features-h">
 <div class="wrap">
 <h2 id="features-h">Fonctions</h2>
@@ -81,7 +88,7 @@
 <div class="wrap">
 <h2 id="screens-h">Les écrans</h2>
 <p>Quatre écrans, à choisir avec les touches de fonction du pavé numérique : <kbd class="fn">f1</kbd> séquenceur, <kbd class="fn">f2</kbd> instrument, <kbd class="fn">f3</kbd> mixage et disque, <kbd class="fn">f4</kbd> sampler.</p>
-<p class="note">Les captures montrent la version française (<code>seq16.dsk</code>) ; les disquettes anglaise et espagnole montrent les mêmes écrans avec leurs propres textes.</p>
+<p class="note">Les captures montrent la version française (<code>seq16-fr.dsk</code>) ; les disquettes anglaise et espagnole montrent les mêmes écrans avec leurs propres textes.</p>
 <div class="gallery">
 <figure class="crt-fig"><div class="crt"><img src="../assets/img/fr/f1-split-voices.png" width="672" height="432" alt="Séquenceur en voix séparées" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Séquenceur, voix séparées</strong>Les voix A, B, C et le bruit N sur 16 pas : note, octave, instrument.</figcaption></figure>
 
@@ -107,14 +114,14 @@
 <div class="wrap">
 <h2 id="download-h">Télécharger</h2>
 <p>Toutes les disquettes sont sur la page de la <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">dernière release</a>. Chaque image <code>.dsk</code> est une disquette CPC standard.</p>
-<div class="table-wrap" role="region" aria-label="Disquettes" tabindex="0"><table><thead><tr><th scope="col">Disquette</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16.dsk"><code>seq16.dsk</code></a></td><td data-label="Contenu">SEQ-16 en français, avec les 13 banques d'instruments et les 9 banques de samples</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-en.dsk"><code>seq16-en.dsk</code></a></td><td data-label="Contenu">SEQ-16 en anglais (English version), mêmes banques</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk"><code>seq16-es.dsk</code></a></td><td data-label="Contenu">SEQ-16 en espagnol (versión en español), mêmes banques</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-sons.dsk"><code>seq16-sons.dsk</code></a></td><td data-label="Contenu">banques seules : les 13 banques d'instruments <code>.INS</code> (disquette de données, sans le programme)</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-samples.dsk"><code>seq16-samples.dsk</code></a></td><td data-label="Contenu">banques seules : les 9 banques de samples <code>.SMP</code> (disquette de données, sans le programme)</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-mono.dsk"><code>seq16-motifs-mono.dsk</code></a></td><td data-label="Contenu">62 motifs d'usine <strong>mono</strong> (son composé) : riffs, arpèges, basses, jingles — à charger avec f3 P</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-poly.dsk"><code>seq16-motifs-poly.dsk</code></a></td><td data-label="Contenu">63 motifs d'usine <strong>poly</strong> (voix séparées) : grooves complets, batterie, basse + batterie — à charger avec f3 P</td></tr></tbody></table></div>
+<div class="table-wrap" role="region" aria-label="Disquettes" tabindex="0"><table><thead><tr><th scope="col">Disquette</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-fr.dsk"><code>seq16-fr.dsk</code></a></td><td data-label="Contenu">SEQ-16 en français, avec les 13 banques d'instruments et les 9 banques de samples</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-en.dsk"><code>seq16-en.dsk</code></a></td><td data-label="Contenu">SEQ-16 en anglais (English version), mêmes banques</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk"><code>seq16-es.dsk</code></a></td><td data-label="Contenu">SEQ-16 en espagnol (versión en español), mêmes banques</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-inst.dsk"><code>seq16-inst.dsk</code></a></td><td data-label="Contenu">banques seules : les 13 banques d'instruments <code>.INS</code> (disquette de données, sans le programme)</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-samples.dsk"><code>seq16-samples.dsk</code></a></td><td data-label="Contenu">banques seules : les 9 banques de samples <code>.SMP</code> (disquette de données, sans le programme)</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-mono.dsk"><code>seq16-motifs-mono.dsk</code></a></td><td data-label="Contenu">62 motifs d'usine <strong>mono</strong> (son composé) : riffs, arpèges, basses, jingles — à charger avec f3 P</td></tr><tr><td data-label="Disquette"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-poly.dsk"><code>seq16-motifs-poly.dsk</code></a></td><td data-label="Contenu">63 motifs d'usine <strong>poly</strong> (voix séparées) : grooves complets, batterie, basse + batterie — à charger avec f3 P</td></tr></tbody></table></div>
 
 <p>Même programme, mêmes banques, mêmes touches dans les trois langues : seuls les textes de l'écran changent. Avec une disquette de banques seules, change de disquette, puis charge une banque (écran <kbd class="fn">f3</kbd> : <kbd>O</kbd> ou <kbd>D</kbd>).</p>
 <div class="split">
 <div>
 <h3 id="emulator">Dans un émulateur</h3>
 <ol class="steps">
-<li>Télécharge <code>seq16.dsk</code>.</li>
+<li>Télécharge <code>seq16-fr.dsk</code>.</li>
 <li>Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en <strong>CPC 6128</strong>.</li>
 <li>Tape <code>RUN"SEQ16</code> puis <kbd>RETURN</kbd>.</li>
 </ol>
@@ -122,7 +129,7 @@
 </div>
 <div>
 <h3 id="gotek">Sur un vrai CPC avec un Gotek</h3>
-<p>Copie <code>seq16.dsk</code> sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC), puis tape <code>RUN"SEQ16</code> sur le CPC.</p>
+<p>Copie <code>seq16-fr.dsk</code> sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC), puis tape <code>RUN"SEQ16</code> sur le CPC.</p>
 <p>L'outil compagnon <a href="#pc">CPC DISK</a> prépare la clé USB du Gotek, y compris une clé pour le firmware HxC.</p>
 </div>
 </div>
@@ -135,7 +142,7 @@
 <h2 id="pc-h">Sur PC : CPC DISK</h2>
 <p><a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a> est l'outil compagnon : un éditeur d'images <code>.dsk</code> à l'allure d'écran CPC, en Python pur, sans dépendance. Il sert à :</p>
 <ul>
-<li>ouvrir <code>seq16.dsk</code> et parcourir son catalogue AMSDOS ;</li>
+<li>ouvrir <code>seq16-fr.dsk</code> et parcourir son catalogue AMSDOS ;</li>
 <li>récupérer les morceaux <code>.SNG</code> sauvés sur la disquette, ou en ajouter ;</li>
 <li>préparer la clé USB du Gotek (FlashFloppy, ou une clé pour le firmware HxC) ;</li>
 <li>fabriquer ses propres banques de samples dans son onglet <strong>SAMPLES SEQ-16</strong>.</li>

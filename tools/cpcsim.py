@@ -59,7 +59,7 @@ FW = {
     0xBC7A: "CAS_IN_CLOSE", 0xBC7D: "CAS_IN_ABANDON", 0xBC83: "CAS_IN_DIRECT", 0xBC80: "CAS_IN_CHAR",
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
     0xBC98: "CAS_OUT_DIRECT", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
-    0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
+    0xBD0D: "KL_TIME_PLEASE", 0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
     0xBCD4: "KL_FIND_COMMAND",
 }
 FAKE_READ_SECTOR = 0xC0F0          # adresse fictive de la commande AMSDOS #84
@@ -494,6 +494,11 @@ class CPC:
         self.m.de = self.m.de                 # AMSDOS se loge en haut
         self.m.hl = HIMEM_6128
         self._corrupt("af", "bc")
+
+    def fw_KL_TIME_PLEASE(self):              # DEHL = temps en 1/300 s
+        ticks = self.t * 3 // 10_000
+        self.m.de = (ticks >> 16) & 0xFFFF
+        self.m.hl = ticks & 0xFFFF
 
     def fw_MC_WAIT_FLYBACK(self):             # tous les registres préservés
         self.frame += 1

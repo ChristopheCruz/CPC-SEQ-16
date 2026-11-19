@@ -1,6 +1,6 @@
 """bank_disks.py : les disquettes de banques, sans le programme.
 
-    build/seq16-sons.dsk      les 13 banques d'instruments .INS
+    build/seq16-inst.dsk      les 13 banques d'instruments .INS
     build/seq16-samples.dsk   les 9 banques de samples .SMP
 
 Elles servent de disquettes de données : sur le CPC (ou le Gotek), on
@@ -23,7 +23,7 @@ from cpc_dsk.core.adf import ADFDisk  # noqa: E402
 import lang  # noqa: E402  (ordre des banques, le même que build.bat)
 
 DISQUES = {
-    "seq16-sons.dsk": [p for p in lang.BANKS if p.endswith(".INS")],
+    "seq16-inst.dsk": [p for p in lang.BANKS if p.endswith(".INS")],
     "seq16-samples.dsk": [p for p in lang.BANKS if p.endswith(".SMP")],
 }
 

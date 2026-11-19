@@ -29,7 +29,7 @@ if errorlevel 1 (
   echo *** VERSIONS ANGLAISE ET ESPAGNOLE NON FABRIQUEES ***
   exit /b 1
 )
-rem Disquettes de banques seules : build\seq16-sons.dsk, build\seq16-samples.dsk
+rem Disquettes de banques seules : build\seq16-inst.dsk, build\seq16-samples.dsk
 python tools\bank_disks.py
 if errorlevel 1 goto pas_python
 rem Motifs d'usine (.PAT) : build\seq16-motifs-mono.dsk, seq16-motifs-poly.dsk
@@ -37,7 +37,7 @@ python tools\gen_patterns.py
 if errorlevel 1 goto pas_python
 echo.
 echo OK : build\seq16.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
-echo      build\seq16-sons.dsk et seq16-samples.dsk : les banques seules.
+echo      build\seq16-inst.dsk et seq16-samples.dsk : les banques seules.
 echo      build\seq16-motifs-mono.dsk et seq16-motifs-poly.dsk : les motifs (f3 P).
 echo Sur le CPC : RUN"SEQ16
 exit /b 0

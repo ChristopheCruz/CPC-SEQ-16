@@ -55,8 +55,8 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 ## 💾 Pruébalo ya
 
 1. Descarga **[`seq16-es.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** de la última release (también hay una copia en [`build/`](build/)).
-   - **Version française :** `seq16.dsk`. **English version:** `seq16-en.dsk`. El mismo programa, los mismos bancos, las mismas teclas: solo cambian los textos de la pantalla.
-   - **Solo los bancos:** `seq16-sons.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), disquetes de datos sin el programa: cambia de disquete y carga un banco (f3: **O** o **D**).
+   - **Version française :** `seq16-fr.dsk`. **English version:** `seq16-en.dsk`. El mismo programa, los mismos bancos, las mismas teclas: solo cambian los textos de la pantalla.
+   - **Solo los bancos:** `seq16-inst.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), disquetes de datos sin el programa: cambia de disquete y carga un banco (f3: **O** o **D**).
    - **Patrones de fábrica:** `seq16-motifs-mono.dsk` (62 patrones mono, en sonido de 4 voces) y `seq16-motifs-poly.dsk` (63 patrones poli, en voces sueltas): en f3, **P** carga uno en el patrón mostrado. Ver [Los patrones de fábrica](#-los-patrones-de-fábrica).
 2. Mete el disquete en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como **CPC 6128**.
 3. Teclea:
@@ -147,7 +147,7 @@ Cuatro pantallas, que se eligen con las teclas de función del teclado numérico
 | SHIFT + ↑/↓ | octava de entrada |
 | SHIFT + ←/→ | instrumento de entrada (y el de la nota bajo el cursor) |
 | CTRL + ↑/↓ | tempo en BPM |
-| CTRL + ←/→ | patrón anterior / siguiente (32 patrones) |
+| CTRL + ←/→ | patrón anterior / siguiente (32 patrones); durante la reproducción, la música sigue, en el mismo paso |
 
 Una voz silenciada muestra `MUDO` a la izquierda de la cuadrícula.
 
