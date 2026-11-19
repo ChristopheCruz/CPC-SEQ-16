@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEQ-16 user manual · every screen, every key</title>
+<meta name="description" content="SEQ-16 user manual: the f1 sequencer, f2 instrument, f3 mixer and disk and f4 sampler screens, their keys, the song format, sound banks, samples and digidrums.">
+<meta name="theme-color" content="#000080">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SEQ-16">
+<meta property="og:title" content="SEQ-16 user manual · every screen, every key">
+<meta property="og:description" content="SEQ-16 user manual: the f1 sequencer, f2 instrument, f3 mixer and disk and f4 sampler screens, their keys, the song format, sound banks, samples and digidrums.">
+<meta property="og:image" content="assets/img/og-seq16.png">
+<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="864">
+<meta property="og:image:alt" content="SEQ-16 sequencer screen on an Amstrad CPC: four voices over 16 steps">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="en" href="manual.html">
+<link rel="alternate" hreflang="fr" href="fr/manuel.html">
+<link rel="alternate" hreflang="es" href="es/manual.html">
+<link rel="alternate" hreflang="x-default" href="manual.html">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/PressStart2P-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.className+=" js";</script>
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="logo" href="index.html" aria-label="SEQ-16, home page">SEQ<span>-</span>16</a>
+<button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+<nav aria-label="Main" class="nav-wrap">
+<ul class="nav" id="nav"><li><a href="index.html">Home</a></li><li><a href="#start">Start</a></li><li><a href="#f1">f1</a></li><li><a href="#f2">f2</a></li><li><a href="#f3">f3</a></li><li><a href="#f4">f4</a></li><li><a href="#songs">Songs</a></li><li><a href="#banks">Banks</a></li><li><a href="#samples">Samples</a></li><li><a href="#digidrums">Digidrums</a></li><li><a href="#limits">Limits</a></li><li><a href="index.html#thanks">Thanks</a></li></ul>
+</nav>
+<ul class="langs" aria-label="Language"><li><span aria-current="true" title="English">EN</span></li><li><a href="fr/manuel.html" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a></li><li><a href="es/manual.html" hreflang="es" lang="es" title="Español" aria-label="Español">ES</a></li></ul>
+</div>
+</header>
+<main id="main" tabindex="-1">
+
+<section aria-labelledby="man-h" class="hero">
+<div class="wrap">
+<p class="tag">USER MANUAL</p>
+<h1 id="man-h">SEQ-16 manual</h1>
+<p class="lead">Every screen and every key of SEQ-16, with the labels exactly as the English disk (<code>seq16-en.dsk</code>) shows them.</p>
+<p>Labels in yellow, like <samp class="scr">SOUND LOCK</samp>, are the texts you see on the CPC screen. Keys are shown as keycaps: <kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd> means: hold CTRL and press the left or right arrow.</p>
+<ul class="toc">
+<li><a href="#start">Start &amp; quit</a></li><li><a href="#f1">f1 Sequencer</a></li><li><a href="#f2">f2 Instrument</a></li>
+<li><a href="#f3">f3 Mixer &amp; disk</a></li><li><a href="#f4">f4 Sampler</a></li><li><a href="#songs">Songs</a></li>
+<li><a href="#banks">Sound banks</a></li><li><a href="#samples">Samples step by step</a></li><li><a href="#digidrums">Digidrums</a></li><li><a href="#limits">Known limits</a></li>
+</ul>
+</div>
+</section>
+
+<section id="start" aria-labelledby="start-h">
+<div class="wrap">
+<h2 id="start-h">Start and quit</h2>
+<ol class="steps">
+<li>Put <code>seq16-en.dsk</code> in the drive (or in an emulator set to <strong>CPC 6128</strong>).</li>
+<li>Type <code>RUN"SEQ16</code> and press <kbd>RETURN</kbd>.</li>
+<li>Pick a screen with the function keys of the numeric keypad: <kbd class="fn">f1</kbd> sequencer, <kbd class="fn">f2</kbd> instrument, <kbd class="fn">f3</kbd> mixer and disk, <kbd class="fn">f4</kbd> sampler. The tabs at the top read <samp class="scr">f1 SEQ</samp> <samp class="scr">f2 INST</samp> <samp class="scr">f3 DISK</samp> <samp class="scr">f4 SAMPLE</samp>.</li>
+</ol>
+<div class="callout"><p><strong>To quit, hold <kbd>ESC</kbd> for one second</strong> (<samp class="scr">HOLD ESC 1 SECOND: QUIT</samp>). A single press isn't enough, so you can't lose your work by mistake.</p></div>
+<p>The default sounds stay inside the program: at startup and after a new song, you always get the same 32 instruments. Instruments 25 to 28 (<code>USER1</code> to <code>USER4</code>) are free for your own sounds; 29 to 32 are the factory digidrums (<code>DGKICK</code>, <code>DGSNAR</code>, <code>DGHAT</code>, <code>DGCLAP</code>).</p>
+</div>
+</section>
+
+<section id="f1" aria-labelledby="f1-h">
+<div class="wrap">
+<h2 id="f1-h">f1 · Sequencer</h2>
+<div class="split wide-left">
+<div>
+<p>The top lines show the pattern number (<samp class="scr">PATTERN</samp>) and the mode, <samp class="scr">SPLIT VOICES</samp> or <samp class="scr">LAYERED SOUND</samp>, the state (<samp class="scr">STATE:</samp> <samp class="scr">PLAY</samp> or <samp class="scr">STOP</samp>), the tempo (<samp class="scr">BPM:</samp>), the input octave (<samp class="scr">OCTAVE:</samp>) and the input instrument (<samp class="scr">INSTR.:</samp>).</p>
+<p>Below, the 16 steps (<samp class="scr">STP</samp> 0 to F) of voices <samp class="scr">A    TONE</samp>, <samp class="scr">B    TONE</samp>, <samp class="scr">C    TONE</samp> and <samp class="scr">N    NOISE</samp>: each cell holds a note, an octave and an instrument. In layered-sound mode, a single line <samp class="scr">SND  4 V.</samp> plays a layered sound (<samp class="scr">SOUND :</samp>) on all 4 voices at once.</p>
+<p>A muted voice shows <samp class="scr">MUTE</samp> to the left of the grid.</p>
+</div>
+<figure class="crt-fig"><div class="crt"><img src="assets/img/f1-split-voices.png" width="672" height="432" alt="f1 sequencer screen (French version)" loading="lazy" decoding="async"></div><figcaption>French version shown.</figcaption></figure>
+
+</div>
+<div class="table-wrap" role="region" aria-label="f1 keys" tabindex="0"><table><thead><tr><th scope="col">Keys</th><th scope="col">On screen</th><th scope="col">Effect</th></tr></thead><tbody><tr><td data-label="Keys"><kbd>←</kbd>/<kbd>→</kbd> <kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">CURSOR</samp></td><td data-label="Effect">move the cursor; you hear the note you land on</td></tr><tr><td data-label="Keys">Piano keys</td><td data-label="On screen"></td><td data-label="Effect">enter a note, hear it, move to the next step</td></tr><tr><td data-label="Keys"><kbd>DEL</kbd></td><td data-label="On screen"><samp class="scr">ERASE</samp></td><td data-label="Effect">clear the cell</td></tr><tr><td data-label="Keys"><kbd>TAB</kbd> (or <kbd>CLR</kbd>)</td><td data-label="On screen"><samp class="scr">STOP</samp></td><td data-label="Effect">note off (<code>--</code>)</td></tr><tr><td data-label="Keys"><kbd>CAPS LOCK</kbd></td><td data-label="On screen"><samp class="scr">SOUND LOCK</samp></td><td data-label="Effect">lock the input instrument</td></tr><tr><td data-label="Keys"><kbd>SPACE</kbd></td><td data-label="On screen"><samp class="scr">PLAY</samp></td><td data-label="Effect">play / stop</td></tr><tr><td data-label="Keys"><kbd class="fn">f5</kbd></td><td data-label="On screen"><samp class="scr">MODE</samp></td><td data-label="Effect">split voices / layered sound</td></tr><tr><td data-label="Keys"><kbd class="fn">f7</kbd></td><td data-label="On screen"><samp class="scr">MUTE</samp></td><td data-label="Effect">mute (or unmute) the voice under the cursor</td></tr><tr><td data-label="Keys"><kbd>SHIFT</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">OCTAVE</samp></td><td data-label="Effect">input octave</td></tr><tr><td data-label="Keys"><kbd>SHIFT</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">INSTRUMENT</samp></td><td data-label="Effect">input instrument (and that of the note under the cursor)</td></tr><tr><td data-label="Keys"><kbd>CTRL</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">TEMPO</samp></td><td data-label="Effect">tempo in BPM</td></tr><tr><td data-label="Keys"><kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">PATT.</samp></td><td data-label="Effect">previous / next pattern (32 patterns)</td></tr></tbody></table></div>
+
+</div>
+</section>
+
+<section id="f2" aria-labelledby="f2-h">
+<div class="wrap">
+<h2 id="f2-h">f2 · Instrument</h2>
+<div class="split wide-left">
+<div>
+<p>The instrument number and name (<samp class="scr">INSTRUMENT :</samp>), the test octave (<samp class="scr">OCT:</samp>), the list of settings on the left and the <samp class="scr">ENVELOPE</samp> drawing on the right (<samp class="scr">KEY HELD</samp>, <samp class="scr">THEN LET GO</samp>). The drawing updates on every change of attack, decay, sustain or release.</p>
+</div>
+<figure class="crt-fig"><div class="crt"><img src="assets/img/f2-instrument.png" width="672" height="432" alt="f2 instrument screen (French version)" loading="lazy" decoding="async"></div><figcaption>French version shown.</figcaption></figure>
+
+</div>
+<div class="table-wrap" role="region" aria-label="f2 keys" tabindex="0"><table><thead><tr><th scope="col">Keys</th><th scope="col">On screen</th><th scope="col">Effect</th></tr></thead><tbody><tr><td data-label="Keys"><kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">SETTING</samp></td><td data-label="Effect">pick a setting</td></tr><tr><td data-label="Keys"><kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">VALUE</samp></td><td data-label="Effect">change its value</td></tr><tr><td data-label="Keys"><kbd>SHIFT</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">BY 10</samp></td><td data-label="Effect">change the value by 10</td></tr><tr><td data-label="Keys"><kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">INSTR.</samp></td><td data-label="Effect">previous / next instrument (32 instruments)</td></tr><tr><td data-label="Keys"><kbd>SHIFT</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">OCTAVE</samp></td><td data-label="Effect">test octave</td></tr><tr><td data-label="Keys">Piano keys</td><td data-label="On screen"><samp class="scr">PIANO</samp> <samp class="scr">TRY</samp></td><td data-label="Effect">try the instrument</td></tr><tr><td data-label="Keys"><kbd>SPACE</kbd></td><td data-label="On screen"><samp class="scr">PLAY</samp></td><td data-label="Effect">listen to the pattern with the modified sound</td></tr><tr><td data-label="Keys"><kbd>COPY</kbd></td><td data-label="On screen"><samp class="scr">COPY</samp></td><td data-label="Effect">copy the instrument (settings and name)</td></tr><tr><td data-label="Keys"><kbd>P</kbd></td><td data-label="On screen"><samp class="scr">PASTE</samp></td><td data-label="Effect">paste: the copied instrument replaces the one on screen</td></tr><tr><td data-label="Keys"><kbd>O</kbd></td><td data-label="On screen"><samp class="scr">BANK SOUND</samp></td><td data-label="Effect">take a sound from a <code>.INS</code> bank on the disk: pick the bank, then one of its 32 sounds (arrows, <kbd>RETURN</kbd>; <kbd>ESC</kbd> cancels)</td></tr></tbody></table></div>
+
+<h3 id="f2-settings">The settings</h3>
+<p>Indented settings belong to the line above them (the noise period, the hardware envelope's shape and divider, the arpeggio speed, the vibrato speed and delay).</p>
+<div class="table-wrap" role="region" aria-label="f2 settings" tabindex="0"><table><thead><tr><th scope="col">Setting</th><th scope="col">Values</th></tr></thead><tbody><tr><td data-label="Setting"><samp class="scr">ATTACK</samp></td><td data-label="Values">0 to 255</td></tr><tr><td data-label="Setting"><samp class="scr">DECAY</samp></td><td data-label="Values">0 to 255</td></tr><tr><td data-label="Setting"><samp class="scr">SUSTAIN</samp></td><td data-label="Values">0 to 15</td></tr><tr><td data-label="Setting"><samp class="scr">RELEASE</samp></td><td data-label="Values">0 to 255</td></tr><tr><td data-label="Setting"><samp class="scr">VOLUME</samp></td><td data-label="Values">0 to 15</td></tr><tr><td data-label="Setting"><samp class="scr">TONE</samp></td><td data-label="Values"><samp class="scr">YES</samp> / <samp class="scr">NO</samp></td></tr><tr><td data-label="Setting"><samp class="scr">NOISE</samp></td><td data-label="Values"><samp class="scr">YES</samp> / <samp class="scr">NO</samp></td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">PERIOD</samp></td><td data-label="Values">0 to 31</td></tr><tr><td data-label="Setting"><samp class="scr">HARDWARE ENV.</samp></td><td data-label="Values"><samp class="scr">YES</samp> / <samp class="scr">NO</samp></td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">SHAPE</samp></td><td data-label="Values">8 to 15</td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">DIVIDER</samp></td><td data-label="Values">0 to 7</td></tr><tr><td data-label="Setting"><samp class="scr">ARPEGGIO NOTE 2</samp></td><td data-label="Values">0 to 24</td></tr><tr><td data-label="Setting"><samp class="scr">ARPEGGIO NOTE 3</samp></td><td data-label="Values">0 to 24</td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">SPEED</samp></td><td data-label="Values">1 to 15</td></tr><tr><td data-label="Setting"><samp class="scr">VIBRATO DEPTH</samp></td><td data-label="Values">0 to 6</td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">SPEED</samp></td><td data-label="Values">0 to 255</td></tr><tr><td data-label="Setting">&nbsp;&nbsp;<samp class="scr">DELAY</samp></td><td data-label="Values">0 to 255</td></tr><tr><td data-label="Setting"><samp class="scr">GLISSANDO</samp></td><td data-label="Values">signed value (<code>+000</code>)</td></tr><tr><td data-label="Setting"><samp class="scr">PORTAMENTO</samp></td><td data-label="Values"><samp class="scr">YES</samp> / <samp class="scr">NO</samp></td></tr><tr><td data-label="Setting"><samp class="scr">DIGIDRUM</samp></td><td data-label="Values"><samp class="scr">YES</samp> / <samp class="scr">NO</samp>: see <a href='#digidrums'>Digidrums</a></td></tr></tbody></table></div>
+
+<p><strong>Copying a sound into another instrument</strong>: pick the source instrument (<kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd>), press <kbd>COPY</kbd>, go to the target instrument, press <kbd>P</kbd>.</p>
+<p><strong>The <samp class="scr">DIGIDRUM</samp> setting</strong> (the last one): set to <samp class="scr">YES</samp>, the instrument plays a sample instead of a note. The <samp class="scr">PERIOD</samp> line then becomes <samp class="scr">SAMPLE</samp> followed by the sample's name: its value is the sample's number in the bank (0 = the first one).</p>
+</div>
+</section>
+
+<section id="f3" aria-labelledby="f3-h">
+<div class="wrap">
+<h2 id="f3-h">f3 · Mixer and disk</h2>
+<div class="split wide-left">
+<div>
+<p>The top part, <samp class="scr">MIXER</samp> <samp class="scr">VOLUME OF EACH VOICE</samp>, has one bar per voice (<samp class="scr">VOICE</samp> A, B, C, N). The bottom part, <samp class="scr">DISK</samp>, has the file name line <samp class="scr">NAME:</samp> (default <samp class="scr">SONG1</samp>) and the disk commands.</p>
+</div>
+<figure class="crt-fig"><div class="crt"><img src="assets/img/f3-mixer-disk.png" width="672" height="432" alt="f3 mixer and disk screen (French version)" loading="lazy" decoding="async"></div><figcaption>French version shown.</figcaption></figure>
+
+</div>
+<div class="table-wrap" role="region" aria-label="f3 keys" tabindex="0"><table><thead><tr><th scope="col">Keys</th><th scope="col">On screen</th><th scope="col">Effect</th></tr></thead><tbody><tr><td data-label="Keys"><kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">PICK</samp></td><td data-label="Effect">pick a voice (A, B, C, N) or the file name</td></tr><tr><td data-label="Keys"><kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">VOLUME</samp></td><td data-label="Effect">voice volume (0 to 15)</td></tr><tr><td data-label="Keys"><kbd>RETURN</kbd> or <kbd class="fn">f7</kbd></td><td data-label="On screen"><samp class="scr">MUTE / NAME</samp>, <samp class="scr">MUTE</samp></td><td data-label="Effect">mute / unmute (on the name line: type the name)</td></tr><tr><td data-label="Keys"><kbd>S</kbd></td><td data-label="On screen"><samp class="scr">SAVE</samp></td><td data-label="Effect">save the song</td></tr><tr><td data-label="Keys"><kbd>L</kbd></td><td data-label="On screen"><samp class="scr">LOAD</samp></td><td data-label="Effect">load the song</td></tr><tr><td data-label="Keys"><kbd>C</kbd></td><td data-label="On screen"><samp class="scr">CATALOG</samp></td><td data-label="Effect">show the disk catalog</td></tr><tr><td data-label="Keys"><kbd>I</kbd></td><td data-label="On screen"><samp class="scr">SAVE INSTR.</samp></td><td data-label="Effect">save the instruments: the 32 instruments and the 8 layered sounds, into <code>NAME.INS</code></td></tr><tr><td data-label="Keys"><kbd>O</kbd></td><td data-label="On screen"><samp class="scr">LOAD INSTR. (.INS)</samp></td><td data-label="Effect">load a <code>.INS</code> instrument bank (arrows, then <kbd>RETURN</kbd>; <kbd>ESC</kbd> cancels). Patterns don't change</td></tr><tr><td data-label="Keys"><kbd>D</kbd></td><td data-label="On screen"><samp class="scr">LOAD</samp></td><td data-label="Effect">pick a <code>.SMP</code> sample bank on the disk (for the f4 screen): arrows, then <kbd>RETURN</kbd>; <kbd>ESC</kbd> cancels</td></tr><tr><td data-label="Keys"><kbd>E</kbd></td><td data-label="On screen"><samp class="scr">SAVE SAMPLES (.SMP)</samp></td><td data-label="Effect">save the sample bank (with the settings made on f4), under its own name: <code>DRUMS.SMP</code>…</td></tr><tr><td data-label="Keys"><kbd>N</kbd></td><td data-label="On screen"><samp class="scr">NEW</samp></td><td data-label="Effect">new song (press twice)</td></tr><tr><td data-label="Keys"><kbd>SPACE</kbd></td><td data-label="On screen"></td><td data-label="Effect">listen to the pattern while adjusting</td></tr></tbody></table></div>
+
+<p><strong>The file name</strong>: go down to the <samp class="scr">NAME:</samp> line, press <kbd>RETURN</kbd> (<samp class="scr">TYPE NAME, THEN RETURN</samp>), type the name (8 letters or digits at most), then <kbd>RETURN</kbd>. The first letter you type replaces the old name; <kbd>DEL</kbd> corrects. The <code>.SNG</code> extension is added automatically.</p>
+<p><strong>Voice volume</strong>: the CPC's sound chip sends channel A to the left, channel C to the right and channel B to both sides. Depending on how you listen (internal speaker, a single earphone, an amp plugged into a single output), one channel can sound louder than the others: you balance it here, and the setting is saved with the song.</p>
+</div>
+</section>
+
+<section id="f4" aria-labelledby="f4-h">
+<div class="wrap">
+<h2 id="f4-h">f4 · Sampler (Sample Composer)</h2>
+<p>The sound bank on the left (<samp class="scr">BANK   :</samp>, <samp class="scr">MEMORY :</samp>, then <samp class="scr">N  NAME  TIME</samp>), the <samp class="scr">SETTINGS</samp> of the chosen sound on the right. The first time you open f4, the <code>DRUMS.SMP</code> bank loads by itself (<samp class="scr">LOADING DRUMS.SMP...</samp>). The chosen sample is in inverted yellow.</p>
+<div class="table-wrap" role="region" aria-label="f4 keys" tabindex="0"><table><thead><tr><th scope="col">Keys</th><th scope="col">On screen</th><th scope="col">Effect</th></tr></thead><tbody><tr><td data-label="Keys"><kbd>SPACE</kbd></td><td data-label="On screen"><samp class="scr">LISTEN</samp></td><td data-label="Effect">listen to the chosen sample (<kbd>SPACE</kbd> again: stop)</td></tr><tr><td data-label="Keys">Piano keys</td><td data-label="On screen"><samp class="scr">PIANO</samp> <samp class="scr">PITCH</samp></td><td data-label="Effect">listen to the sample higher or lower (±12 semitones). The top row, from the C key, plays the original pitch and goes up semitone by semitone; the bottom row plays an octave lower</td></tr><tr><td data-label="Keys"><kbd>↑</kbd>/<kbd>↓</kbd></td><td data-label="On screen"><samp class="scr">SETTING</samp></td><td data-label="Effect">pick a setting: frequency, decimation, bits, curve</td></tr><tr><td data-label="Keys"><kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">VALUE</samp></td><td data-label="Effect">change its value</td></tr><tr><td data-label="Keys"><kbd>SHIFT</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">BY 10</samp></td><td data-label="Effect">change the frequency by 10</td></tr><tr><td data-label="Keys"><kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd></td><td data-label="On screen"><samp class="scr">SAMPLE</samp></td><td data-label="Effect">previous / next sample</td></tr><tr><td data-label="Keys"><kbd>O</kbd></td><td data-label="On screen"><samp class="scr">O: TAKE 1 SAMPLE</samp></td><td data-label="Effect">take a sample from another <code>.SMP</code> bank: it is added at the end of the bank in memory (16 samples and 16 KB at most)</td></tr><tr><td data-label="Keys"><kbd class="fn">f3</kbd> then <kbd>D</kbd> / <kbd>E</kbd></td><td data-label="On screen"><samp class="scr">f3 D/E: BANK</samp></td><td data-label="Effect">change bank / save the bank (settings and added samples included)</td></tr></tbody></table></div>
+
+<p>The settings are those of the sample's record, in memory. They don't touch the data.</p>
+<div class="table-wrap" role="region" aria-label="f4 settings" tabindex="0"><table><thead><tr><th scope="col">Setting</th><th scope="col">Values</th><th scope="col">Effect</th></tr></thead><tbody><tr><td data-label="Setting"><samp class="scr">FREQUENCY</samp></td><td data-label="Values">4,000 to 16,129 Hz</td><td data-label="Effect">pitch and brightness; lower is dirtier. <kbd>→</kbd> goes up, <kbd>←</kbd> goes down</td></tr><tr><td data-label="Setting"><samp class="scr">DECIMATION</samp></td><td data-label="Values">1, 2, 3, 4, 6, 8</td><td data-label="Effect">one sample out of N, held N times: strong aliasing</td></tr><tr><td data-label="Setting"><samp class="scr">BITS</samp></td><td data-label="Values">4, 3, 2, 1</td><td data-label="Effect">fewer levels. At 1 bit, only levels 0 and 8 are left: a harsh, weak “beep”</td></tr><tr><td data-label="Setting"><samp class="scr">CURVE</samp></td><td data-label="Values"><samp class="scr">LINEAR</samp>, <samp class="scr">LOG</samp>, <samp class="scr">CLIPPED</samp>, <samp class="scr">FOLDED</samp>, <samp class="scr">INVERTED</samp></td><td data-label="Effect">a 16-value table between the sample and the volume (below)</td></tr><tr><td data-label="Setting"><samp class="scr">PERIOD</samp></td><td data-label="Values">(information)</td><td data-label="Effect">the length of one sample in µs, i.e. in NOPs</td></tr></tbody></table></div>
+
+<ul>
+<li><samp class="scr">LOG</samp> is the faithful rendering, the one of the preview WAVs.</li>
+<li><samp class="scr">LINEAR</samp> treats each value as a linear amplitude, written as is into the AY, which is logarithmic. The sound is hollower and distorted.</li>
+<li><samp class="scr">CLIPPED</samp> multiplies the signal by 2.5 and clips it.</li>
+<li><samp class="scr">FOLDED</samp> also multiplies by 2.5, then folds back whatever goes over.</li>
+<li><samp class="scr">INVERTED</samp> flips the waveform.</li>
+</ul>
+<div class="callout"><p><strong>While a sample plays, the screen stops responding</strong> (<samp class="scr">PLAYING... (SPACE: STOP)</samp>): the processor does nothing but play the sample, with interrupts disabled. The other AY channels keep sounding with their last settings. If the pattern was playing, its envelopes, arpeggios and vibratos are frozen until the end of the sample. That's on purpose.</p></div>
+</div>
+</section>
+
+<section id="songs" aria-labelledby="songs-h">
+<div class="wrap">
+<h2 id="songs-h">Songs: saving and loading</h2>
+<p>A <code>.SNG</code> file (about 9 KB) holds the whole song:</p>
+<ul>
+<li>the 32 patterns;</li>
+<li>the 32 instruments and their names;</li>
+<li>the 8 layered sounds;</li>
+<li>the volumes and muted voices;</li>
+<li>the name of the sample bank used (format version 2).</li>
+</ul>
+<ol class="steps">
+<li>On <kbd class="fn">f3</kbd>, go down to <samp class="scr">NAME:</samp>, press <kbd>RETURN</kbd>, type the name, then <kbd>RETURN</kbd>.</li>
+<li><kbd>S</kbd> saves the song (<samp class="scr">SAVING...</samp>, then <samp class="scr">SONG SAVED</samp>). If a file with the same name exists, AMSDOS keeps the old one with the <code>.BAK</code> extension.</li>
+<li>To load: type the name the same way, then <kbd>L</kbd> (<samp class="scr">SONG LOADED</samp>). <kbd>C</kbd> shows the catalog if you forgot the name.</li>
+</ol>
+<p>When a version 2 song is loaded, its sample bank is reloaded if it isn't the one in memory (<samp class="scr">SONG AND SAMPLE BANK LOADED</samp>). If it isn't on the disk, the song loads anyway (<samp class="scr">SONG LOADED (.SMP BANK MISSING)</samp>). Songs in the old format (version 1, saved before digidrums) still load.</p>
+<h3 id="messages">Messages</h3>
+<div class="table-wrap" role="region" aria-label="Messages" tabindex="0"><table><thead><tr><th scope="col">Message</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td data-label="Message"><samp class="scr">ENTER A NAME FIRST (RETURN)</samp></td><td data-label="Meaning">the <samp class="scr">NAME:</samp> line is empty</td></tr><tr><td data-label="Message"><samp class="scr">DISK ERROR (DISK? NAME?)</samp></td><td data-label="Meaning">no disk, or no file with this name</td></tr><tr><td data-label="Message"><samp class="scr">THIS FILE IS NOT A SEQ-16 SONG</samp></td><td data-label="Meaning">the file isn't a SEQ-16 <code>.SNG</code></td></tr><tr><td data-label="Message"><samp class="scr">N AGAIN: ERASE EVERYTHING?</samp></td><td data-label="Meaning">press <kbd>N</kbd> again to start a new song (<samp class="scr">NEW SONG</samp>)</td></tr><tr><td data-label="Message"><samp class="scr">INSTRUMENTS SAVED (.INS)</samp> / <samp class="scr">INSTRUMENTS LOADED</samp></td><td data-label="Meaning">after <kbd>I</kbd> / <kbd>O</kbd> on f3</td></tr><tr><td data-label="Message"><samp class="scr">SAMPLE BANK SAVED (.SMP)</samp></td><td data-label="Meaning">after <kbd>E</kbd> on f3</td></tr><tr><td data-label="Message"><samp class="scr">ARROWS THEN RETURN (ESC: CANCEL)</samp></td><td data-label="Meaning">a file list is open: pick with the arrows</td></tr><tr><td data-label="Message"><samp class="scr">NO FILE OF THIS TYPE ON THE DISK</samp></td><td data-label="Meaning">no <code>.INS</code> or <code>.SMP</code> file found</td></tr><tr><td data-label="Message"><samp class="scr">NO BANK: f3 THEN D</samp></td><td data-label="Meaning">f4 has no bank in memory</td></tr><tr><td data-label="Message"><samp class="scr">BANK TOO BIG FOR MEMORY</samp></td><td data-label="Meaning">the <code>.SMP</code> bank doesn't fit in memory</td></tr><tr><td data-label="Message"><samp class="scr">BANK ALREADY HAS 16 SAMPLES</samp></td><td data-label="Meaning"><kbd>O</kbd> on f4: the bank is full</td></tr></tbody></table></div>
+
+</div>
+</section>
+
+<section id="banks" aria-labelledby="banks-h">
+<div class="wrap">
+<h2 id="banks-h">Sound banks</h2>
+<p>The banks on the disk come on top of the program's default sounds. The bank names are French file names, kept as is in every version.</p>
+<h3 id="ins">Instrument banks <code>.INS</code> (13 banks, 416 sounds)</h3>
+<p>A <code>.INS</code> bank holds 32 instruments, their names and 8 layered sounds (848 bytes). You can:</p>
+<ul>
+<li><strong>load a whole bank</strong>: screen <kbd class="fn">f3</kbd>, key <kbd>O</kbd>, arrows, <kbd>RETURN</kbd>;</li>
+<li><strong>take a single sound</strong> for the instrument on screen: screen <kbd class="fn">f2</kbd>, key <kbd>O</kbd>, then pick the bank and the sound;</li>
+<li><strong>save your own instruments</strong>: screen <kbd class="fn">f3</kbd>, key <kbd>I</kbd> (file <code>NAME.INS</code>, with the name from the <samp class="scr">NAME:</samp> line).</li>
+</ul>
+<div class="table-wrap" role="region" aria-label="Instrument banks" tabindex="0"><table><thead><tr><th scope="col">Bank</th><th scope="col">Contents</th></tr></thead><tbody><tr><td data-label="Bank"><code>USINE</code> (factory)</td><td data-label="Contents">the program's 32 default instruments (to get them back after loading another bank)</td></tr><tr><td data-label="Bank"><code>BATTERIE</code> (drums)</td><td data-label="Contents">kick drums, snares, hi-hats, toms, cymbals, cowbell, claves</td></tr><tr><td data-label="Bank"><code>BASSES</code></td><td data-label="Contents">short, long, sliding, “buzzer”, dirty and wobble basses</td></tr><tr><td data-label="Bank"><code>LEADS</code></td><td data-label="Contents">melody sounds: vibratos, portamentos, sync, trills</td></tr><tr><td data-label="Bank"><code>NAPPES</code> (pads)</td><td data-label="Contents">slow pads, held chords, choirs, organs</td></tr><tr><td data-label="Bank"><code>ARPEGES</code></td><td data-label="Contents">arpeggiated chords at 3 speeds: major, minor, 7th, sus, diminished…</td></tr><tr><td data-label="Bank"><code>EFFETS</code> (effects)</td><td data-label="Contents">lasers, sirens, coins, jumps, explosions, engines</td></tr><tr><td data-label="Bank"><code>BUZZER</code></td><td data-label="Contents">the AY's hardware envelope: 4 shapes × 3 dividers, and variants</td></tr><tr><td data-label="Bank"><code>CLAVIERS</code> (keyboards)</td><td data-label="Contents">pianos, plucked strings, bells, organs, winds</td></tr><tr><td data-label="Bank"><code>CHIPTUNE</code></td><td data-label="Contents">a complete bank for a video game tune</td></tr><tr><td data-label="Bank"><code>PERCUS</code></td><td data-label="Contents">congas, bongos, claves, triangle, tablas, gong</td></tr><tr><td data-label="Bank"><code>GLISSES</code> (slides)</td><td data-label="Contents">portamentos, glissandos up or down</td></tr><tr><td data-label="Bank"><code>BRUITS</code> (noises)</td><td data-label="Contents">noise held at 10 pitches, wind, rain, sea, train</td></tr></tbody></table></div>
+
+<h3 id="smp">Sample banks <code>.SMP</code> (9 banks)</h3>
+<p><code>DRUMS.SMP</code> is the default bank: it loads by itself the first time you open f4. To use another one: screen <kbd class="fn">f3</kbd>, key <kbd>D</kbd>, pick the bank with the arrows, <kbd>RETURN</kbd>, then <kbd class="fn">f4</kbd>. On f4, the <kbd>O</kbd> key takes a single sample from another bank and adds it to the bank in memory; <kbd class="fn">f3</kbd> + <kbd>E</kbd> saves the result.</p>
+<div class="table-wrap" role="region" aria-label="Sample banks" tabindex="0"><table><thead><tr><th scope="col">Bank</th><th scope="col">Contents</th><th scope="col">Size</th></tr></thead><tbody><tr><td data-label="Bank"><code>DRUMS</code></td><td data-label="Contents">KICK, SNARE, HAT, CLAP (the factory digidrums)</td><td data-label="Size">2 KB</td></tr><tr><td data-label="Bank"><code>VOIX</code> (voices)</td><td data-label="Contents">“bonjour”, “Amstrad”, “SEQ 16”, “1, 2, 3, 4” (spoken in French)</td><td data-label="Size">13 KB</td></tr><tr><td data-label="Bank"><code>BATTERI2</code></td><td data-label="Contents">drum-machine style kit: long kick, toms, cowbell, crash… (12 sounds)</td><td data-label="Size">12 KB</td></tr><tr><td data-label="Bank"><code>PERCUS</code></td><td data-label="Contents">congas, bongo, claves, triangle, tambourine, agogo, tabla… (12 sounds)</td><td data-label="Size">13 KB</td></tr><tr><td data-label="Bank"><code>EFFETS</code> (effects)</td><td data-label="Contents">laser, zap, explosion, coin, jump, siren, alarm, UFO… (12 sounds)</td><td data-label="Size">14 KB</td></tr><tr><td data-label="Bank"><code>BASSES</code></td><td data-label="Contents">10 bass notes (C), to play with the f4 piano</td><td data-label="Size">15 KB</td></tr><tr><td data-label="Bank"><code>NOTES</code></td><td data-label="Contents">plucked, piano, bell, organ, brass, choir, orchestra… (10 notes, C)</td><td data-label="Size">14 KB</td></tr><tr><td data-label="Bank"><code>CHIFFRES</code> (numbers)</td><td data-label="Contents">“zéro” to “dix” (zero to ten, in French)</td><td data-label="Size">11 KB</td></tr><tr><td data-label="Bank"><code>MOTS</code> (words)</td><td data-label="Contents">“allez”, “oui”, “non”, “encore”, “stop”, “bravo”, “CPC”… (14 French words)</td><td data-label="Size">16 KB</td></tr></tbody></table></div>
+
+<p class="note">All the sounds are synthesized or spoken by espeak: no samples taken from the Internet, so no rights issues. The banks are also on the data disks <code>seq16-sons.dsk</code> (<code>.INS</code>) and <code>seq16-samples.dsk</code> (<code>.SMP</code>).</p>
+</div>
+</section>
+
+<section id="samples" aria-labelledby="samples-h">
+<div class="wrap">
+<h2 id="samples-h">Samples, step by step</h2>
+<p>The CPC has no digital-to-analog converter. It plays a sample by changing the volume of an AY channel very fast: 16 levels on an almost logarithmic curve. That's what gives the grain, and degradation is the goal: grain, aliasing, hiss and choppiness are intended, adjustable effects.</p>
+<ol class="steps">
+<li><strong>Start.</strong> Insert <code>seq16-en.dsk</code> and type <code>RUN"SEQ16</code>.</li>
+<li><strong>Open the samples screen.</strong> Press <kbd class="fn">f4</kbd>, the 4 key on the numeric keypad. The first time, the <code>DRUMS.SMP</code> bank loads by itself, and its 4 sounds show up on the left.</li>
+<li><strong>Listen.</strong> Pick a sample with <kbd>CTRL</kbd> + <kbd>←</kbd>/<kbd>→</kbd>. <kbd>SPACE</kbd> plays it at its original pitch; <kbd>SPACE</kbd> again stops it. The piano keys play it higher or lower: the top row, starting from the C key, starts at the original pitch and goes up semitone by semitone; the bottom row plays an octave lower. While it plays, the screen freezes: that's normal.</li>
+<li><strong>Dirty up the sound.</strong> On the right, pick a setting with <kbd>↑</kbd>/<kbd>↓</kbd> and change its value with <kbd>←</kbd>/<kbd>→</kbd> (for the frequency, with <kbd>SHIFT</kbd>, in steps of 10). Listen again after each change.
+<ul>
+<li><samp class="scr">FREQUENCY</samp>: lower means deeper and dirtier.</li>
+<li><samp class="scr">DECIMATION</samp>: from 2 to 8, metallic whistles appear.</li>
+<li><samp class="scr">BITS</samp>: from 3 down to 1, the sound becomes more and more "beep".</li>
+<li><samp class="scr">CURVE</samp>: <samp class="scr">CLIPPED</samp>, <samp class="scr">FOLDED</samp>, <samp class="scr">LINEAR</samp> and <samp class="scr">INVERTED</samp> distort the sound; <samp class="scr">LOG</samp> is the original sound.</li>
+</ul></li>
+<li><strong>Change bank.</strong> Go to <kbd class="fn">f3</kbd> and press <kbd>D</kbd>. The list of <code>.SMP</code> files on the disk shows up at the bottom: pick with the arrows, <kbd>RETURN</kbd> loads the bank, <kbd>ESC</kbd> cancels. Go back to <kbd class="fn">f4</kbd>. (The <samp class="scr">NAME:</samp> field of f3 is only for <code>.SNG</code> songs.)</li>
+<li><strong>Add a sample from another bank.</strong> On <kbd class="fn">f4</kbd>, press <kbd>O</kbd>, pick the bank and the sample: it is added at the end of the bank in memory (<samp class="scr">SAMPLE ADDED TO BANK</samp>).</li>
+<li><strong>Save the bank.</strong> <kbd class="fn">f3</kbd>, then <kbd>E</kbd>: the bank is saved under its own name, with the settings made on f4 and the added samples.</li>
+<li><strong>Make your own sounds</strong> on the PC from WAV files, with the SAMPLES SEQ-16 tab of <a href="index.html#pc">CPC DISK</a> or <code>tools/wav2smp.py</code>.</li>
+</ol>
+<div class="callout">
+<p><strong>Good to know</strong></p>
+<ul>
+<li>A bank is 16 KB at most, i.e. about 4 seconds at 8 kHz, or 5 seconds at 6.25 kHz. A bank holds 16 sounds at most.</li>
+<li>If the pattern was playing during a preview, it freezes for the length of the sample, then resumes.</li>
+<li>Want to hear it right away? <code>VOIX</code>: <kbd class="fn">f3</kbd>, <kbd>D</kbd>, pick <strong>VOIX</strong>, <kbd>RETURN</kbd>, then <kbd class="fn">f4</kbd>. At <samp class="scr">BITS</samp> 2 or with the <samp class="scr">CLIPPED</samp> curve, the voice becomes a very dirty robot.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section id="digidrums" aria-labelledby="dd-h">
+<div class="wrap">
+<h2 id="dd-h">Digidrums: samples in the song</h2>
+<p>A digidrum is an instrument that plays a sample from the loaded bank instead of a note. The 4 factory instruments 29 to 32 (<code>DGKICK</code>, <code>DGSNAR</code>, <code>DGHAT</code>, <code>DGCLAP</code>) play the 4 sounds of <code>DRUMS.SMP</code>.</p>
+<h3 id="dd-make">Make one yourself, on the f2 screen</h3>
+<ol class="steps">
+<li>Set the last setting, <samp class="scr">DIGIDRUM</samp>, to <samp class="scr">YES</samp>.</li>
+<li>The <samp class="scr">PERIOD</samp> line becomes <samp class="scr">SAMPLE</samp> and shows the sample's name. Change its value with <kbd>←</kbd>/<kbd>→</kbd>: 0 = the first sample in the bank, 1 = the second…</li>
+<li><samp class="scr">VOLUME</samp> sets the sample's strength (15 = full, below that: softer). The other settings aren't used.</li>
+<li>Try it with the piano: the sample plays right away.</li>
+</ol>
+<h3 id="dd-seq">In the sequencer</h3>
+<p>Enter the digidrum like a note:</p>
+<ul>
+<li><strong>the pitch</strong>: the note C in octave 4 (top row of the piano, input octave 3) plays the sample as is; each semitone above or below makes it higher or lower, up to ±12 semitones;</li>
+<li><strong>the voice</strong> picks the AY channel: A, B or C. On voice N (noise), the sample plays on channel C, at its original pitch;</li>
+<li><strong>a muted voice</strong> (<kbd class="fn">f7</kbd>) doesn't play its digidrums.</li>
+</ul>
+<p><strong>BLOCKING mode.</strong> The sample plays in full at the end of the frame, with interrupts disabled. Then the sequencer catches up with the tempo: it moves forward as many frames as the sample lasted, so the following steps land on time. During the sample, the screen and keyboard stop responding; the other voices keep sounding, but their envelopes, arpeggios and vibratos are frozen. This freeze is part of the sound.</p>
+<div class="callout"><p>Keep digidrums <strong>short: under 150 ms</strong> (the 4 sounds of <code>DRUMS.SMP</code> are). A longer sample makes the interface and the other voices "stutter".</p></div>
+</div>
+</section>
+
+<section id="limits" aria-labelledby="limits-h">
+<div class="wrap">
+<h2 id="limits-h">Known limits</h2>
+<ul>
+<li><strong>Memory is full.</strong> If f4 shows <samp class="scr">NOT ENOUGH MEMORY</samp>, samples, digidrums and the <kbd>O</kbd> key on f2 are disabled; everything else works.</li>
+<li><strong>Sample banks</strong> must fit in the 16,320 bytes of main memory (about 4 seconds at 8 kHz); 16 samples at most.</li>
+<li><strong>The bank list</strong> (<kbd class="fn">f3</kbd>, then <kbd>D</kbd>) only works on <strong>drive A</strong>.</li>
+<li><strong>Instrument banks are read byte by byte</strong>: this is tested in the simulator, not yet on the real machine.</li>
+<li><strong>Tempo catch-up</strong> after a digidrum is computed from the sample's theoretical length: over 32 bars, a small drift is still possible.</li>
+<li><strong>A "click"</strong> at the start or end of a sample is possible, when the volume goes from the engine's setting to the first sample.</li>
+<li><strong>Above about 6 kHz</strong>, the SPACE key test lengthens one sample out of 256: a very slight sizzle is possible.</li>
+</ul>
+<h3 id="roadmap">Not there yet</h3>
+<ul>
+<li>editing layered sounds on screen;</li>
+<li>chaining patterns into a song;</li>
+<li>renaming instruments;</li>
+<li>block copy-paste;</li>
+<li>samples: extra 6128 memory, CHOPPED mode, f4 finishing touches (waveform, trimming, loop).</li>
+</ul>
+<p>The full technical notes are in the <a href="https://github.com/ChristopheCruz/CPC-SEQ-16">repository README</a>.</p>
+</div>
+</section>
+
+</main>
+<footer class="site-footer">
+<div class="wrap">
+<p>Made with <span class="heart" aria-label="love">♥</span> for the CPC · <a href="https://github.com/ChristopheCruz/CPC-SEQ-16">SEQ-16 on GitHub</a> · <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Latest release</a> · see also <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a>, the <code>.dsk</code> disk editor</p>
+<p>All the sounds on the disks are synthesized or spoken by espeak: no samples taken from the Internet.</p>
+<p>Amstrad and CPC are trademarks of their respective owners. SEQ-16 is an independent project.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEQ-16 · secuenciador chiptune para Amstrad CPC 6128</title>
+<meta name="description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones, instrumentos, sampler y digidrums, 13 bancos de instrumentos y 9 bancos de samples.">
+<meta name="theme-color" content="#000080">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SEQ-16">
+<meta property="og:title" content="SEQ-16 · secuenciador chiptune para Amstrad CPC 6128">
+<meta property="og:description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones, instrumentos, sampler y digidrums, 13 bancos de instrumentos y 9 bancos de samples.">
+<meta property="og:image" content="../assets/img/og-seq16.png">
+<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="864">
+<meta property="og:image:alt" content="Pantalla del secuenciador SEQ-16 en un Amstrad CPC: cuatro voces en 16 pasos">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="alternate" hreflang="fr" href="../fr/index.html">
+<link rel="alternate" hreflang="es" href="../es/index.html">
+<link rel="alternate" hreflang="x-default" href="../index.html">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon.png">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<link rel="preload" href="../assets/fonts/PressStart2P-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/style.css">
+<script>document.documentElement.className+=" js";</script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="site-header">
+<div class="wrap">
+<a class="logo" href="../es/index.html" aria-label="SEQ-16, página de inicio">SEQ<span>-</span>16</a>
+<button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menú</button>
+<nav aria-label="Principal" class="nav-wrap">
+<ul class="nav" id="nav"><li><a href="#features">Funciones</a></li><li><a href="#screens">Pantallas</a></li><li><a href="#download">Descargar</a></li><li><a href="../es/manual.html">Manual</a></li><li><a href="#pc">En PC</a></li><li><a href="#dev">Desarrollo</a></li><li><a href="#thanks">Agradecimientos</a></li></ul>
+</nav>
+<ul class="langs" aria-label="Idioma"><li><a href="../index.html" hreflang="en" lang="en" title="English" aria-label="English">EN</a></li><li><a href="../fr/index.html" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a></li><li><span aria-current="true" title="Español">ES</span></li></ul>
+</div>
+</header>
+<main id="main" tabindex="-1">
+
+<section class="hero" aria-labelledby="top-title">
+<div class="wrap hero-grid">
+<div>
+<p class="tag">SECUENCIADOR CHIPTUNE · AMSTRAD CPC 6128</p>
+<h1 id="top-title">SEQ-16</h1>
+<p class="lead">Un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80.</p>
+<p>16 pasos por patrón, 32 patrones, 32 instrumentos, los temas se graban en disquete. Y un sampler que toca sonidos grabados de verdad con el chip de sonido del CPC, con un grano que ajustas en directo: degradar el sonido es justo lo que se busca.</p>
+<div class="actions">
+<a class="btn" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk">Descargar<small>seq16-es.dsk · versión en español</small></a>
+<a class="btn ghost" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Todos los disquetes<small>última release</small></a>
+</div>
+<p class="muted">Luego, en el CPC (configurado como 6128 en un emulador):</p>
+<p class="ready" aria-label='Teclea RUN"SEQ16 y pulsa RETURN'>Ready<br>RUN"SEQ16<br><span class="cursor" aria-hidden="true"></span></p>
+</div>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f1-playing.png" width="672" height="432" alt="El secuenciador SEQ-16 tocando: voces A, B, C y ruido N en 16 pasos" fetchpriority="high" decoding="async"></div></figure>
+
+</div>
+</section>
+
+<section id="features" aria-labelledby="features-h">
+<div class="wrap">
+<h2 id="features-h">Funciones</h2>
+<ul class="grid">
+<li class="card"><h3>4 voces</h3><p>Los tres canales de tono A, B, C del chip de sonido AY-3-8912, más una voz de ruido N.</p></li>
+<li class="card"><h3>Patrones</h3><p>32 patrones de 16 pasos: nota, octava e instrumento en cada paso, tempo en BPM, reproducción seguida en pantalla.</p></li>
+<li class="card"><h3>Instrumentos</h3><p>32 instrumentos: envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</p></li>
+<li class="card"><h3>Sonidos compuestos</h3><p>Una sola línea toca un sonido compuesto en las 4 voces a la vez (8 sonidos compuestos).</p></li>
+<li class="card"><h3>Sampler</h3><p>La pantalla f4 toca sonidos grabados (batería, voces…) con frecuencia, decimación, bits y curva ajustables en directo.</p></li>
+<li class="card"><h3>Digidrums</h3><p>Samples que se disparan en un paso como una nota, dentro de tus temas.</p></li>
+<li class="card"><h3>Bancos de sonidos</h3><p>13 bancos de instrumentos <code>.INS</code> (416 sonidos) y 9 bancos de samples <code>.SMP</code> en el disquete.</p></li>
+<li class="card"><h3>3 idiomas</h3><p>Disquetes en español, francés e inglés: el mismo programa, los mismos bancos, las mismas teclas; solo cambian los textos de la pantalla.</p></li>
+<li class="card"><h3>Máquina real</h3><p>Funciona en un CPC 6128 real con una disquetera Gotek (firmware FlashFloppy o HxC), o en un emulador.</p></li>
+</ul>
+</div>
+</section>
+
+<section id="screens" aria-labelledby="screens-h">
+<div class="wrap">
+<h2 id="screens-h">Las pantallas</h2>
+<p>Cuatro pantallas, que se eligen con las teclas de función del teclado numérico: <kbd class="fn">f1</kbd> secuenciador, <kbd class="fn">f2</kbd> instrumento, <kbd class="fn">f3</kbd> mezcla y disco, <kbd class="fn">f4</kbd> sampler.</p>
+<p class="note">Las capturas muestran la versión francesa; <code>seq16-es.dsk</code> muestra las mismas pantallas con los textos en español.</p>
+<div class="gallery">
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f1-split-voices.png" width="672" height="432" alt="Secuenciador con las voces sueltas" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Secuenciador, voces sueltas</strong>Las voces A, B, C y el ruido N en 16 pasos: nota, octava, instrumento.</figcaption></figure>
+
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f1-layered-sound.png" width="672" height="432" alt="Secuenciador tocando un sonido de 4 voces" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Secuenciador, sonido de 4 voces</strong>Una sola línea que toca un sonido compuesto en las 4 voces a la vez.</figcaption></figure>
+
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f2-instrument.png" width="672" height="432" alt="Pantalla de edición de instrumento con el dibujo de la envolvente" loading="lazy" decoding="async"></div><figcaption><strong>f2 · Instrumento</strong>Envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</figcaption></figure>
+
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f3-mixer-disk.png" width="672" height="432" alt="Pantalla de mezcla y disco" loading="lazy" decoding="async"></div><figcaption><strong>f3 · Mezcla y disco</strong>Volumen y silencio de cada voz, grabar y cargar temas.</figcaption></figure>
+
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f1-playing.png" width="672" height="432" alt="Secuenciador durante la reproducción" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Tocando</strong>El paso que suena se sigue en pantalla durante la reproducción.</figcaption></figure>
+
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/f3-catalog.png" width="672" height="432" alt="Catálogo del disquete mostrado dentro del programa" loading="lazy" decoding="async"></div><figcaption><strong>f3 · Catálogo</strong>El contenido del disquete, sin salir del programa.</figcaption></figure>
+
+</div>
+<figure>
+<pre class="screen" aria-label="Texto de la pantalla f4 del sampler">SEQ16 f1 SEQ f2 INST f3 DISCO  <b>f4 SAMPLE</b>
+BANCO  : <i>DRUMS</i>      MEMORIA: <i>2037/16320</i>
+
+N  NOMB. DUR.       AJUSTES
+<b>01 KICK    147MS</b>    FRECUENC.   <i>6250 HZ</i>
+02 SNARE   140MS    DECIMACION <i>1</i>
+03 HAT      60MS    BITS       <i>4 BITS</i>
+04 CLAP    140MS    CURVA      <i>LOG</i>
+                    PERIODO    <i>160 NOP</i></pre>
+<figcaption><strong>f4 · Sampler (Sample Composer)</strong>El banco de sonidos a la izquierda, el grano del sonido elegido a la derecha.</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="download" aria-labelledby="download-h">
+<div class="wrap">
+<h2 id="download-h">Descargar</h2>
+<p>Todos los disquetes están en la página de la <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">última release</a>. Cada imagen <code>.dsk</code> es un disquete de CPC estándar.</p>
+<div class="table-wrap" role="region" aria-label="Disquetes" tabindex="0"><table><thead><tr><th scope="col">Disquete</th><th scope="col">Contenido</th></tr></thead><tbody><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk"><code>seq16-es.dsk</code></a></td><td data-label="Contenido">SEQ-16 en español, con los 13 bancos de instrumentos y los 9 bancos de samples</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16.dsk"><code>seq16.dsk</code></a></td><td data-label="Contenido">SEQ-16 en francés (version française), los mismos bancos</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-en.dsk"><code>seq16-en.dsk</code></a></td><td data-label="Contenido">SEQ-16 en inglés (English version), los mismos bancos</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-sons.dsk"><code>seq16-sons.dsk</code></a></td><td data-label="Contenido">solo los bancos: los 13 bancos de instrumentos <code>.INS</code> (disquete de datos, sin el programa)</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-samples.dsk"><code>seq16-samples.dsk</code></a></td><td data-label="Contenido">solo los bancos: los 9 bancos de samples <code>.SMP</code> (disquete de datos, sin el programa)</td></tr></tbody></table></div>
+
+<p>El mismo programa, los mismos bancos, las mismas teclas en los tres idiomas: solo cambian los textos de la pantalla. Con un disquete de solo bancos, cambia de disquete y carga un banco (pantalla <kbd class="fn">f3</kbd>: <kbd>O</kbd> o <kbd>D</kbd>).</p>
+<div class="split">
+<div>
+<h3 id="emulator">En un emulador</h3>
+<ol class="steps">
+<li>Descarga <code>seq16-es.dsk</code>.</li>
+<li>Mete el disquete en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como <strong>CPC 6128</strong>.</li>
+<li>Teclea <code>RUN"SEQ16</code> y pulsa <kbd>RETURN</kbd>.</li>
+</ol>
+<p>Para salir, mantén <kbd>ESC</kbd> pulsada un segundo. Una pulsación sola no basta, para no perder tu trabajo por error.</p>
+</div>
+<div>
+<h3 id="gotek">En un CPC real con un Gotek</h3>
+<p>Copia <code>seq16-es.dsk</code> en el pendrive USB de una disquetera Gotek (firmware FlashFloppy o HxC) y teclea <code>RUN"SEQ16</code> en el CPC.</p>
+<p>La herramienta compañera <a href="#pc">CPC DISK</a> prepara el pendrive del Gotek, incluido uno para el firmware HxC.</p>
+</div>
+</div>
+<p><a class="btn ghost" href="../es/manual.html">Leer el manual</a></p>
+</div>
+</section>
+
+<section id="pc" aria-labelledby="pc-h">
+<div class="wrap">
+<h2 id="pc-h">En PC: CPC DISK</h2>
+<p><a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a> es la herramienta compañera: un editor de imágenes <code>.dsk</code> con aspecto de pantalla de CPC, en Python puro, sin dependencias. Sirve para:</p>
+<ul>
+<li>abrir <code>seq16-es.dsk</code> y recorrer su catálogo AMSDOS;</li>
+<li>recuperar los temas <code>.SNG</code> grabados en el disquete, o añadir otros;</li>
+<li>preparar el pendrive del Gotek (FlashFloppy, o uno para el firmware HxC);</li>
+<li>fabricar tus propios bancos de samples en su pestaña <strong>SAMPLES SEQ-16</strong>.</li>
+</ul>
+<p>Descarga en la <a href="https://github.com/ChristopheCruz/CPC-DISK/releases/latest">página de releases de CPC DISK</a>: un programa de Windows (<code>cpc-dsk-gui-1.2.0-windows-x64.exe</code>) y un binario de Linux.</p>
+<div class="gallery">
+<figure class="shot-fig"><div class="shot"><img src="../assets/img/cpcdisk-es.png" width="1920" height="1200" alt="El editor CPC DISK: catálogo de un disquete y vista hexadecimal de un fichero" loading="lazy" decoding="async"></div><figcaption><strong>CPC DISK · pestaña Disquete</strong>Abrir una imagen .dsk, recorrer su catálogo, añadir o extraer ficheros.</figcaption></figure>
+
+<figure class="shot-fig"><div class="shot"><img src="../assets/img/cpcdisk-gotek-en.png" width="1920" height="1200" alt="La pestaña Gotek USB de CPC DISK: imágenes de disquete convertidas en ficheros para el pendrive" loading="lazy" decoding="async"></div><figcaption><strong>CPC DISK · pestaña Gotek USB</strong>Convertir imágenes .dsk en los ficheros del pendrive del Gotek (captura de la versión inglesa).</figcaption></figure>
+
+</div>
+<h3 id="samples-pc">Tus propios bancos de samples a partir de WAV</h3>
+<p>La pestaña <strong>SAMPLES SEQ-16</strong> de CPC DISK (en español, francés o inglés) fabrica un banco <code>.SMP</code> a partir de ficheros WAV, sin línea de comandos:</p>
+<ul>
+<li><strong>A la izquierda</strong>, la lista de samples (16 como máximo): añadir WAV (Ctrl+W, varios a la vez), abrir un banco <code>.SMP</code> existente (Ctrl+O), quitar, subir, bajar. Un indicador muestra el espacio ocupado de los 16 320 bytes de memoria del CPC; se pone en rojo si el banco es demasiado grande.</li>
+<li><strong>A la derecha</strong>, los ajustes del sample elegido: nombre (6 caracteres), frecuencia, saturación, recorte de silencios, suavizado, tramado (dither), bits, decimación, curva, troceado. La forma de onda muestra el original arriba y el resultado del CPC abajo.</li>
+<li><strong>Escuchar</strong> el original o el resultado del CPC.</li>
+<li><strong>Grabar .SMP</strong> (Ctrl+S) y luego <strong>Añadir al disquete</strong>: se propone directamente el disquete abierto en la pestaña Disquete.</li>
+</ul>
+<p>Con un banco <code>.SMP</code> abierto ya no hay WAV original: puedes cambiar el nombre, la frecuencia, los bits, la decimación y la curva, pero no los ajustes que exigen volver a convertir el sonido.</p>
+<p>¿Prefieres la línea de comandos? <code>tools/wav2smp.py</code> (Python 3, solo la biblioteca estándar) convierte WAV mono o estéreo, de 8 o 16 bits, a cualquier frecuencia:</p>
+<pre><code>python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --dsk</code></pre>
+<p>El script escribe también un WAV de escucha, para oír el resultado en el PC antes de copiar el disquete. Opciones y ejemplos en el <a href="https://github.com/ChristopheCruz/CPC-SEQ-16">README</a>.</p>
+</div>
+</section>
+
+<section id="dev" aria-labelledby="dev-h">
+<div class="wrap">
+<h2 id="dev-h">Para desarrolladores</h2>
+<p>SEQ-16 está escrito en ensamblador Z80 y se ensambla con <strong>rasm</strong>. En Windows:</p>
+<ol>
+<li>Pon <code>rasm.exe</code> en <code>tools\</code>.</li>
+<li>Pon el proyecto <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a> junto a este: SEQ-16 usa su biblioteca (<code>cpc_dsk</code>) para escribir en los disquetes. <code>tools/cpcdisk.py</code> lo encuentra solo (o bien <code>pip install -e ../CPC-DISK</code>, o la variable de entorno <code>CPC_DISK</code>).</li>
+<li>Ejecuta <code>build.bat</code> (hace falta Python 3): ensambla <code>src/main.asm</code> y fabrica <code>build\seq16.dsk</code>, <code>build\seq16-en.dsk</code> y <code>build\seq16-es.dsk</code> con todos los bancos.</li>
+</ol>
+<pre><code>_Codes/
+├── CPC-SEQ-16/    este proyecto
+└── CPC-DISK/      el editor de disquetes</code></pre>
+<p>Las pruebas ejecutan el programa real en un simulador Z80:</p>
+<pre><code>pip install z80
+python -m unittest discover -s tools -p "test_*.py"</code></pre>
+<p>Las traducciones están en <code>tools/lang.py</code>; <code>python tools/lang.py --check</code> señala los textos olvidados o demasiado largos. Todo lo demás (organización del código, formatos, hoja de ruta) está en el <a href="https://github.com/ChristopheCruz/CPC-SEQ-16">README del repositorio</a>.</p>
+</div>
+</section>
+
+<section id="thanks" aria-labelledby="thanks-h">
+<div class="wrap">
+<h2 id="thanks-h">Agradecimientos</h2>
+<p>SEQ-16 y CPC DISK se apoyan en estos proyectos. ¡Gracias!</p>
+<div class="thanks">
+<div><h3>Herramientas y bibliotecas</h3>
+<ul>
+<li><a href="https://github.com/EdouardBERGE/rasm">RASM</a> — ensamblador Z80 de Édouard Bergé</li>
+<li><a href="https://github.com/kosarev/z80">z80</a> — emulador Z80 para Python de Ivan Kosarev (ejecuta el CPC simulado de las pruebas)</li>
+<li><a href="https://github.com/true-grue/ayumi">Ayumi</a> — emulador del AY-3-8912 de Peter Sovietov (MIT); su tabla de volúmenes del DAC la usa el convertidor de samples</li>
+<li><a href="https://github.com/espeak-ng/espeak-ng">eSpeak NG</a> — síntesis de voz de los bancos de samples VOIX, CHIFFRES y MOTS</li>
+<li><a href="https://www.python.org/">Python</a> &amp; <a href="https://docs.python.org/3/library/tkinter.html">tkinter</a></li>
+<li><a href="https://pyinstaller.org/">PyInstaller</a> — ejecutables Windows/Linux de CPC DISK</li>
+<li><a href="https://docs.pytest.org/">pytest</a></li>
+<li><a href="https://github.com/dosfstools/dosfstools">dosfstools</a> — fsck.fat / mkfs.fat, referencia para la escritura FAT16/FAT32 y sus pruebas</li>
+<li><a href="https://fonts.google.com/specimen/Press+Start+2P">Press Start 2P</a> (CodeMan38), <a href="https://fonts.google.com/specimen/VT323">VT323</a> (Peter Hull) — fuentes, <a href="https://openfontlicense.org/">SIL Open Font License 1.1</a></li>
+</ul></div>
+<div><h3>Documentación y referencias</h3>
+<ul>
+<li><a href="https://www.cpcwiki.eu/">CPCWiki</a> — firmware del CPC, AY-3-8912, AMSDOS, formato de las imágenes DSK</li>
+<li><a href="https://hxc2001.com/">HxC2001</a> — firmware HxC para Gotek, selector de ficheros y documentación; <a href="https://github.com/jfdelnero/HXCFE_file_selector">fuentes del selector de ficheros</a></li>
+<li><a href="https://github.com/keirf/FlashFloppy">FlashFloppy</a> — firmware para Gotek</li>
+<li><a href="https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system">Design of the FAT file system</a> (Wikipedia, en inglés)</li>
+<li><a href="https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shformatdrive">Microsoft SHFormatDrive</a> — cuadro de diálogo Formatear de Windows</li>
+</ul>
+<h3>Emuladores y disquetes usados para las pruebas</h3>
+<ul>
+<li><a href="http://www.winape.net/">WinAPE</a></li>
+<li><a href="https://archive.org/">Internet Archive</a> — imágenes de disquetes CPC reales, usadas como disquetes de prueba en CPC DISK</li>
+</ul></div>
+</div>
+</div>
+</section>
+
+</main>
+<footer class="site-footer">
+<div class="wrap">
+<p>Hecho con <span class="heart" aria-label="amor">♥</span> para el CPC · <a href="https://github.com/ChristopheCruz/CPC-SEQ-16">SEQ-16 en GitHub</a> · <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Última release</a> · ver también <a href="https://github.com/ChristopheCruz/CPC-DISK">CPC DISK</a>, el editor de disquetes <code>.dsk</code></p>
+<p>Todos los sonidos de los disquetes están sintetizados o los dice espeak: ninguna muestra sacada de Internet.</p>
+<p>Amstrad y CPC son marcas de sus respectivos propietarios. SEQ-16 es un proyecto independiente.</p>
+</div>
+</footer>
+</body>
+</html>
