@@ -124,17 +124,7 @@ Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **
 
 **f4 · Sampler (Sample Composer)** : la banque de sons à gauche, le grain du son choisi à droite.
 
-```
-SEQ16 f1 SEQ f2 INST f3 DISQUE f4 SAMPLE
-BANQUE : DRUMS      MEMOIRE: 2037/16320
-
-N  NOM   DUREE      REGLAGES
-01 KICK    147MS    FREQUENCE   6250 HZ
-02 SNARE   140MS    DECIMATION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    COURBE     LOG
-                    PERIODE    160 NOP
-```
+<p align="center"><img src="snapshots/07_sampler.png" width="720" alt="sampler f4"></p>
 
 ## ⌨️ Les touches
 

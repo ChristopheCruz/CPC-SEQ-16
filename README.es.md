@@ -28,7 +28,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 
 [🇫🇷 Français](README.fr.md) · [🇬🇧 English](README.md) · 🇪🇸 Español
 
-<img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
+<img src="snapshots/es/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
 
 </div>
 
@@ -86,57 +86,47 @@ Cuatro pantallas, que se eligen con las teclas de función del teclado numérico
 <table>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/01_sequenceur_voix_separees.png" alt="Secuenciador, voces sueltas"><br>
+<img src="snapshots/es/01_sequenceur_voix_separees.png" alt="Secuenciador, voces sueltas"><br>
 <b>f1 · Secuenciador, voces sueltas</b><br>
 <sub>Las voces A, B, C y el ruido N en 16 pasos: nota, octava, instrumento.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/03_sequenceur_son_compose.png" alt="Secuenciador, sonido de 4 voces"><br>
+<img src="snapshots/es/03_sequenceur_son_compose.png" alt="Secuenciador, sonido de 4 voces"><br>
 <b>f1 · Secuenciador, sonido de 4 voces</b><br>
 <sub>Una sola línea que toca un sonido compuesto en las 4 voces a la vez.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/04_instrument.png" alt="Edición de instrumento"><br>
+<img src="snapshots/es/04_instrument.png" alt="Edición de instrumento"><br>
 <b>f2 · Instrumento</b><br>
 <sub>Envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/05_mixage_et_disque.png" alt="Mezcla y disco"><br>
+<img src="snapshots/es/05_mixage_et_disque.png" alt="Mezcla y disco"><br>
 <b>f3 · Mezcla y disco</b><br>
 <sub>Volumen y silencio de cada voz, grabar y cargar temas.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/02_sequenceur_en_lecture.png" alt="Secuenciador tocando"><br>
+<img src="snapshots/es/02_sequenceur_en_lecture.png" alt="Secuenciador tocando"><br>
 <b>f1 · Tocando</b><br>
 <sub>El paso que suena se sigue en pantalla durante la reproducción.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/06_catalogue_disquette.png" alt="Catálogo del disquete"><br>
+<img src="snapshots/es/06_catalogue_disquette.png" alt="Catálogo del disquete"><br>
 <b>f3 · Catálogo</b><br>
 <sub>El contenido del disquete, sin salir del programa.</sub>
 </td>
 </tr>
 </table>
 
-<sub>Las capturas muestran la versión francesa; `seq16-es.dsk` muestra las mismas pantallas con los textos en español.</sub>
+<sub>Las capturas muestran la versión en español (`seq16-es.dsk`); los disquetes en francés y en inglés muestran las mismas pantallas con sus propios textos.</sub>
 
 **f4 · Sampler (Sample Composer)**: el banco de sonidos a la izquierda, el grano del sonido elegido a la derecha.
 
-```
-SEQ16 f1 SEQ f2 INST f3 DISCO  f4 SAMPLE
-BANCO  : DRUMS      MEMORIA: 2037/16320
-
-N  NOMB. DUR.       AJUSTES
-01 KICK    147MS    FRECUENC.   6250 HZ
-02 SNARE   140MS    DECIMACION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    CURVA      LOG
-                    PERIODO    160 NOP
-```
+<p align="center"><img src="snapshots/es/07_sampler.png" width="720" alt="sampler f4"></p>
 
 ## ⌨️ Las teclas
 

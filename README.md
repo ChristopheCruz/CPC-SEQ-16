@@ -28,7 +28,7 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 
 [🇫🇷 Français](README.fr.md) · 🇬🇧 English · [🇪🇸 Español](README.es.md)
 
-<img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: the sequencer playing">
+<img src="snapshots/en/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: the sequencer playing">
 
 </div>
 
@@ -86,57 +86,47 @@ Four screens, picked with the function keys on the numeric keypad: **f1** sequen
 <table>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/01_sequenceur_voix_separees.png" alt="Sequencer, split voices"><br>
+<img src="snapshots/en/01_sequenceur_voix_separees.png" alt="Sequencer, split voices"><br>
 <b>f1 · Sequencer, split voices</b><br>
 <sub>Voices A, B, C and noise N over 16 steps: note, octave, instrument.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/03_sequenceur_son_compose.png" alt="Sequencer, layered sound"><br>
+<img src="snapshots/en/03_sequenceur_son_compose.png" alt="Sequencer, layered sound"><br>
 <b>f1 · Sequencer, layered sound</b><br>
 <sub>A single line that plays a layered sound on all 4 voices at once.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/04_instrument.png" alt="Instrument editing"><br>
+<img src="snapshots/en/04_instrument.png" alt="Instrument editing"><br>
 <b>f2 · Instrument</b><br>
 <sub>Envelope drawn live, noise, hardware envelope, arpeggio, vibrato, glissando, portamento.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/05_mixage_et_disque.png" alt="Mixer and disk"><br>
+<img src="snapshots/en/05_mixage_et_disque.png" alt="Mixer and disk"><br>
 <b>f3 · Mixer and disk</b><br>
 <sub>Volume and mute for each voice, saving and loading songs.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/02_sequenceur_en_lecture.png" alt="Sequencer playing"><br>
+<img src="snapshots/en/02_sequenceur_en_lecture.png" alt="Sequencer playing"><br>
 <b>f1 · Playing</b><br>
 <sub>The step being played is followed on screen during playback.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/06_catalogue_disquette.png" alt="Disk catalog"><br>
+<img src="snapshots/en/06_catalogue_disquette.png" alt="Disk catalog"><br>
 <b>f3 · Catalog</b><br>
 <sub>The contents of the disk, without leaving the program.</sub>
 </td>
 </tr>
 </table>
 
-<sub>The screenshots show the French version; `seq16-en.dsk` shows the same screens with English labels.</sub>
+<sub>The screenshots show the English version (`seq16-en.dsk`); the French and Spanish disks show the same screens with their own labels.</sub>
 
 **f4 · Sampler (Sample Composer)**: the sound bank on the left, the grain of the chosen sound on the right.
 
-```
-SEQ16 f1 SEQ f2 INST f3 DISK   f4 SAMPLE
-BANK   : DRUMS      MEMORY : 2037/16320
-
-N  NAME  TIME       SETTINGS
-01 KICK    147MS    FREQUENCY   6250 HZ
-02 SNARE   140MS    DECIMATION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    CURVE      LOG
-                    PERIOD     160 NOP
-```
+<p align="center"><img src="snapshots/en/07_sampler.png" width="720" alt="f4 sampler"></p>
 
 ## ⌨️ The keys
 
