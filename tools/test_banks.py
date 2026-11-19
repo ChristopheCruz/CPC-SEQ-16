@@ -127,7 +127,7 @@ class BanksTest(unittest.TestCase):
         cpc.chars = [0xF1, 13]                   # la 2e banque : BATTERIE
         self.key(KEY_O)
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 13)
-        self.assertEqual(cpc.peek(cpc.addr("smp_files"), 16), b"USINE   BATTERIE")
+        self.assertEqual(cpc.peek(test_player.SMP_FILES, 16), b"USINE   BATTERIE")
         self.assertIn("INSTRUMENTS CHARGES", cpc.row(DSK_ROW))
         bank = open(os.path.join(ROOT, "instruments", "BATTERIE.INS"), "rb").read()
         self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])

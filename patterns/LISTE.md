@@ -4,7 +4,7 @@ Généré par `tools/gen_patterns.py` — ne pas modifier à la main.
 
 - **mono** : mode son composé (une ligne, les 8 sons composés d'usine) / layered-sound mode / modo sonido compuesto.
 - **poly** : mode voix séparées (A, B, C + bruit) / split voices / voces separadas.
-- Chargement : f3 P. Les 16 premiers fichiers de chaque disquette sont ceux que la liste de f3 P affiche (16 fichiers au plus) / f3 P lists the first 16 files of the disk / f3 P muestra los 16 primeros archivos.
+- Chargement / loading / carga : f3 P. La liste montre tous les fichiers, en pages de 24 (flèches, puis RETURN) / the list shows every file, in pages of 24 (arrows, then RETURN) / la lista muestra todos los archivos, en páginas de 24 (flechas y luego RETURN).
 - Les motifs `DIGI*` jouent les samples de `DRUMS.SMP` (instruments 29-32).
 
 ## MONO — `build/seq16-motifs-mono.dsk` (62)

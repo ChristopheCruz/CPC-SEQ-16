@@ -137,6 +137,48 @@ class PatternsTest(unittest.TestCase):
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 2)
         self.assertEqual(self.pattern(0), b)
 
+    # --- liste en pages de 24 : tout le catalogue (64 entrées) --------------
+    def mono_disk(self):
+        """La disquette des motifs mono (62 .PAT), à côté du programme."""
+        folder = os.path.join(test_player.ROOT, "patterns", "mono")
+        files = {}
+        for name in sorted(os.listdir(folder)):
+            with open(os.path.join(folder, name), "rb") as fh:
+                files[name] = fh.read()
+        self.make_disk(files, keep=("SEQ16.BIN",))
+        return files
+
+    def test_pick_beyond_first_page(self):
+        cpc = self.cpc
+        files = self.mono_disk()
+        self.key(KEY_F3)
+        seen = {}
+
+        def spy():                                # la page affichée pendant le choix
+            seen["row19"] = cpc.row(19)
+            return 13
+        cpc.chars = [0xF1] * 40 + [spy]           # 40 fois bas : le 41e nom
+        self.key(KEY_P)
+        n = cpc.peek(cpc.addr("smp_nfiles"))[0]
+        self.assertEqual(n, len(files))
+        self.assertGreater(n, 24)
+        name = cpc.peek(test_player.SMP_FILES + 8 * 40, 8).decode().strip()
+        self.assertEqual(self.pattern(0), files[name + ".PAT"])
+        first_of_page2 = cpc.peek(test_player.SMP_FILES + 8 * 24, 8).decode().strip()
+        self.assertTrue(seen["row19"].lstrip().startswith(first_of_page2))
+        self.assertIn("MOTIF CHARGE", cpc.row(DSK_ROW))
+
+    def test_right_arrow_turns_the_page(self):
+        cpc = self.cpc
+        files = self.mono_disk()
+        self.key(KEY_F3)
+        # 4 colonnes de 6 : 4 fois droite = 24 noms plus loin (page 2), puis
+        # 4 fois encore = 48 (page 3)
+        cpc.chars = [0xF3] * 8 + [13]
+        self.key(KEY_P)
+        name = cpc.peek(test_player.SMP_FILES + 8 * 48, 8).decode().strip()
+        self.assertEqual(self.pattern(0), files[name + ".PAT"])
+
     def test_no_pattern_on_disk(self):
         self.make_disk({})
         self.key(KEY_F3)

@@ -527,8 +527,9 @@ sl_have:
 ; fichiers .SMP en bas de l'écran : flèches pour choisir, RETURN pour charger,
 ; ESC pour annuler.  Le champ NOM reste celui du morceau (.SNG).
 CHOOSE_ROW  equ 19              ; première ligne de la liste des fichiers
-CHOOSE_ROWS equ 6               ; 6 lignes x 3 colonnes de 13 caractères
-MAX_FILES   equ 16              ; au plus 16 fichiers dans la liste
+CHOOSE_ROWS equ 6               ; 6 lignes x 4 colonnes de 10 caractères :
+CHOOSE_PAGE equ 24              ;   24 noms par page
+MAX_FILES   equ 64              ; tout le catalogue AMSDOS
 
 disk_load_bank:
         ld hl,txt_ext_smp       ; on choisit parmi les fichiers .SMP
@@ -590,11 +591,13 @@ cf_scanned:
         ld (ch_rows),hl         ;   (ch_rows puis ch_len)
         ld hl,CHOOSE_ROW*256+1  ;   colonne 1, ligne 19,
         ld (ch_col0),hl         ;   (ch_col0 puis ch_row0)
-        ld a,13                 ;   colonnes de 13 caractères
-        ld (ch_colw),a
+        ld hl,CHOOSE_PAGE*256+10  ; colonnes de 10 caractères, 24 noms par
+        ld (ch_colw),hl           ;   page (ch_colw puis ch_page)
         call choose_clear       ; bas de l'écran effacé
         call choose_run         ; -> Carry si RETURN, A = fichier choisi
         push af
+        ld a,255                ; les autres listes : une seule page
+        ld (ch_page),a
         call choose_clear       ; on efface la liste
         pop af
         jr c,cf_chosen
@@ -648,9 +651,13 @@ mf_ext:
 ; Sortie : Carry = 1 et A = numéro choisi, ou Carry = 0 si ESC.
 ; ----------------------------------------------------------------------------
 choose_run:
-        xor a                   ; le premier nom est choisi
+        xor a                   ; le premier nom est choisi, page 1
         ld (smp_pick),a
-cr_draw:                        ; on affiche toute la liste
+        ld (ch_top),a
+cr_redraw:
+        xor a
+cr_draw:                        ; on affiche la page (choose_draw saute
+                                ; les noms des autres pages)
         push af
         call choose_draw
         pop af
@@ -712,6 +719,13 @@ cr_right:                       ; flèche droite : colonne suivante
 cr_move:
         ld a,c
         ld (smp_pick),a
+        push bc
+        call ch_set_top         ; le choix est-il sur une autre page ?
+        pop bc
+        jr z,cr_same_page
+        call choose_clear       ; oui : on affiche la nouvelle page
+        jr cr_redraw
+cr_same_page:
         ld a,b
         call choose_draw        ; l'ancien redevient normal
         ld a,(smp_pick)
@@ -746,6 +760,12 @@ cn_add:
 ; Colonne = ch_col0 + ch_colw x (A / ch_rows), ligne = ch_row0 + (A mod ch_rows).
 choose_draw:
         ld (cd_i),a
+        ld hl,ch_top            ; hors de la page affichée : rien
+        sub (hl)
+        ret c
+        ld hl,ch_page
+        cp (hl)
+        ret nc
         ld hl,ch_rows
         ld c,(hl)               ; C = lignes par colonne
         ld b,0                  ; B = A / ch_rows, A = A modulo ch_rows
@@ -793,6 +813,23 @@ cd_text:
         call print_n            ; on l'affiche
         xor a
         jp TXT_SET_PAPER
+
+; Page du nom A : ch_top = A - (A modulo ch_page).  Z = 1 si elle ne change pas.
+ch_set_top:
+        ld b,a
+        ld a,(ch_page)
+        ld c,a
+        ld a,b
+cst_mod:
+        sub c
+        jr nc,cst_mod
+        add a,c                 ; A = nom modulo ch_page
+        neg
+        add a,b                 ; A = premier nom de sa page
+        ld hl,ch_top
+        cp (hl)
+        ld (hl),a               ; (LD ne touche pas aux drapeaux)
+        ret
 
 ; Efface le bas de l'écran (lignes 19 à 25), là où s'affiche la liste
 choose_clear:
@@ -889,11 +926,11 @@ ssd_ext:
         ld a,(smp_nfiles)       ; c'est un .SMP : on garde son nom
         cp MAX_FILES
         jr nc,ssd_next
-        add a,a                 ; HL = place du nom dans smp_files :
-        add a,a                 ;   smp_files + 8 x numéro
-        add a,a
-        ld l,a
-        ld h,0
+        ld l,a                  ; HL = place du nom dans smp_files :
+        ld h,0                  ;   smp_files + 8 x numéro (jusqu'à 504)
+        add hl,hl
+        add hl,hl
+        add hl,hl
         ld de,smp_files
         add hl,de
         ex de,hl

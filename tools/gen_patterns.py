@@ -914,8 +914,8 @@ poly("DIGIBRK1", "breakbeat (digidrums)", 136, "G:min",
      C=R("x..x..x-..x-x.-.", "G2 G2 A#2 F2 G2", "BUZZ"),
      N=G("h.h.h.h.h.h.o.h.", NK))
 
-# Les 16 premiers fichiers du catalogue : ceux que la liste de f3 P montre
-# (elle affiche au plus 16 fichiers, MAX_FILES dans src/smpscreen.asm).
+# Les premiers fichiers du catalogue : ceux que la liste de f3 P montre sur
+# sa première page (elle affiche tout le catalogue, en pages de 24 noms).
 SHOWCASE = {
     "mono": ["POPCHRD1", "TRANCEG1", "ARPMIN1", "BASSRIF1", "GROOVE1", "CHIPLD1",
              "FANFARE1", "BOOGIE1", "ROCKRIF1", "DISCOOCT", "LOFIM7", "HOUSECH1",
@@ -1113,9 +1113,10 @@ def liste_md():
            "- **mono** : mode son composé (une ligne, les 8 sons composés d'usine) / "
            "layered-sound mode / modo sonido compuesto.",
            "- **poly** : mode voix séparées (A, B, C + bruit) / split voices / voces separadas.",
-           "- Chargement : f3 P. Les 16 premiers fichiers de chaque disquette sont "
-           "ceux que la liste de f3 P affiche (16 fichiers au plus) / f3 P lists the "
-           "first 16 files of the disk / f3 P muestra los 16 primeros archivos.",
+           "- Chargement / loading / carga : f3 P. La liste montre tous les fichiers, "
+           "en pages de 24 (flèches, puis RETURN) / the list shows every file, in pages "
+           "of 24 (arrows, then RETURN) / la lista muestra todos los archivos, en páginas "
+           "de 24 (flechas y luego RETURN).",
            "- Les motifs `DIGI*` jouent les samples de `DRUMS.SMP` (instruments 29-32).", ""]
     for disk, dsk in (("mono", "seq16-motifs-mono.dsk"), ("poly", "seq16-motifs-poly.dsk")):
         pats = disk_order(disk)

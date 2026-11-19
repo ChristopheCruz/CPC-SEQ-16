@@ -25,6 +25,8 @@
 ; ============================================================================
 
 SCRATCH      equ SMP_LUT_HI     ; 512 octets de travail (zone haute)
+smp_files    equ SCRATCH        ; liste des fichiers d'une extension (64 x 8) :
+                                ; libre pendant le choix d'un fichier
 INS_MSG_ROW  equ 25             ; écran f2 : ligne des messages
 INS_FILE_LEN equ SONG_FIXED     ; taille d'une banque .INS
 

@@ -8,6 +8,7 @@ Lancer :  python -m unittest tools.test_player   (depuis la racine)
      ou :  python tools/test_player.py
 """
 import os
+import re
 import sys
 import unittest
 from collections import Counter
@@ -26,6 +27,14 @@ except ImportError:                      # paquet z80 absent
 
 ROOT = os.path.join(HERE, "..")
 BANK = 0x0040                            # BANK_START dans src/sample.asm
+def _smp_files_addr():
+    """La liste des fichiers vit dans SCRATCH (= SMP_LUT_HI, src/sample.asm) :
+    une constante (equ), absente du fichier .sym."""
+    src = open(os.path.join(ROOT, "src", "sample.asm"), encoding="latin-1").read()
+    return int(re.search(r"^SMP_LUT_HI\s+equ\s+#([0-9A-Fa-f]+)", src, re.M).group(1), 16)
+
+
+SMP_FILES = _smp_files_addr()             # f3 + D : noms des fichiers trouvés
 KEY_PERIOD = 163 + 4                     # durée d'un échantillon après le test
                                          # du clavier, quand P est plus court
 
@@ -332,7 +341,7 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(cpc.sector_reads[:4], [(0, 0, 0xC1), (0, 0, 0xC2),
                                                 (0, 0, 0xC3), (0, 0, 0xC4)])
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 3)
-        names = cpc.peek(cpc.addr("smp_files"), 24)
+        names = cpc.peek(SMP_FILES, 24)
         self.assertEqual(names, b"DRUMS   VOIX    TEST    ")
         self.assertIn("BANQUE CHARGEE", cpc.row(17))
         self.assertEqual(cpc.row(19).strip(), "")      # la liste est effacée

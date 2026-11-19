@@ -2792,7 +2792,6 @@ cur_smp:    db 0                ; écran Samples : sample choisi
 smp_field:  db 0                ;   réglage en cours
 smp_tried:  db 0                ;   1 = DRUMS.SMP a déjà été essayé
 smp_name:   db "--------"       ;   nom de la banque chargée
-smp_files:  ds 16*8             ; f3 + D : noms des fichiers .SMP trouvés
 smp_nfiles: db 0                ;   leur nombre
 smp_pick:   db 0                ;   celui qui est choisi
 smp_fname:  ds 13               ;   nom complet "NOM.SMP"
@@ -2810,7 +2809,9 @@ ch_rows:    db 0                ;   lignes par colonne,
 ch_len:     db 0                ;   caractères par nom (juste après ch_rows),
 ch_col0:    db 0                ;   colonne de départ,
 ch_row0:    db 0                ;   ligne de départ (juste après ch_col0),
-ch_colw:    db 0                ;   largeur d'une colonne
+ch_colw:    db 0                ;   largeur d'une colonne,
+ch_page:    db 255              ;   noms par page (255 : une seule page),
+ch_top:     db 0                ;   premier nom de la page affichée
 last_msg:   dw txt_m_none       ; dernier message affiché
 sf_size:    dw 0                ; save_file : nombre d'octets,
 sf_msg:     dw 0                ;   message de réussite
