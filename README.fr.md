@@ -49,6 +49,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
+- [Remerciements](#-remerciements)
 
 ## 💾 Essayer tout de suite
 
@@ -123,17 +124,7 @@ Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **
 
 **f4 · Sampler (Sample Composer)** : la banque de sons à gauche, le grain du son choisi à droite.
 
-```
-SEQ16 f1 SEQ f2 INST f3 DISQUE f4 SAMPLE
-BANQUE : DRUMS      MEMOIRE: 2037/16320
-
-N  NOM   DUREE      REGLAGES
-01 KICK    147MS    FREQUENCE   6250 HZ
-02 SNARE   140MS    DECIMATION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    COURBE     LOG
-                    PERIODE    160 NOP
-```
+<p align="center"><img src="snapshots/07_sampler.png" width="720" alt="sampler f4"></p>
 
 ## ⌨️ Les touches
 
@@ -670,6 +661,26 @@ _Codes/
 - [x] Samples, phase 4 : digidrums dans le séquenceur, `.SNG` version 2, sauvegarde `.SMP`, 9 banques de samples
 - [x] Éditeur graphique de banques `.SMP` sur PC
 - [ ] Samples, phases 3, 5 et 6 : mémoire du 6128, mode HACHÉ, finitions de f4
+
+## 🙏 Remerciements
+
+SEQ-16 repose sur le travail d'autres personnes. Merci à elles.
+
+**Outils et bibliothèques**
+- [RASM](https://github.com/EdouardBERGE/rasm), l'assembleur Z80 d'Édouard Bergé : il assemble le programme et écrit la disquette.
+- [z80](https://github.com/kosarev/z80), l'émulateur Z80 pour Python d'Ivan Kosarev : il fait tourner le CPC simulé des tests.
+- [Ayumi](https://github.com/true-grue/ayumi), l'émulateur d'AY-3-8912 de Peter Sovietov (licence MIT) : sa table de volumes du DAC sert au convertisseur de samples.
+- [eSpeak NG](https://github.com/espeak-ng/espeak-ng) : les voix des banques de samples `VOIX`, `CHIFFRES` et `MOTS`.
+- [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK) : la bibliothèque disque, et l'éditeur de banques de samples (son onglet SAMPLES SEQ-16).
+- [Python](https://www.python.org/) et [tkinter](https://docs.python.org/3/library/tkinter.html) : les outils, les tests et l'éditeur.
+- Polices [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) de CodeMan38 et [VT323](https://fonts.google.com/specimen/VT323) de Peter Hull ([SIL Open Font License 1.1](https://openfontlicense.org/)).
+
+**Documentation et références**
+- [CPCWiki](https://www.cpcwiki.eu/) : le firmware du CPC, la puce sonore AY-3-8912, AMSDOS et le format des images DSK.
+- [HxC2001](https://hxc2001.com/) et [FlashFloppy](https://github.com/keirf/FlashFloppy) : les firmwares du Gotek et leur documentation.
+
+**Tests**
+- [WinAPE](http://www.winape.net/) : l'émulateur qui a servi à essayer les disquettes.
 
 ---
 

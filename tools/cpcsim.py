@@ -203,6 +203,7 @@ class CPC:
         self.disk = None                      # image .dsk (lecture de secteurs)
         self.sector_reads = []
         self.screen = [[" "] * 40 for _ in range(25)]
+        self.codes = [[32] * 40 for _ in range(25)]   # codes bruts (flèches 240-243…)
         self.attr = [[(1, 0)] * 40 for _ in range(25)]
         self.cur = [1, 1]                     # colonne, ligne
         self.pen, self.paper = 1, 0
@@ -436,6 +437,7 @@ class CPC:
             col, row = 1, row + 1
         if 1 <= row <= 25:
             self.screen[row - 1][col - 1] = chr(self.m.a) if 32 <= self.m.a < 127 else "#"
+            self.codes[row - 1][col - 1] = self.m.a
             self.attr[row - 1][col - 1] = (self.pen, self.paper)
         self.cur = [col + 1, row]
 
@@ -462,6 +464,7 @@ class CPC:
         for r in range(top, min(bottom, 24) + 1):
             for c in range(left, min(right, 39) + 1):
                 self.screen[r][c] = " "
+                self.codes[r][c] = 32
                 self.attr[r][c] = (self.pen, self.paper)
         self._corrupt("af", "bc", "de", "hl")
 
@@ -473,6 +476,7 @@ class CPC:
 
     def fw_SCR_SET_MODE(self):
         self.screen = [[" "] * 40 for _ in range(25)]
+        self.codes = [[32] * 40 for _ in range(25)]
         self.attr = [[(1, 0)] * 40 for _ in range(25)]
         self.cur = [1, 1]
         self._corrupt("af", "bc", "de", "hl")

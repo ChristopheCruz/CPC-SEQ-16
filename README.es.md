@@ -28,7 +28,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 
 [🇫🇷 Français](README.fr.md) · [🇬🇧 English](README.md) · 🇪🇸 Español
 
-<img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
+<img src="snapshots/es/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
 
 </div>
 
@@ -49,6 +49,7 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 - [Reensamblar](#️-reensamblar)
 - [Organización del código](#-organización-del-código)
 - [Hoja de ruta](#️-hoja-de-ruta)
+- [Agradecimientos](#-agradecimientos)
 
 ## 💾 Pruébalo ya
 
@@ -85,57 +86,47 @@ Cuatro pantallas, que se eligen con las teclas de función del teclado numérico
 <table>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/01_sequenceur_voix_separees.png" alt="Secuenciador, voces sueltas"><br>
+<img src="snapshots/es/01_sequenceur_voix_separees.png" alt="Secuenciador, voces sueltas"><br>
 <b>f1 · Secuenciador, voces sueltas</b><br>
 <sub>Las voces A, B, C y el ruido N en 16 pasos: nota, octava, instrumento.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/03_sequenceur_son_compose.png" alt="Secuenciador, sonido de 4 voces"><br>
+<img src="snapshots/es/03_sequenceur_son_compose.png" alt="Secuenciador, sonido de 4 voces"><br>
 <b>f1 · Secuenciador, sonido de 4 voces</b><br>
 <sub>Una sola línea que toca un sonido compuesto en las 4 voces a la vez.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/04_instrument.png" alt="Edición de instrumento"><br>
+<img src="snapshots/es/04_instrument.png" alt="Edición de instrumento"><br>
 <b>f2 · Instrumento</b><br>
 <sub>Envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/05_mixage_et_disque.png" alt="Mezcla y disco"><br>
+<img src="snapshots/es/05_mixage_et_disque.png" alt="Mezcla y disco"><br>
 <b>f3 · Mezcla y disco</b><br>
 <sub>Volumen y silencio de cada voz, grabar y cargar temas.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/02_sequenceur_en_lecture.png" alt="Secuenciador tocando"><br>
+<img src="snapshots/es/02_sequenceur_en_lecture.png" alt="Secuenciador tocando"><br>
 <b>f1 · Tocando</b><br>
 <sub>El paso que suena se sigue en pantalla durante la reproducción.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/06_catalogue_disquette.png" alt="Catálogo del disquete"><br>
+<img src="snapshots/es/06_catalogue_disquette.png" alt="Catálogo del disquete"><br>
 <b>f3 · Catálogo</b><br>
 <sub>El contenido del disquete, sin salir del programa.</sub>
 </td>
 </tr>
 </table>
 
-<sub>Las capturas muestran la versión francesa; `seq16-es.dsk` muestra las mismas pantallas con los textos en español.</sub>
+<sub>Las capturas muestran la versión en español (`seq16-es.dsk`); los disquetes en francés y en inglés muestran las mismas pantallas con sus propios textos.</sub>
 
 **f4 · Sampler (Sample Composer)**: el banco de sonidos a la izquierda, el grano del sonido elegido a la derecha.
 
-```
-SEQ16 f1 SEQ f2 INST f3 DISCO  f4 SAMPLE
-BANCO  : DRUMS      MEMORIA: 2037/16320
-
-N  NOMB. DUR.       AJUSTES
-01 KICK    147MS    FRECUENC.   6250 HZ
-02 SNARE   140MS    DECIMACION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    CURVA      LOG
-                    PERIODO    160 NOP
-```
+<p align="center"><img src="snapshots/es/07_sampler.png" width="720" alt="sampler f4"></p>
 
 ## ⌨️ Las teclas
 
@@ -674,6 +665,26 @@ _Codes/
 - [x] Samples, fase 4: digidrums en el secuenciador, `.SNG` versión 2, grabación `.SMP`, 9 bancos de samples
 - [x] Editor gráfico de bancos `.SMP` en PC
 - [ ] Samples, fases 3, 5 y 6: memoria del 6128, modo TROCEADO, acabados de f4
+
+## 🙏 Agradecimientos
+
+SEQ-16 se apoya en el trabajo de otras personas. Gracias a ellas.
+
+**Herramientas y bibliotecas**
+- [RASM](https://github.com/EdouardBERGE/rasm), el ensamblador Z80 de Édouard Bergé: ensambla el programa y escribe el disquete.
+- [z80](https://github.com/kosarev/z80), el emulador Z80 para Python de Ivan Kosarev: ejecuta el CPC simulado de las pruebas.
+- [Ayumi](https://github.com/true-grue/ayumi), el emulador del AY-3-8912 de Peter Sovietov (licencia MIT): su tabla de volúmenes del DAC la usa el conversor de samples.
+- [eSpeak NG](https://github.com/espeak-ng/espeak-ng): las voces de los bancos de samples `VOIX`, `CHIFFRES` y `MOTS`.
+- [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK): la biblioteca de disquetes y el editor de bancos de samples (su pestaña SAMPLES SEQ-16).
+- [Python](https://www.python.org/) y [tkinter](https://docs.python.org/3/library/tkinter.html): las herramientas, las pruebas y el editor.
+- Fuentes [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) de CodeMan38 y [VT323](https://fonts.google.com/specimen/VT323) de Peter Hull ([SIL Open Font License 1.1](https://openfontlicense.org/)).
+
+**Documentación y referencias**
+- [CPCWiki](https://www.cpcwiki.eu/): el firmware del CPC, el chip de sonido AY-3-8912, AMSDOS y el formato de imágenes DSK.
+- [HxC2001](https://hxc2001.com/) y [FlashFloppy](https://github.com/keirf/FlashFloppy): los firmwares del Gotek y su documentación.
+
+**Pruebas**
+- [WinAPE](http://www.winape.net/): el emulador con el que se probaron los disquetes.
 
 ---
 
