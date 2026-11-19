@@ -145,7 +145,7 @@ Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **
 | SHIFT + ↑/↓ | octave de saisie |
 | SHIFT + ←/→ | instrument de saisie (et de la note sous le curseur) |
 | CTRL + ↑/↓ | tempo en BPM |
-| CTRL + ←/→ | motif précédent / suivant (32 motifs) |
+| CTRL + ←/→ | motif précédent / suivant (32 motifs) ; pendant la lecture, la musique continue, au même pas |
 
 Une voix muette affiche `MUET` à gauche de la grille.
 

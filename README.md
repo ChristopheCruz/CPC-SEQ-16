@@ -147,7 +147,7 @@ Four screens, picked with the function keys on the numeric keypad: **f1** sequen
 | SHIFT + ↑/↓ | input octave |
 | SHIFT + ←/→ | input instrument (and that of the note under the cursor) |
 | CTRL + ↑/↓ | tempo in BPM |
-| CTRL + ←/→ | previous / next pattern (32 patterns) |
+| CTRL + ←/→ | previous / next pattern (32 patterns); during playback, the music goes on, at the same step |
 
 A muted voice shows `MUTE` to the left of the grid.
 

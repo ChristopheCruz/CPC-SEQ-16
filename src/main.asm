@@ -76,6 +76,9 @@ main_loop:
         call MC_WAIT_FLYBACK
         halt
         halt
+        call KL_TIME_PLEASE     ; instant de ce tour (pour snd_tick)
+        ld a,l
+        ld (tick_last),a
 
         call read_screen_keys   ; f1 / f2 : changement d'écran
         call read_cmd           ; touches de commande
@@ -790,10 +793,8 @@ piano_keys:
 ; Motifs
 ; ----------------------------------------------------------------------------
 ; Choix du motif.  A = 0 à 31
-select_pattern:
+select_pattern:                 ; (la lecture continue, au même pas)
         ld (cur_pat),a
-        call seq_stop
-        ld a,(cur_pat)
         call pat_addr
         call seq_set_pattern
         ld hl,(seq_pattern)     ; en son composé, une seule voix
@@ -1114,6 +1115,7 @@ dg_step:
         inc a
         cp 16
         jr nz,dg_step
+        call snd_tick           ; la musique continue pendant le dessin
         ld a,(dg_n)
         inc a
         cp 3
@@ -1124,6 +1126,24 @@ dg_step:
         jr nz,dg_lane
         xor a
         jp TXT_SET_PAPER
+
+; Pendant un long affichage (la grille prend environ 5 images), la boucle
+; principale ne tourne pas : si une image (6 tops de 1/300 s) s'est écoulée
+; depuis le dernier tour de son, on en joue un ici.  Ne touche pas à
+; l'écran ; les registres ne sont pas gardés.
+snd_tick:
+        call KL_TIME_PLEASE     ; L = temps, en 1/300 s
+        ld a,(tick_last)
+        ld b,a
+        ld a,l
+        sub b
+        cp 6
+        ret c                   ; pas encore une image
+        ld a,b
+        add a,6
+        ld (tick_last),a
+        call seq_frame
+        jp snd_frame
 
 ; Redessine les 3 lignes de la case (voix dg_l, pas dg_s)
 draw_cell_full:
@@ -2735,6 +2755,7 @@ screen_text:
 screen:     db 0                ; écran en cours : 0 = séquenceur, 1 = instrument,
                                 ; 2 = mixage et disquette, 3 = samples
 esc_count:  db 0                ; nombre d'images où ESC est restée enfoncée
+tick_last:  db 0                ; instant du dernier tour de son (1/300 s)
 cur_field:  db 0                ; écran Instrument : réglage en cours
 df_i:       db 0
 df_text:    dw 0

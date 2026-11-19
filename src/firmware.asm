@@ -33,6 +33,7 @@ CAS_CATALOG       equ #BC9B   ; DE = tampon 2 Ko : affiche le catalogue
 KL_INIT_BACK      equ #BCCE   ; C = numéro de ROM, DE et HL = mémoire libre
 KL_FIND_COMMAND   equ #BCD4   ; HL = nom d'une commande (RSX) -> Carry si
                               ;   trouvée, HL = adresse, C = numéro de ROM
+KL_TIME_PLEASE    equ #BD0D   ; -> DEHL = temps écoulé, en 1/300 s
 MC_WAIT_FLYBACK   equ #BD19   ; attend le début de l'image suivante (50 fois/s)
 MC_SOUND_REGISTER equ #BD34   ; A = registre du circuit sonore AY, C = valeur
 

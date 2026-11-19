@@ -147,7 +147,7 @@ Cuatro pantallas, que se eligen con las teclas de función del teclado numérico
 | SHIFT + ↑/↓ | octava de entrada |
 | SHIFT + ←/→ | instrumento de entrada (y el de la nota bajo el cursor) |
 | CTRL + ↑/↓ | tempo en BPM |
-| CTRL + ←/→ | patrón anterior / siguiente (32 patrones) |
+| CTRL + ←/→ | patrón anterior / siguiente (32 patrones); durante la reproducción, la música sigue, en el mismo paso |
 
 Una voz silenciada muestra `MUDO` a la izquierda de la cuadrícula.
 
