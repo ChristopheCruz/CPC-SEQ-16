@@ -28,6 +28,8 @@ Samples also play **inside songs** (digidrums), and the disk ships with **13 ins
 
 [🇫🇷 Français](README.fr.md) · 🇬🇧 English · [🇪🇸 Español](README.es.md)
 
+🌐 **Website, manual and video: [seq16.slr-ai.com](https://seq16.slr-ai.com/)**
+
 <img src="snapshots/en/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: the sequencer playing">
 
 </div>

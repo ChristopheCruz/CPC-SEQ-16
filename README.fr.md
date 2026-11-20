@@ -28,6 +28,8 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 
 🇫🇷 Français · [🇬🇧 English](README.md) · [🇪🇸 Español](README.es.md)
 
+🌐 **Site, mode d'emploi et vidéo : [seq16.slr-ai.com](https://seq16.slr-ai.com/fr/)**
+
 <img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16 : le séquenceur en lecture">
 
 </div>

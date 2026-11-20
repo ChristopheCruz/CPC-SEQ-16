@@ -28,6 +28,8 @@ Los samples también suenan **dentro de los temas** (digidrums), y el disquete t
 
 [🇫🇷 Français](README.fr.md) · [🇬🇧 English](README.md) · 🇪🇸 Español
 
+🌐 **Web, manual y vídeo: [seq16.slr-ai.com](https://seq16.slr-ai.com/es/)**
+
 <img src="snapshots/es/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16: el secuenciador tocando">
 
 </div>
