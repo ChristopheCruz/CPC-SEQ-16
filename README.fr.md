@@ -51,6 +51,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
 - [Remerciements](#-remerciements)
+- [Licence](#-licence)
 
 ## 💾 Essayer tout de suite
 
@@ -710,6 +711,10 @@ SEQ-16 repose sur le travail d'autres personnes. Merci à elles.
 
 **Tests**
 - [WinAPE](http://www.winape.net/) : l'émulateur qui a servi à essayer les disquettes.
+
+## 📜 Licence
+
+[MIT](LICENSE) : tu peux utiliser, copier, modifier et partager SEQ-16, banques de sons et motifs d'usine compris, à condition de garder la mention du copyright. Amstrad et CPC sont des marques de leurs propriétaires respectifs ; SEQ-16 est un projet indépendant.
 
 ---
 
