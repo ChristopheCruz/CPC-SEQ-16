@@ -77,6 +77,7 @@ class PlayerTest(unittest.TestCase):
         c.files = dict(src.files)
         c.screen = [row[:] for row in src.screen]
         c.attr = [row[:] for row in src.attr]
+        c.codes = [row[:] for row in src.codes]   # codes bruts (■, ─, flèches…)
         c.ay = list(src.ay)
         c.t = src.t
         c.window = src.window                 # mémoire supplémentaire du 6128

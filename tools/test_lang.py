@@ -92,7 +92,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_english(self):
         self.check("en", {
-            "f1": ["PATTERN", "CURSOR", "SOUND LOCK", "1PATTERN 2SONG 3INST 4SAMPLE 5DISK", "f6 MODE"],
+            "f1": ["PATT.:", "STP/LANE", "BRUSH", "LANE A", "1PATTERN 2SONG 3INST 4SAMPLE 5DISK", "f6 MODE"],
             "f2": ["ENVELOPE", "ATTACK", "BANK SOUND"],
             "f3": ["MIXER", "SAVE INSTR.", "CATALOG", "HOLD ESC 1 SECOND: QUIT"],
             "f4": ["BANK   :", "SETTINGS", "FREQUENCY", "TAKE 1 SAMPLE"],
@@ -100,7 +100,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_spanish(self):
         self.check("es", {
-            "f1": ["PATRON:", "CURSOR", "BLOQ.SONID", "1PATRON 2TEMA 3INST 4SAMPLE 5DISCO", "f6 MODO"],
+            "f1": ["PATR.:", "PASO/VOZ", "PINCEL", "NOTA:", "1PATRON 2TEMA 3INST 4SAMPLE 5DISCO", "f6 MODO"],
             "f2": ["ENVOLV.", "ATAQUE", "SON. BANCO"],
             "f3": ["MEZCLA", "GRABAR INSTR.", "CATALOGO", "ESC PULSADA 1 SEGUNDO: SALIR"],
             "f4": ["BANCO  :", "AJUSTES", "FRECUENC.", "TOMAR 1 SAMPLE"],
@@ -108,7 +108,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_french_unchanged(self):
         self.check("fr", {
-            "f1": ["MOTIF :", "VERROU SON", "1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE"],
+            "f1": ["MOTIF:", "PINCEAU", "PAS 0", "VOIX A", "1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE"],
             "f3": ["MIXAGE", "SAUVER INSTR."],
             "f4": ["REGLAGES"],
         })

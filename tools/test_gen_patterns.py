@@ -181,7 +181,7 @@ class SimulatorTest(unittest.TestCase):
         self.assertEqual(cpc.peek(slot, 260), data)
         self.assertEqual(cpc.peek(cpc.addr("seq_bpm"))[0], p["bpm"])
         self.key(KEY_MOTIF)
-        self.assertIn("BPM:%03d" % p["bpm"], cpc.row(3))
+        self.assertIn("BPM:%03d" % p["bpm"], cpc.row(2))   # ligne d'état
         n0 = len(cpc.ay_writes)
         self.key(KEY_SPACE)
         self.assertEqual(cpc.peek(cpc.addr("seq_playing"))[0], 1)
