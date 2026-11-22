@@ -18,7 +18,7 @@ cpcsim = test_player.cpcsim
 ROOT = test_player.ROOT
 KEY_MOTIF, KEY_INST, KEY_DISK, KEY_SAMPLE = 13, 5, 12, 20
 KEY_SPACE, KEY_CTRL, KEY_LEFT, KEY_RIGHT = 47, 23, 8, 1
-KEY_S, KEY_L, KEY_E = 60, 36, 58
+KEY_SONG, KEY_SAVE, KEY_LOAD = 14, 11, 3   # f2, f8, f9
 DGKICK, DGSNAR = 28, 29                  # instruments d'usine 29 et 30
 SONG_V1 = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16)
 PAT_SIZE = 4 + 16 * 16
@@ -43,6 +43,13 @@ class DigidrumTest(unittest.TestCase):
     make_disk = test_player.PlayerTest.make_disk
 
     # --- aides ---------------------------------------------------------------
+    def load_song(self, data):
+        """f2 puis f9 : la disquette n'a que ce morceau (et DRUMS, VOIX)."""
+        self.make_disk({"MORCEAU1.SNG": data})
+        self.key(KEY_SONG)
+        self.cpc.chars = [13]
+        self.key(KEY_LOAD)
+
     def song(self):
         return self.cpc.addr("smp_blk_src")
 
@@ -191,7 +198,8 @@ class DigidrumTest(unittest.TestCase):
     def test_song_v2_keeps_bank_name(self):
         cpc = self.cpc
         self.key(KEY_DISK)
-        self.key(KEY_S)
+        cpc.chars = [13]                         # f8 : le nom proposé
+        self.key(KEY_SAVE)
         data = cpc.saved["MORCEAU1.SNG"]
         image = SONG_V1 + 16 + 2 + 64 * 3 + 32 * 8
         n = cpc.word(cpc.addr("smp_bank_len"))
@@ -205,7 +213,8 @@ class DigidrumTest(unittest.TestCase):
         cpc = self.cpc
         self.make_disk({})
         self.key(KEY_DISK)
-        self.key(KEY_S)
+        cpc.chars = [13]                         # f8 : le nom proposé
+        self.key(KEY_SAVE)
         v2 = cpc.saved["MORCEAU1.SNG"]
         v1 = bytearray(v2[:SONG_V1])
         v1[4] = 1
@@ -213,9 +222,8 @@ class DigidrumTest(unittest.TestCase):
         # les noms et les sons (les motifs sont dans le bloc 4)
         v2_addr = self.song() + SONG_V1 - 32 * PAT_SIZE
         cpc.poke(v2_addr, b"\x01XXXXXXXX")                  # bloc v2 sali
-        cpc.files["MORCEAU1.SNG"] = bytes(v1)
-        self.key(KEY_L)
-        self.assertIn("MORCEAU CHARGE", cpc.row(17))
+        self.load_song(bytes(v1))
+        self.assertIn("MORCEAU CHARGE", cpc.row(25))
         self.assertEqual(cpc.peek(self.song() + 4)[0], 4)
         self.assertEqual(cpc.peek(v2_addr, 16), bytes(16))
 
@@ -223,18 +231,17 @@ class DigidrumTest(unittest.TestCase):
         cpc = self.cpc
         self.make_disk({})
         self.key(KEY_DISK)
-        self.key(KEY_S)
+        cpc.chars = [13]                         # f8 : le nom proposé
+        self.key(KEY_SAVE)
         v2 = bytearray(cpc.saved["MORCEAU1.SNG"][:SONG_V1 + 16])   # une vraie version 2 :
         v2[4] = 2                                            # la banque par son nom
         v2[SONG_V1 + 1:SONG_V1 + 9] = b"VOIX    "
-        cpc.files["MORCEAU1.SNG"] = bytes(v2)
-        self.key(KEY_L)
-        self.assertIn("MORCEAU ET BANQUE", cpc.row(17))
+        self.load_song(bytes(v2))
+        self.assertIn("MORCEAU ET BANQUE", cpc.row(25))
         self.assertEqual(cpc.peek(cpc.addr("smp_name"), 8), b"VOIX    ")
         v2[SONG_V1 + 1:SONG_V1 + 9] = b"ABSENT  "            # banque absente
-        cpc.files["MORCEAU1.SNG"] = bytes(v2)
-        self.key(KEY_L)
-        self.assertIn("BANQUE .SMP ABSENTE", cpc.row(17))
+        self.load_song(bytes(v2))
+        self.assertIn("BANQUE .SMP ABSENTE", cpc.row(25))
         self.assertEqual(cpc.peek(cpc.addr("smp_name"), 8), b"VOIX    ")
 
     # --- f4, O : prendre un sample dans une autre banque ---------------------
@@ -265,9 +272,9 @@ class DigidrumTest(unittest.TestCase):
         cpc.frames(1, keys={KEY_SPACE})
         cpc.frames(1)
         self.assertGreater(len(cpc.di_spans), spans)
-        # et la banque agrandie se sauve
-        self.key(KEY_DISK)
-        self.key(KEY_E)
+        # et la banque agrandie se sauve (f8 ; elle existe : 2e RETURN)
+        cpc.chars = [13, 13]
+        self.key(KEY_SAVE)
         self.assertEqual(cpc.saved["DRUMS.SMP"], cpc.peek(test_player.BANK, n))
 
     def test_take_sample_too_big(self):
@@ -280,17 +287,19 @@ class DigidrumTest(unittest.TestCase):
         self.assertIn("TROP GRANDE", cpc.row(25))
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
 
-    # --- f3, E : sauver la banque de samples ---------------------------------
+    # --- f4 puis f8 : sauver la banque de samples ---------------------------------
     def test_save_smp(self):
         cpc = self.cpc
-        self.key(KEY_DISK)
-        self.key(KEY_E)
-        self.assertIn("BANQUE DE SAMPLES SAUVEE", cpc.row(17))
+        self.key(KEY_SAMPLE)
+        cpc.chars = [13, 13]                     # f8, nom proposé, il existe : remplacer
+        self.key(KEY_SAVE)
+        self.assertIn("BANQUE DE SAMPLES SAUVEE", cpc.row(25))
         original = open(os.path.join(ROOT, "samples", "DRUMS.SMP"), "rb").read()
         self.assertEqual(cpc.saved["DRUMS.SMP"], original)
         # un réglage changé sur f4 est sauvé avec la banque
         cpc.poke(test_player.BANK + 16 + 15, [3 << 3])  # réglages : 1 bit
-        self.key(KEY_E)
+        cpc.chars = [13, 13]
+        self.key(KEY_SAVE)
         self.assertEqual(wav2smp.parse_bank(cpc.saved["DRUMS.SMP"])[0].bits, 1)
 
 

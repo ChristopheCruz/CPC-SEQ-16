@@ -171,16 +171,10 @@ draw_screen:
         dec a
         jr z,ds_instrument
         dec a
-        jr z,ds_disk
+        jp z,ds_disk            ; écran 2 : le panneau DISQUE (diskpanel.asm)
         dec a
         jp z,ds_sample          ; écran 3 : samples (smpscreen.asm)
         jp ds_song              ; écran 4 : song (panels.asm)
-ds_disk:
-        ld hl,dsk_text          ; écran 2 : mixage et disquette
-        call print_list
-        xor a
-        call TXT_SET_PAPER
-        jp dsk_show_all
 ds_sequencer:
         ld hl,screen_text
         call print_list
@@ -1522,227 +1516,10 @@ ins_text:
 ; ============================================================================
 DSK_VOICE_ROW equ 5             ; ligne de la voix A
 DSK_NAME_ROW  equ 11            ; ligne du nom de fichier
-DSK_MSG_ROW   equ 17            ; ligne des messages
+DSK_MSG_ROW   equ 25            ; ligne des messages (comme les autres panneaux)
 NAME_LEN      equ 8
 
 ; --- Commandes ---------------------------------------------------------------
-dsk_cmd:
-        ld a,(rc_index)
-        or a
-        jp z,cmd_play           ; ESPACE : écouter le motif pendant le mixage
-        cp 6
-        jr z,dc_left
-        cp 7
-        jr z,dc_right
-        cp 8
-        jr z,dc_up
-        cp 9
-        jr z,dc_down
-        cp 10
-        jp z,dc_mute            ; f7
-        cp 11
-        jp z,dc_return
-        cp 12
-        jp z,disk_save          ; S
-        cp 13
-        jp z,disk_load          ; L
-        cp 14
-        jp z,disk_catalog       ; C
-        cp 15
-        jp z,disk_new           ; N
-        cp 16
-        jp z,disk_load_bank     ; D : banque de samples (smpscreen.asm)
-        cp 18
-        jp z,disk_load_pat      ; P : charger un motif (banks.asm)
-        cp 22
-        jp z,disk_save_pat      ; M : sauver le motif affiché
-        cp 19
-        jp z,disk_load_ins      ; O : charger une banque d'instruments
-        cp 20
-        jp z,disk_save_ins      ; I : sauver les instruments (banks.asm)
-        cp 21
-        jr z,disk_save_smp      ; E : sauver la banque de samples
-        ret
-
-; E : sauver la banque de samples (la routine est en zone haute)
-disk_save_smp:
-        ld a,(smp_count)        ; une banque est-elle chargée ?
-        or a                    ; (0 aussi sans zone haute)
-        ld hl,txt_s_nobank
-        jp z,dsk_message
-        jp smp_save_bank
-
-dc_up:
-        ld a,(dsk_row)
-        or a
-        ret z
-        dec a
-        jr dc_row
-dc_down:
-        ld a,(dsk_row)
-        cp 4
-        ret nc
-        inc a
-dc_row:
-        ld hl,dsk_row
-        ld b,(hl)
-        ld (hl),a
-        ld a,b
-        call dsk_draw_row       ; l'ancienne ligne redevient normale
-        ld a,(dsk_row)
-        jp dsk_draw_row
-
-dc_left:                        ; volume -1
-        ld b,#FF
-        jr dc_vol
-dc_right:                       ; volume +1
-        ld b,1
-dc_vol:
-        ld a,(dsk_row)
-        cp 4
-        ret nc                  ; ligne du nom : rien à régler
-        ld e,a
-        ld d,0
-        ld hl,snd_master
-        add hl,de
-        ld a,(hl)
-        add a,b
-        cp 16
-        ret nc                  ; hors de 0 à 15
-        ld (hl),a
-        ld a,(dsk_row)
-        jp dsk_draw_row
-
-dc_mute:
-        ld a,(dsk_row)
-        cp 4
-        ret nc
-dc_mute_go:
-        call chan_mask
-        ld hl,snd_mute
-        xor (hl)
-        ld (hl),a
-        ld a,(dsk_row)
-        jp dsk_draw_row
-
-dc_return:                      ; RETURN : muet sur une voix, saisie du nom
-        ld a,(dsk_row)
-        cp 4
-        jr c,dc_mute_go
-        jp edit_name
-
-; --- Affichage ---------------------------------------------------------------
-dsk_show_all:
-        xor a
-dsa_loop:
-        push af
-        call dsk_draw_row
-        pop af
-        inc a
-        cp 5
-        jr nz,dsa_loop
-        ret
-
-; Dessine la ligne A : une voix (0 à 3) ou le nom de fichier (4)
-dsk_draw_row:
-        ld (dr_row),a
-        cp 4
-        jp z,dsk_draw_name
-        add a,DSK_VOICE_ROW
-        ld l,a
-        ld h,1
-        call TXT_SET_CURSOR
-        call dr_select_colors
-        ld hl,txt_voix
-        call print_str
-        ld a,(dr_row)
-        ld e,a
-        ld d,0
-        ld hl,voice_letters
-        add hl,de
-        ld a,(hl)
-        call TXT_OUTPUT
-        ld a,' '
-        call TXT_OUTPUT
-        xor a
-        call TXT_SET_PAPER
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,(dr_row)           ; C = volume
-        ld e,a
-        ld d,0
-        ld hl,snd_master
-        add hl,de
-        ld c,(hl)
-        ld a,1
-        call TXT_SET_PEN
-        ld b,15                 ; barre de 15 caractères
-ddr_bar:
-        ld a,c
-        or a
-        ld a,' '
-        jr z,ddr_out
-        dec c
-        ld a,140                ; demi-bloc du bas : les 4 barres restent séparées
-ddr_out:
-        push bc
-        call TXT_OUTPUT
-        pop bc
-        djnz ddr_bar
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(dr_row)
-        ld e,a
-        ld d,0
-        ld hl,snd_master
-        add hl,de
-        ld a,(hl)
-        call print_dec2
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,(dr_row)
-        call chan_mask
-        ld hl,snd_mute
-        and (hl)
-        ld hl,txt_muet
-        jr nz,ddr_state
-        ld hl,txt_sonne
-ddr_state:
-        jp print_str
-
-; Ligne du nom de fichier
-dsk_draw_name:
-        ld hl,256*7+DSK_NAME_ROW
-        call TXT_SET_CURSOR
-        call dr_select_colors
-        ld hl,fname
-        ld b,NAME_LEN
-        call print_n
-        xor a
-        call TXT_SET_PAPER
-        ld a,3
-        call TXT_SET_PEN
-        ld hl,txt_ext
-        jp print_str
-
-; Couleurs d'une ligne : jaune inversé si c'est la ligne choisie
-dr_select_colors:
-        ld a,(dr_row)
-        ld hl,dsk_row
-        cp (hl)
-        jr nz,drs_normal
-        ld a,1
-        call TXT_SET_PAPER
-        xor a
-        jp TXT_SET_PEN
-drs_normal:
-        xor a
-        call TXT_SET_PAPER
-        ld a,2
-        jp TXT_SET_PEN
-
 ; Affiche un message sur la ligne des messages (ligne 17 sur l'écran f3,
 ; ligne 25 sur l'écran f2).  HL = texte
 dsk_message:
@@ -1785,18 +1562,6 @@ dm_pad:
         ret
 
 ; --- Saisie du nom de fichier ------------------------------------------------
-edit_name:                      ; écran Disque : RETURN sur la ligne du nom
-        call silence
-        ld hl,txt_m_name
-        call dsk_message
-        ld hl,256*7+DSK_NAME_ROW
-        ld de,fname
-        ld bc,txt_ext
-        call name_edit
-        call dsk_draw_name
-        ld hl,txt_m_none
-        jp dsk_message
-
 ; Saisie d'un nom de NAME_LEN caractères (lettres, chiffres, '-').
 ; HL = position du nom à l'écran (colonne * 256 + ligne), DE = le nom,
 ; modifié sur place, BC = extension affichée après le nom.
@@ -2141,31 +1906,7 @@ song_loaded:
         ld (cur_s),a
         call pat_fetch
         call seq_set_pattern
-        call snd_init
-        jp dsk_show_all
-
-; --- Catalogue ---------------------------------------------------------------
-disk_catalog:
-        call silence
-        ld h,0                  ; fenêtre de texte : lignes 19 à 25
-        ld d,39
-        ld l,18
-        ld e,24
-        call TXT_WIN_ENABLE
-        call TXT_CLEAR_WINDOW
-        ld a,2
-        call TXT_SET_PEN
-        ld de,io_buffer
-        call CAS_CATALOG
-        push af
-        ld h,0                  ; on rend tout l'écran au texte
-        ld d,39
-        ld l,0
-        ld e,24
-        call TXT_WIN_ENABLE
-        pop af
-        ld hl,txt_m_none        ; (le résultat de CAS_CATALOG n'est pas fiable :
-        jp dsk_message          ;  on ne signale pas d'erreur)
+        jp snd_init
 
 ; --- Nouveau morceau (deux appuis sur N) -------------------------------------
 disk_new:
@@ -2250,41 +1991,6 @@ txt_m_noname: db "DONNE D'ABORD UN NOM (RETURN)",0
 txt_m_confirm: db "N A NOUVEAU : TOUT EFFACER ?",0
 txt_m_new:    db "NOUVEAU MORCEAU",0
 
-dsk_text:
-        db 1,3,1,0,  "MIXAGE",0
-        db 9,3,2,0,  "VOLUME DE CHAQUE VOIX",0
-        db 1,10,1,0, "DISQUE",0
-        db 1,DSK_NAME_ROW,2,0,"NOM :",0
-        db 1,12,3,0, "I",0
-        db 3,12,2,0, "SAUVER INSTR.",0
-        db 18,12,3,0,"O",0
-        db 20,12,2,0,"CHARGER INSTR. (.INS)",0
-        db 1,13,3,0, "S",0
-        db 3,13,2,0, "SAUVER",0
-        db 12,13,3,0,"L",0
-        db 14,13,2,0,"CHARGER",0
-        db 24,13,3,0,"C",0
-        db 26,13,2,0,"CATALOGUE",0
-        db 1,14,3,0, "N",0
-        db 3,14,2,0, "NOUVEAU",0
-        db 12,14,3,0,"RETURN",0
-        db 19,14,2,0,"MUET (OU NOM)",0
-        db 1,16,3,0, "D",0
-        db 3,16,2,0, "CHARGER",0
-        db 11,16,3,0,"E",0
-        db 13,16,2,0,"SAUVER LES SAMPLES (.SMP)",0
-        db 1,15,3,0, 240,241,0
-        db 4,15,2,0, "CHOIX",0
-        db 12,15,3,0,242,243,0
-        db 15,15,2,0,"VOLUME",0
-        db 24,15,3,0,"f7",0
-        db 27,15,2,0,"MUET",0
-        db 1,18,3,0, "M",0
-        db 3,18,2,0, "SAUVER MOTIF",0
-        db 17,18,3,0,"P",0
-        db 19,18,2,0,"CHARGER MOTIF (.PAT)",0
-        db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
-        db #FF
 
 ; Les caractères 240 à 243 du CPC sont les flèches haut, bas, gauche, droite.
 screen_text:
@@ -2333,6 +2039,7 @@ screen_text:
         include 'grid.asm'
         include 'songpanel.asm'
         include 'sngio.asm'
+        include 'diskpanel.asm'
         include 'smptables.asm'
 
 ; ----------------------------------------------------------------------------

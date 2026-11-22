@@ -112,6 +112,7 @@ load_song_chosen:
         ld hl,txt_ext
         call choose_file        ; -> DE = nom sur 8 caractères
         ret nc
+load_song_named:                ; (DE : le nom choisi, panneau DISQUE)
         ex de,hl
         ld de,fname
         ld b,NAME_LEN

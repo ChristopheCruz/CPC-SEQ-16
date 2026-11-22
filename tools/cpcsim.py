@@ -66,6 +66,8 @@ FW = {
     0xBCD4: "KL_FIND_COMMAND",
 }
 FAKE_READ_SECTOR = 0xC0F0          # adresse fictive de la commande AMSDOS #84
+FAKE_ERA = 0xC0F2                  # |ERA,"nom"
+FAKE_REN = 0xC0F4                  # |REN,"nouveau","ancien"
 JUNK = 0xA5                       # valeur des registres « corrompus »
 HIMEM_6128 = 0xA67B               # plus haute adresse libre après AMSDOS (6128)
 
@@ -192,6 +194,7 @@ class CPC:
         self.files = {}                       # disquette simulée
         self.saved = {}                       # fichiers écrits
         self.saved_headers = {}               # en-têtes écrits par le programme
+        self.rsx_log = []                     # |ERA et |REN appelés
         self.keys = set()                     # touches enfoncées
         self.frame = 0
         self.strict = []                      # zones à durées vérifiées
@@ -237,8 +240,32 @@ class CPC:
         cpc.use_disk(dsk)
         return cpc
 
+    def _rsx_string(self, k):
+        """Paramètre k d'une commande RSX (IX+0 = le dernier) : une chaîne."""
+        ix = self.m.ix
+        desc = self.mem[ix + 2 * k] | self.mem[ix + 2 * k + 1] << 8
+        n, addr = self.mem[desc], self.mem[desc + 1] | self.mem[desc + 2] << 8
+        return bytes(self.mem[addr:addr + n]).decode("latin-1").upper()
+
+    def _rsx_file(self, routine):
+        """|ERA et |REN, sur l'image de la disquette (comme AMSDOS)."""
+        path = self.disk_path
+        if routine == FAKE_ERA:
+            self.rsx_log.append(("ERA", self._rsx_string(0)))
+            amsdsk.remove_file(path, self._rsx_string(0))
+        else:
+            old, new = self._rsx_string(0), self._rsx_string(1)
+            self.rsx_log.append(("REN", new, old))
+            data = amsdsk.read_file(path, old)
+            amsdsk.remove_file(path, old)
+            amsdsk.add_file(path, new, data)
+        self.use_disk(path)
+        self._corrupt("af", "bc", "de", "hl")
+        self._carry(True)
+
     def use_disk(self, dsk):
         """Met cette image .dsk dans le lecteur A (fichiers et secteurs)."""
+        self.disk_path = dsk
         self.disk = amsdsk.Disk(open(dsk, "rb").read())
         self.files = {n: amsdsk.read_file(dsk, n) for n in amsdsk.list_files(dsk)}
 
@@ -444,8 +471,15 @@ class CPC:
 
     def fw_KL_FIND_COMMAND(self):
         name = self.mem[self.m.hl]
+        hl = self.m.hl
+        word = bytes(self.mem[hl:hl + 3])
+        fake = {b"ER" + bytes([0xC1]): FAKE_ERA, b"RE" + bytes([0xCE]): FAKE_REN}.get(word)
         if name == 0x84:                      # lecture de secteur d'AMSDOS
             self.m.hl = FAKE_READ_SECTOR
+            self.m.c = 7
+            self._carry(True)
+        elif fake:
+            self.m.hl = fake
             self.m.c = 7
             self._carry(True)
         else:
@@ -456,6 +490,10 @@ class CPC:
         """RST #18 suivi de l'adresse d'une adresse lointaine (3 octets)."""
         ptr = self.mem[pc + 1] | self.mem[pc + 2] << 8
         routine = self.mem[ptr] | self.mem[ptr + 1] << 8
+        if routine in (FAKE_ERA, FAKE_REN):
+            self._rsx_file(routine)
+            self.m.pc = (pc + 3) & 0xFFFF
+            return
         if routine != FAKE_READ_SECTOR:
             raise RuntimeError("appel lointain inconnu : #%04X" % routine)
         m = self.m

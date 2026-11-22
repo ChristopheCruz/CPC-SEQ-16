@@ -15,11 +15,12 @@ import test_player  # noqa: E402
 
 cpcsim = test_player.cpcsim
 ROOT = test_player.ROOT
-KEY_INST, KEY_DISK = 5, 12
+KEY_INST, KEY_DISK, KEY_SAMPLE = 5, 12, 20
+KEY_SAVE, KEY_LOAD = 11, 3                # f8, f9
 KEY_CTRL, KEY_RIGHT, KEY_LEFT = 23, 1, 8
 KEY_COPY, KEY_P, KEY_O, KEY_I = 9, 27, 34, 35
 INS_ROW = 25                              # f2 : ligne des messages
-DSK_ROW = 17                              # f3 : ligne des messages
+DSK_ROW = 25                              # f3 : ligne des messages
 
 
 def test_bank():
@@ -92,11 +93,12 @@ class BanksTest(unittest.TestCase):
         self.assertIn("RIEN A COLLER", self.cpc.row(INS_ROW))
         self.assertEqual(self.inst(4), before)
 
-    # --- f3 : sauver / charger une banque entière ----------------------------
+    # --- f8 / f9 (panneau INST) : sauver / charger une banque entière ----------------------------
     def test_save_ins(self):
         cpc = self.cpc
-        self.key(KEY_DISK)
-        self.key(KEY_I)
+        self.key(KEY_INST)
+        cpc.chars = [13]                         # f8 : le nom proposé
+        self.key(KEY_SAVE)
         self.assertIn("INSTRUMENTS SAUVES", cpc.row(DSK_ROW))
         data = cpc.saved["MORCEAU1.INS"]
         self.assertEqual(len(data), insbank.INS_FILE_LEN)
@@ -110,10 +112,10 @@ class BanksTest(unittest.TestCase):
         cpc = self.cpc
         bank = test_bank()
         self.make_disk({"TESTS.INS": bank})
-        self.key(KEY_DISK)
+        self.key(KEY_INST)
         head = cpc.peek(self.song(), 16)
         cpc.chars = [13]                         # un seul .INS : RETURN
-        self.key(KEY_O)
+        self.key(KEY_LOAD)
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 1)
         self.assertIn("INSTRUMENTS CHARGES", cpc.row(DSK_ROW))
         self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])
@@ -123,33 +125,34 @@ class BanksTest(unittest.TestCase):
         """La disquette du build : 13 banques .INS, 9 banques .SMP."""
         cpc = self.cpc
         self.make_disk({}, keep=None)            # la disquette entière
-        self.key(KEY_DISK)
+        self.key(KEY_INST)
         cpc.chars = [0xF1, 13]                   # la 2e banque : BATTERIE
-        self.key(KEY_O)
+        self.key(KEY_LOAD)
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 13)
         self.assertEqual(cpc.peek(test_player.SMP_FILES, 16), b"USINE   BATTERIE")
         self.assertIn("INSTRUMENTS CHARGES", cpc.row(DSK_ROW))
         bank = open(os.path.join(ROOT, "instruments", "BATTERIE.INS"), "rb").read()
         self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])
         self.assertEqual(self.name(0), b"KICK1 ")
-        cpc.chars = [0xFC]                       # f3 + D : 9 banques .SMP
-        self.key(test_player.KEY_D)
+        self.key(KEY_SAMPLE)                     # f4 puis f9 : 9 banques .SMP
+        cpc.chars = [0xFC]
+        self.key(KEY_LOAD)
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 9)
 
     def test_load_not_a_bank(self):
         cpc = self.cpc
         self.make_disk({"FAUX.INS": bytes(500)})
-        self.key(KEY_DISK)
+        self.key(KEY_INST)
         before = cpc.peek(self.song(), 848)
         cpc.chars = [13]
-        self.key(KEY_O)
+        self.key(KEY_LOAD)
         self.assertIn("PAS UNE BANQUE .INS", cpc.row(DSK_ROW))
         self.assertEqual(cpc.peek(self.song(), 848), before)
 
     def test_no_ins_on_disk(self):
         self.make_disk({})                       # la disquette du build seule
-        self.key(KEY_DISK)
-        self.key(KEY_O)
+        self.key(KEY_INST)
+        self.key(KEY_LOAD)
         self.assertIn("AUCUN FICHIER DE CE TYPE", self.cpc.row(DSK_ROW))
 
     # --- f2 : prendre un seul son --------------------------------------------

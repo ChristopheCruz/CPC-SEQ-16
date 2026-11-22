@@ -23,7 +23,7 @@ SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 SONG_SIZE = SONG_FIXED + 32 * PAT_SIZE + 16 + 2 + 64 * 3 + 32 * 8   # version 3
 BANK_PATS = 0x4000 + SONG_FIXED
 EMPTY = bytes([0, 125, 0, 0] + [0xFF, 0, 0xFF, 0] * 64)
-MSG_ROW = 17                              # f3 : ligne des messages
+MSG_ROW = 25                              # ligne des messages
 
 
 @unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")
@@ -109,7 +109,8 @@ class BankTest(unittest.TestCase):
         mine = make_pattern(mode=1, bpm=99, seed=3)
         cpc.poke(self.pat_work(), mine)                       # motif affiché modifié
         self.key(KEY_DISK)
-        self.key(KEY_S)
+        cpc.chars = [13]                                      # f8 : le nom proposé
+        self.key(11)
         self.assertIn("MORCEAU SAUVE", cpc.row(MSG_ROW))
         data = cpc.saved["MORCEAU1.SNG"]
         n = cpc.word(cpc.addr("smp_bank_len")) if cpc.peek(cpc.addr("smp_count"))[0] else 0
@@ -124,7 +125,8 @@ class BankTest(unittest.TestCase):
     def test_load_song_roundtrip(self):
         cpc = self.cpc
         self.key(KEY_DISK)
-        self.key(KEY_S)
+        cpc.chars = [13]                                      # f8 : le nom proposé
+        self.key(11)
         song = bytearray(cpc.saved["MORCEAU1.SNG"])
         pats = [make_pattern(mode=n % 2, bpm=100 + n, seed=n) for n in range(32)]
         for n, p in enumerate(pats):
@@ -132,9 +134,11 @@ class BankTest(unittest.TestCase):
             song[o:o + PAT_SIZE] = p
         names = 16 + 32 * 16                                  # noms des instruments
         song[names:names + 6] = b"TESTIN"                     # nom de l'instrument 1
-        cpc.files["MORCEAU1.SNG"] = bytes(song)
+        test_player.PlayerTest.make_disk(self, {"MORCEAU1.SNG": bytes(song)})
         cpc.poke(self.pat_work(), EMPTY)                      # à écraser
-        self.key(KEY_L)
+        self.key(14)                                          # f2, puis f9
+        cpc.chars = [13]
+        self.key(3)
         self.assertIn("MORCEAU CHARGE", cpc.row(MSG_ROW))
         self.assertEqual(self.cur_pat(), 0)
         self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), pats[0])

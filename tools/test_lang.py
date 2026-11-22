@@ -94,7 +94,7 @@ class BuiltLanguagesTest(unittest.TestCase):
         self.check("en", {
             "f1": ["PATT.:", "STP/LANE", "BRUSH", "LANE A", "1PATTERN 2SONG 3INST 4SAMPLE 5DISK", "f6 MODE"],
             "f2": ["ENVELOPE", "ATTACK", "BANK SOUND"],
-            "f3": ["MIXER", "SAVE INSTR.", "CATALOG", "HOLD ESC 1 SECOND: QUIT"],
+            "f3": ["DISK :", "CHOOSE", "RENAME", "1 SECOND: QUIT", "K FREE"],
             "f4": ["BANK   :", "SETTINGS", "FREQUENCY", "TAKE 1 SAMPLE"],
         })
 
@@ -102,14 +102,14 @@ class BuiltLanguagesTest(unittest.TestCase):
         self.check("es", {
             "f1": ["PATR.:", "PASO/VOZ", "PINCEL", "NOTA:", "1PATRON 2TEMA 3INST 4SAMPLE 5DISCO", "f6 MODO"],
             "f2": ["ENVOLV.", "ATAQUE", "SON. BANCO"],
-            "f3": ["MEZCLA", "GRABAR INSTR.", "CATALOGO", "ESC PULSADA 1 SEGUNDO: SALIR"],
+            "f3": ["DISCO :", "ELEGIR", "RENOMBRA", "1 SEGUNDO: SALIR", "K LIBRES"],
             "f4": ["BANCO  :", "AJUSTES", "FRECUENC.", "TOMAR 1 SAMPLE"],
         })
 
     def test_french_unchanged(self):
         self.check("fr", {
             "f1": ["MOTIF:", "PINCEAU", "PAS 0", "VOIX A", "1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE"],
-            "f3": ["MIXAGE", "SAUVER INSTR."],
+            "f3": ["DISQUE :", "RENOMMER", "K LIBRES"],
             "f4": ["REGLAGES"],
         })
 

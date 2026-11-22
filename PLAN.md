@@ -1,7 +1,7 @@
 # Plan de développement : SEQ-16 v1.0
 
 État : **validé le 22 novembre 2026** (section 9). Lots 1 (PR #16),
-2 (PR #17), 3 (PR #18), 4 (PR #20) et 5a (PR #21) faits ; morceaux de
+2 (PR #17), 3 (PR #18), 4 (PR #20) et 5 (PR #21) faits ; morceaux de
 test (PR #19).
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
@@ -268,7 +268,15 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
    et vérifie les longueurs.  **À vérifier sur une vraie machine** : que
    AMSDOS relit bien un octet `&1A` au milieu de la banque (la doc ne le dit
    pas noir sur blanc ; sinon, le chargement s'arrête avec un message, sans
-   rien abîmer).  5b : le panneau DISQUE.
+   rien abîmer).
+   **5b fait (PR #21)** : `src/diskpanel.asm`, le panneau DISQUE : place
+   libre et nombre de fichiers, catalogue par type (SNG, PAT, INS, SMP ;
+   `TAB`), `ENTER` charge dans le bon panneau et l'affiche, `C` relit la
+   disquette, `DEL` deux fois efface (`|ERA` d'AMSDOS), `COPY` renomme
+   (`|REN`), `N` deux fois : nouveau morceau, f8 : le morceau.  L'ancien
+   écran Disque (mixage, nom, touches S L M P I O E D) a disparu : f8 / f9
+   dans chaque panneau les remplacent.  Pas de filtre « TOUT » ni de
+   lecteur B (Gotek : un seul lecteur).
 6. **Motifs d'usine** en vraies doubles croches (charleston sur 16 pas,
    contretemps, syncopes), disquettes de motifs refaites, 2 ou 3 morceaux de
    démonstration.
