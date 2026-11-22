@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 rem Ajoute les banques de samples (.SMP) et d'instruments (.INS)
 rem (il faut Python 3)
-python tools\amsdsk.py build\seq16-fr.dsk samples\DRUMS.SMP samples\VOIX.SMP samples\BATTERI2.SMP samples\PERCUS.SMP samples\EFFETS.SMP samples\BASSES.SMP samples\NOTES.SMP samples\CHIFFRES.SMP samples\MOTS.SMP
+python tools\amsdsk.py build\seq16-fr.dsk samples\DRUMS.SMP samples\VOIX.SMP samples\BATTERI2.SMP samples\PERCUS.SMP samples\EFFETS.SMP samples\BASSES.SMP samples\NOTES.SMP samples\MOTS.SMP
 if errorlevel 1 goto pas_python
 python tools\amsdsk.py build\seq16-fr.dsk instruments\USINE.INS instruments\BATTERIE.INS instruments\BASSES.INS instruments\LEADS.INS instruments\NAPPES.INS instruments\ARPEGES.INS instruments\EFFETS.INS instruments\BUZZER.INS instruments\CLAVIERS.INS instruments\CHIPTUNE.INS instruments\PERCUS.INS instruments\GLISSES.INS instruments\BRUITS.INS
 if errorlevel 1 goto pas_python

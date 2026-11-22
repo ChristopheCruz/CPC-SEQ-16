@@ -303,8 +303,8 @@ def make_source(code):
 
 BANKS = (
     ["samples/" + n for n in ("DRUMS.SMP", "VOIX.SMP", "BATTERI2.SMP", "PERCUS.SMP",
-                              "EFFETS.SMP", "BASSES.SMP", "NOTES.SMP", "CHIFFRES.SMP",
-                              "MOTS.SMP")]
+                              "EFFETS.SMP", "BASSES.SMP", "NOTES.SMP", "MOTS.SMP")]
+    # (CHIFFRES.SMP : sur seq16-samples.dsk seulement, pour garder de la place)
     + ["instruments/" + n for n in ("USINE.INS", "BATTERIE.INS", "BASSES.INS", "LEADS.INS",
                                     "NAPPES.INS", "ARPEGES.INS", "EFFETS.INS", "BUZZER.INS",
                                     "CLAVIERS.INS", "CHIPTUNE.INS", "PERCUS.INS",

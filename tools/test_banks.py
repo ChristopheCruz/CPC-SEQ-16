@@ -122,7 +122,8 @@ class BanksTest(unittest.TestCase):
         self.assertEqual(cpc.peek(self.song(), 16), head)   # mixage intact
 
     def test_real_disk_banks(self):
-        """La disquette du build : 13 banques .INS, 9 banques .SMP."""
+        """La disquette du build : 13 banques .INS, 8 banques .SMP (CHIFFRES :
+        seulement sur seq16-samples.dsk)."""
         cpc = self.cpc
         self.make_disk({}, keep=None)            # la disquette entière
         self.key(KEY_INST)
@@ -134,10 +135,10 @@ class BanksTest(unittest.TestCase):
         bank = open(os.path.join(ROOT, "instruments", "BATTERIE.INS"), "rb").read()
         self.assertEqual(cpc.peek(self.song() + 16, 832), bank[16:])
         self.assertEqual(self.name(0), b"KICK1 ")
-        self.key(KEY_SAMPLE)                     # f4 puis f9 : 9 banques .SMP
+        self.key(KEY_SAMPLE)                     # f4 puis f9 : 8 banques .SMP
         cpc.chars = [0xFC]
         self.key(KEY_LOAD)
-        self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 9)
+        self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 8)
 
     def test_load_not_a_bank(self):
         cpc = self.cpc
