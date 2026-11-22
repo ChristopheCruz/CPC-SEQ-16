@@ -364,6 +364,8 @@ txt_m_nobank:   db "MORCEAU CHARGE (BANQUE .SMP ABSENTE)",0
 ; Met un sample en attente.  HL = instrument, B = note (ou période du bruit
 ; pour la voix N), sno_chan = voix (0 à 3).
 dg_queue:
+        ld a,(sno_fx)           ; l'effet du pas (COUPE : voir dg_cut)
+        ld (dg_fx),a
         ld a,(sno_chan)
         ld c,a                  ; C = voix
         ld d,a                  ; voix muette (bit de snd_mute) : rien

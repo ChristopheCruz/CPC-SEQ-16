@@ -196,5 +196,59 @@ class FxEditTest(unittest.TestCase):
         self.assertIn("FX:--", cpc.row(7))
 
 
+@unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")
+class DigidrumSpeedTest(unittest.TestCase):
+    """Les samples (digidrums) bloquent la musique : la préparation doit être
+    courte, et COUPE (5x) raccourcit la lecture."""
+
+    def setUp(self):
+        cpc = cpcsim.CPC.from_build()
+        cpc.boot()
+        cpc.frames(1, keys={cpcsim.KEY_SAMPLE})           # f4 : charge DRUMS.SMP
+        cpc.frames(1)
+        self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 4)
+        self.cpc = cpc
+
+    def test_tables_same_as_before_and_fast(self):
+        """Poids fort : spr_t[octet >> 4] ; poids faible : spr_t[octet & 15]
+        (comme le calcul octet par octet d'avant), en moins de 6 ms."""
+        cpc = self.cpc
+        for att in (0, 5):
+            cpc.poke(cpc.addr("spr_att"), [att])
+            for smp in range(4):
+                t0 = cpc.t
+                cpc.call("smp_prepare", a=smp, b=0, c=0)
+                self.assertLess(cpc.t - t0, 6000, (smp, att))
+                t = cpc.peek(cpc.addr("spr_t"), 16)
+                hi, lo = cpc.peek(0xA000, 256), cpc.peek(0xA100, 256)
+                self.assertEqual(hi, bytes(t[x >> 4] for x in range(256)), (smp, att))
+                self.assertEqual(lo, bytes(t[x & 15] for x in range(256)), (smp, att))
+        cpc.poke(cpc.addr("spr_att"), [0])
+
+    def kick(self, fx):
+        """Le KICK (DGKICK) avec l'effet fx : durée de dg_play (µs) et octets
+        joués."""
+        cpc = self.cpc
+        cpc.poke(cpc.addr("sno_fx"), [fx])
+        cpc.call("snd_note_on", a=0, b=48, c=28)          # DGKICK : sample 0
+        self.assertEqual(cpc.peek(cpc.addr("dg_pending"))[0], 1)
+        t0 = cpc.t
+        cpc.call("dg_play")
+        return cpc.t - t0, cpc.word(cpc.addr("smp_v_len"))
+
+    def test_cut_shortens_digidrum(self):
+        full, n = self.kick(0)
+        cut, m = self.kick(0x52)                          # COUPE 2 images
+        self.assertGreater(full, 140000)                  # le KICK entier : ~148 ms
+        self.assertLess(cut, 50000)                       # coupé : ~40 ms + préparation
+        p = self.cpc.word(self.cpc.addr("smp_v_period"))
+        self.assertEqual(m, 2 * (10000 // p))
+        self.assertLess(m, n)
+        long, k = self.kick(0x5F)                         # 15 images : plus que le KICK
+        self.assertEqual(k, n)                            # rien à couper
+        none, j = self.kick(0x50)                         # 50 : pas de coupe
+        self.assertEqual(j, n)
+
+
 if __name__ == "__main__":
     unittest.main()

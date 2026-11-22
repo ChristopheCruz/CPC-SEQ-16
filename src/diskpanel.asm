@@ -139,7 +139,7 @@ dk_info:
         ld a,2
         call TXT_SET_PEN
         ld hl,txt_dk_goes       ; "  ENTER : DANS "
-        call print_str
+        call print_trim
         ld a,3
         call TXT_SET_PEN
         ld a,(dk_type)          ; le nom du panneau, pris dans la barre
@@ -151,6 +151,38 @@ dk_info:
         jp dk_tab_name
 dki_msg:
         jp dsk_message
+
+; Écrit le texte HL sans ses espaces de fin, puis un seul espace : une
+; traduction plus courte est complétée d'espaces jusqu'à la longueur du
+; français, ils feraient un trou avant ce qui suit
+print_trim:
+        ld b,0                  ; B = espaces en attente
+ptr_loop:
+        ld a,(hl)
+        inc hl
+        or a
+        jr z,ptr_end
+        cp ' '
+        jr nz,ptr_char
+        inc b
+        jr ptr_loop
+ptr_char:
+        ld c,a
+ptr_space:
+        ld a,b                  ; les espaces avant ce caractère
+        or a
+        jr z,ptr_put
+        ld a,' '
+        call txt_out
+        dec b
+        jr ptr_space
+ptr_put:
+        ld a,c
+        call txt_out
+        jr ptr_loop
+ptr_end:
+        ld a,' '
+        jp txt_out
 
 ; Écrit le nom de l'onglet de l'écran A ("2MOTIF"...), pris dans txt_tabs
 dk_tab_name:

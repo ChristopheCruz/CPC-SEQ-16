@@ -146,6 +146,7 @@ dgp_play:
         ld a,(dg_smp)
         call smp_prepare        ; tables et boucle prêtes ?
         jr nc,dgp_catch         ; sample absent : rien à jouer
+        call dg_cut             ; COUPE (5x) : le sample raccourci
         ld hl,(smp_v_len)       ; durée en images =
         ld de,(smp_v_period)    ;   octets x 2 x P NOP / 20 000 NOP,
         call dg_mul             ;   arrondie au-dessus

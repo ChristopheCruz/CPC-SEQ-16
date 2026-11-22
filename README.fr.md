@@ -297,6 +297,7 @@ Chaque case d'un motif peut porter un **effet**, noté en hexadécimal comme dan
 - **Pour poser un effet** : sur le panneau MOTIF, mets le curseur sur la case, **TAB**, va sur le FX avec **→** (le premier chiffre, puis le second), et change-le avec **↑/↓**. Le nom de l'effet s'affiche sur la ligne des messages.
 - **En son composé**, l'effet du pas vaut pour toutes les voix du son.
 - REPETE, COUPE et RETARD marchent aussi sur la voix de bruit.
+- **COUPE sur un digidrum** raccourcit le sample : `52` sur un KICK l'arrête après 2 images (40 ms au lieu de 148). Un sample bloque toute la musique pendant qu'il joue ; le couper fait perdre moins de pas.
 - L'effet ne vaut que pour la note du pas : le piano et l'écoute d'une case restent sans effet.
 
 Le morceau ARCADE de la [disquette de démonstration](#-la-disquette-de-démonstration) utilise les 7 effets.
