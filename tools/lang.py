@@ -137,6 +137,8 @@ TEXTS = {
     # panneau MOTIF (lot 3) : grille de 16 pas, panneau de la note, pinceau
     "SON": ("LAY", "SON"),
     " PAS ": (" STP ", " PAS "),
+    "PAS ": ("STEP", "PASO"),
+    "  MESURE ": ("  BAR", "  COMPAS "),
     "VOIX ": ("LANE ", "VOZ  "),
     " EDITION ": (" EDITING ", " EDICION "),
     "NOTE:": ("NOTE:", "NOTA:"),
@@ -210,7 +212,7 @@ KEEP = {
     "  SAMPLE ", "  SAMPLE       ", "GLISSANDO      ", "PORTAMENTO     ",
     "DIGIDRUM       ", "-       ",
     "CDEFGAB", "OCT", "INS:", "VOL:", "FX:", "ENTER", "ON/OFF", "CLR", "SHIFT", "CTRL",
-    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC",
+    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC", " MS",
 }
 
 _QUOTED = re.compile(r'"([^"]*)"')

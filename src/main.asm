@@ -385,6 +385,7 @@ cmd_play:
         jp show_state
 cp_stop:
         call seq_stop
+        call show_timing        ; le chronomètre des pas, ligne 25
         jp show_state
 
 ; --- f5 : voix séparées <-> son composé ---
