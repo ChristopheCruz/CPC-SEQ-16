@@ -183,6 +183,8 @@ scl_full:
 ;    abandonné, message affiché)
 sng_read:
         ld (sio_total),bc
+        ld hl,0                 ; octets lus (pour le message d'erreur)
+        ld (sio_count),hl
 sr_start:
         ld hl,BANK_SONG
         ld (sio_dst),hl
@@ -274,9 +276,60 @@ sr_bad:
         or a
         ret
 sr_fail:
+        push af                 ; A = code d'erreur d'AMSDOS
         call CAS_IN_ABANDON
-        call disk_error
+        pop af
+        call sng_error
         or a
+        ret
+
+; « ERREUR DISQUE (DISQUETTE ? NOM ?) » suivi du code d'erreur d'AMSDOS (A,
+; 2 chiffres hexadécimaux) et du nombre d'octets lus (sio_count, 4 chiffres ;
+; FFFF : à l'ouverture), pour savoir où et pourquoi le chargement a échoué.
+sng_error:
+        ld (sio_code),a
+        ld hl,txt_m_error
+        ld de,err_buf
+serr_copy:
+        ld a,(hl)
+        ld (de),a
+        or a
+        jr z,serr_end
+        inc hl
+        inc de
+        jr serr_copy
+serr_end:
+        ex de,hl                ; HL -> le 0 de fin
+        ld (hl),' '
+        inc hl
+        ld a,(sio_code)
+        call hex_put
+        ld a,(sio_count+1)
+        call hex_put
+        ld a,(sio_count)
+        call hex_put
+        ld (hl),0
+        ld hl,err_buf
+        jp dsk_message
+
+; A en 2 chiffres hexadécimaux vers HL (HL avance de 2)
+hex_put:
+        push af
+        rrca
+        rrca
+        rrca
+        rrca
+        call hp_digit
+        pop af
+hp_digit:
+        and 15
+        add a,'0'
+        cp '9'+1
+        jr c,hp_put
+        add a,7
+hp_put:
+        ld (hl),a
+        inc hl
         ret
 
 ; Lit BC octets vers HL.  -> Carry = 0 : fin de fichier ou erreur
@@ -301,9 +354,19 @@ cas_get:
         pop hl
         pop de
         pop bc
+        ret nc
+        push hl                 ; un octet de plus de lu
+        ld hl,(sio_count)
+        inc hl
+        ld (sio_count),hl
+        pop hl
+        scf
         ret
 
 sio_total: dw 0
 sio_smp:   dw 0
 sio_dst:   dw 0
 sio_n:     dw 0
+sio_count: dw 0                 ; octets lus (message d'erreur)
+sio_code:  db 0                 ; code d'erreur d'AMSDOS
+err_buf:   ds 41                ; le message d'erreur complet

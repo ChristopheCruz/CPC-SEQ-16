@@ -223,6 +223,9 @@ class CPC:
         self.pen, self.paper = 1, 0
         self.fw_log = []
         self.cas_in = None
+        self.cas_in_mode = None
+        self.cas_out_open = False
+        self.file_errors = []                 # ce qu'AMSDOS aurait refusé
         self.stopped = False
         self.di_spans = []                    # (début, fin) interruptions coupées
         self._di_since = None
@@ -596,7 +599,19 @@ class CPC:
         hl = self.m.hl
         return bytes(self.mem[hl:hl + n]).decode("latin-1").upper()
 
+    def _file_error(self, what):
+        """Ce qu'AMSDOS refuserait : noté dans file_errors (les tests le
+        vérifient), et la routine échoue comme sur le CPC."""
+        self.file_errors.append(what)
+        if os.environ.get("CPCSIM_STRICT"):
+            raise RuntimeError(what)
+        self._corrupt("af", "bc", "de", "hl")
+        self._carry(False)
+
     def fw_CAS_IN_OPEN(self):
+        if self.cas_in is not None:           # AMSDOS : déjà ouvert
+            self._file_error("CAS_IN_OPEN : un fichier est déjà ouvert en lecture")
+            return
         name = self._name()
         data = self.files.get(name)
         if data is None:
@@ -604,6 +619,7 @@ class CPC:
             self._carry(False)
             return
         self.cas_in = data
+        self.cas_in_mode = None               # ni CHAR ni DIRECT encore
         self.cas_pos = 0                      # CAS_IN_CHAR : prochain octet
         self.m.bc = len(data) & 0xFFFF
         self.m.de = 0
@@ -612,6 +628,10 @@ class CPC:
         self._carry(True)
 
     def fw_CAS_IN_DIRECT(self):
+        if self.cas_in is None or self.cas_in_mode == "char":
+            self._file_error("CAS_IN_DIRECT : fichier fermé ou déjà lu par CAS_IN_CHAR")
+            return
+        self.cas_in_mode = "direct"
         hl = self.m.hl
         data = self.cas_in
         self.m.set_memory_block(hl, data)
@@ -623,6 +643,11 @@ class CPC:
         """Octet suivant du fichier ouvert ; Carry = 0 à la fin.
         Comme sur le CPC : BC, DE et HL sont gardés, les drapeaux changent."""
         data = self.cas_in
+        if data is not None and self.cas_in_mode == "direct":
+            self._file_error("CAS_IN_CHAR après CAS_IN_DIRECT")
+            data = None
+        elif data is not None:
+            self.cas_in_mode = "char"
         if data is None or self.cas_pos >= len(data):
             self.m.a = JUNK
             self.m.f = 0x40                   # Z, Carry = 0 : fin du fichier
@@ -643,6 +668,10 @@ class CPC:
         self._carry(True)
 
     def fw_CAS_OUT_OPEN(self):
+        if self.cas_out_open:
+            self._file_error("CAS_OUT_OPEN : un fichier est déjà ouvert en écriture")
+            return
+        self.cas_out_open = True
         self.cas_out = self._name()
         self.cas_out_chars = None             # octets écrits par CAS_OUT_CHAR
         self._corrupt("af", "bc", "de", "hl")
@@ -678,14 +707,20 @@ class CPC:
             else:
                 self.saved[self.cas_out] = data
             self.cas_out_chars = None
+        self.cas_out_open = False
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
     def fw_CAS_OUT_ABANDON(self):
+        self.cas_out_open = False
+        self.cas_out_chars = None
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
     def fw_CAS_CATALOG(self):
+        if self.cas_in is not None:           # AMSDOS : lecture en cours
+            self._file_error("CAS_CATALOG : un fichier est ouvert en lecture")
+            return
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 

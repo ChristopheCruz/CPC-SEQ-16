@@ -1792,7 +1792,9 @@ disk_load:
         ld hl,fname_full
         ld de,io_buffer
         call CAS_IN_OPEN
-        jp nc,disk_error
+        ld hl,#FFFF             ; (code d'erreur : rien de lu, à l'ouverture)
+        ld (sio_count),hl
+        jp nc,sng_error
         xor a
         ld (dl_v4f),a
         ld hl,SONG_SIZE3        ; la taille doit être exactement la bonne :
