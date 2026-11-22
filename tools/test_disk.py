@@ -199,6 +199,29 @@ class DiskPanelTest(unittest.TestCase):
         self.assertIn("NOUVEAU MORCEAU", cpc.row(MSG))
         self.assertNotEqual(cpc.peek(cpc.word(cpc.addr("seq_pattern")), 260), make_pattern(seed=9))
 
+    def test_new_song_restores_factory_from_bank5(self):
+        """N N relit le morceau d'usine dans le bloc 5 (rangé au démarrage) :
+        le morceau et les 32 motifs redeviennent exactement ceux du
+        démarrage, même après des changements partout."""
+        cpc = self.cpc
+        song = cpc.addr("smp_blk_src")                    # = song_data
+        size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 16 + 2 + 64 * 3 + 32 * 8
+        pats = 0x4000 + 16 + 32 * 16 + 32 * 6 + 8 * 16    # BANK_PATS
+        start_song = cpc.peek(song, size)
+        start_pats = cpc.bank_peek(4, pats, 32 * 260)
+        self.assertEqual(cpc.bank_peek(5, pats, 32 * 260), start_pats)
+        cpc.poke(song + 16, bytes(range(64)))             # instruments
+        cpc.poke(song + size - 300, b"\x55" * 200)        # enchaînement, noms
+        cpc.bank_poke(4, pats + 5 * 260, make_pattern(seed=3))
+        cpc.poke(cpc.word(cpc.addr("seq_pattern")), make_pattern(seed=9))
+        self.key(KEY_DISK)
+        self.key(KEY_N)
+        self.key(KEY_N)
+        self.assertIn("NOUVEAU MORCEAU", cpc.row(MSG))
+        self.assertEqual(cpc.peek(song, size), start_song)
+        self.assertEqual(cpc.bank_peek(4, pats, 32 * 260), start_pats)
+        self.assertEqual(cpc.ram_block, 1)                # mémoire normale remise
+
 
 if __name__ == "__main__":
     unittest.main()
