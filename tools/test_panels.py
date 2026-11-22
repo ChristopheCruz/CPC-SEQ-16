@@ -17,7 +17,7 @@ from test_patterns import make_pattern  # noqa: E402
 
 cpcsim = test_player.cpcsim
 wav2smp = test_player.wav2smp
-KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 13, 14, 5, 20, 12
+KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 14, 13, 5, 20, 12
 KEY_MODE, KEY_SAVE, KEY_LOAD, KEY_F7 = 4, 11, 3, 10
 KEY_L, KEY_SPACE, KEY_CTRL, KEY_RIGHT = 36, 47, 23, 1
 ESC = 0xFC                                # code de ESC rendu par KM_WAIT_CHAR
@@ -58,21 +58,21 @@ class PanelsTest(unittest.TestCase):
     def test_tabs(self):
         """f1 à f5 : le bon panneau, et son onglet en bleu sur orange."""
         cpc = self.cpc
-        tabs = {KEY_MOTIF: (0, "1MOTIF"), KEY_SONG: (4, "2SONG"), KEY_INST: (1, "3INST"),
+        tabs = {KEY_SONG: (4, "1SONG"), KEY_MOTIF: (0, "2MOTIF"), KEY_INST: (1, "3INST"),
                 KEY_SAMPLE: (3, "4SAMPLE"), KEY_DISK: (2, "5DISQUE")}
         for k, (scr, label) in tabs.items():
             self.key(k)
             self.assertEqual(self.screen(), scr, label)
             row = cpc.row(1)
-            self.assertEqual(row, "SEQ16 1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE")
+            self.assertEqual(row, "SEQ16 1SONG 2MOTIF 3INST 4SAMPLE 5DISQUE")
             col = row.index(label)
             self.assertEqual(cpc.attr[0][col], (0, 3), label)          # chiffre : bleu/orange
             self.assertEqual(cpc.attr[0][col + 1], (0, 3), label)      # nom aussi
             others = [c for c in range(6, 40) if not col - 1 <= c < col + len(label)]
             self.assertTrue(all(cpc.attr[0][c][1] == 0 for c in others), label)
         self.key(KEY_SONG)
-        self.assertEqual(cpc.attr[0][row.index("1MOTIF")], (3, 0))    # chiffre orange
-        self.assertEqual(cpc.attr[0][row.index("1MOTIF") + 1], (2, 0))  # nom cyan
+        self.assertEqual(cpc.attr[0][row.index("2MOTIF")], (3, 0))    # chiffre orange
+        self.assertEqual(cpc.attr[0][row.index("2MOTIF") + 1], (2, 0))  # nom cyan
 
     def test_f6_mode_and_f5_disk(self):
         cpc = self.cpc

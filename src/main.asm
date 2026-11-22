@@ -129,7 +129,7 @@ ml_esc:
         rst 0
 
 ; ----------------------------------------------------------------------------
-; Cinq panneaux : f1 MOTIF, f2 SONG, f3 INST, f4 SAMPLE, f5 DISQUE.
+; Cinq panneaux : f1 SONG, f2 MOTIF, f3 INST, f4 SAMPLE, f5 DISQUE.
 ; Numéro interne de l'écran (screen) : 0 = motif, 1 = instrument,
 ; 2 = disque, 3 = samples, 4 = song (les numéros d'avant la v1.0 restent).
 ; ----------------------------------------------------------------------------
@@ -273,9 +273,9 @@ dt_tab:      db 0               ; onglet suivant (0 à 4)
 dt_on:       db 0               ; 3 = onglet du panneau en cours, 0 sinon
 dt_state:    db 0               ; 1 = le prochain caractère est le chiffre
 txt_title:   db "SEQ16",0       ; 5 + 35 = 40 colonnes
-txt_tabs:    db "|1MOTIF|2SONG|3INST|4SAMPLE|5DISQUE",0
+txt_tabs:    db "|1SONG|2MOTIF|3INST|4SAMPLE|5DISQUE",0
 tab_keys:    db KEY_F1,KEY_F2,KEY_F3,KEY_F4,KEY_F5
-tab_screens: db 0,4,1,3,2       ; écran de chaque onglet
+tab_screens: db 4,0,1,3,2       ; écran de chaque onglet (SONG, MOTIF...)
 
 ; ----------------------------------------------------------------------------
 ; Touches de commande

@@ -22,7 +22,7 @@ import test_player  # noqa: E402
 cpcsim = test_player.cpcsim
 ROOT = gp.ROOT
 DISKS = {"mono": "seq16-motifs-mono.dsk", "poly": "seq16-motifs-poly.dsk"}
-KEY_MOTIF, KEY_DISK, KEY_SAMPLE, KEY_P, KEY_SPACE = 13, 12, 20, 27, 47
+KEY_MOTIF, KEY_DISK, KEY_SAMPLE, KEY_P, KEY_SPACE = 14, 12, 20, 27, 47
 DSK_ROW = 25                              # f3 : ligne des messages
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 

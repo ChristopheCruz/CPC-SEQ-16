@@ -373,7 +373,7 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(len(data), song_size + 2 + n)
         self.assertEqual(data[song_size + 2:], cpc.peek(BANK, n))
         self.make_disk({"MORCEAU1.SNG": data})
-        cpc.frames(1, keys={14})                 # f2, puis f9 : le seul .SNG
+        cpc.frames(1, keys={13})                 # f1, puis f9 : le seul .SNG
         cpc.frames(1)
         cpc.chars = [13]
         cpc.frames(1, keys={3})

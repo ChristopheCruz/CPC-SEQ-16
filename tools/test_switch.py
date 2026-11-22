@@ -101,7 +101,7 @@ class SongTempoTest(unittest.TestCase):
         cpc.boot()
         v3 = cpc.addr("smp_blk_src") + 16 + 32 * 16 + 32 * 6 + 8 * 16 + 16
         cpc.poke(v3, bytes([2, 0, 0, 1, 0, 1, 1, 0]))      # motifs 1 et 2, en boucle
-        cpc.frames(1, keys={14})                           # SONG
+        cpc.frames(1, keys={13})                           # f1 : SONG
         cpc.frames(1)
         cpc.frames(1, keys={KEY_SPACE})
         cpc.frames(1)
@@ -123,7 +123,7 @@ class SongTempoTest(unittest.TestCase):
         return [(b[0] - a[0], b[1] == 0) for a, b in zip(times, times[1:])]
 
     def test_bar_change_on_time(self):
-        for screen_key in (14, 13):                        # SONG, puis MOTIF
+        for screen_key in (13, 14):                        # SONG (f1), puis MOTIF (f2)
             gaps = self.steps(screen_key)
             # 125 BPM : un pas = 6 images (120 ms), à une image près (plus un
             # caractère : le son ne reprend qu'entre deux), même au
@@ -142,7 +142,7 @@ class SongTempoTest(unittest.TestCase):
         disk = os.path.join(HERE, "..", "build", "seq16-songs.dsk")
         cpc = SlowTextCPC.from_build(disk)
         cpc.boot()
-        cpc.frames(1, keys={14})                           # SONG
+        cpc.frames(1, keys={13})                           # f1 : SONG
         cpc.frames(1)
         names = [n for n in cpc.files if n.endswith(".SNG")]
         cpc.chars = [0xF1] * names.index("PIXEL.SNG") + [13]

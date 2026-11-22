@@ -45,7 +45,7 @@ import amsdsk  # noqa: E402
 KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT = 0, 1, 2, 8
 # Panneaux de la v1.0 : f1 MOTIF, f2 SONG, f3 INST, f4 SAMPLE, f5 DISQUE ;
 # f6 mode, f8 sauver, f9 charger (matrice du clavier CPC)
-KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 13, 14, 5, 20, 12
+KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 14, 13, 5, 20, 12
 KEY_MODE, KEY_SAVE, KEY_LOAD = 4, 11, 3
 KEY_SPACE, KEY_SHIFT, KEY_CTRL, KEY_ESC = 47, 21, 23, 66
 KEY_D, KEY_RETURN = 61, 18

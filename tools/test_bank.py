@@ -16,7 +16,7 @@ import test_player  # noqa: E402
 from test_patterns import make_pattern  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_MOTIF, KEY_DISK, KEY_S, KEY_L = 13, 12, 60, 36
+KEY_MOTIF, KEY_DISK, KEY_S, KEY_L = 14, 12, 60, 36
 KEY_CTRL, KEY_RIGHT, KEY_LEFT = 23, 1, 8
 PAT_SIZE = 260
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
@@ -136,7 +136,7 @@ class BankTest(unittest.TestCase):
         song[names:names + 6] = b"TESTIN"                     # nom de l'instrument 1
         test_player.PlayerTest.make_disk(self, {"MORCEAU1.SNG": bytes(song)})
         cpc.poke(self.pat_work(), EMPTY)                      # à écraser
-        self.key(14)                                          # f2, puis f9
+        self.key(13)                                          # f1 (SONG), puis f9
         cpc.chars = [13]
         self.key(3)
         self.assertIn("MORCEAU CHARGE", cpc.row(MSG_ROW))

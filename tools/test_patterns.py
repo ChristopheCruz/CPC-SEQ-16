@@ -13,7 +13,7 @@ sys.path.insert(0, HERE)
 import test_player  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_MOTIF, KEY_DISK = 13, 12
+KEY_MOTIF, KEY_DISK = 14, 12
 KEY_CTRL, KEY_RIGHT = 23, 1
 KEY_P, KEY_M = 27, 38
 DSK_ROW = 25                              # ligne des messages

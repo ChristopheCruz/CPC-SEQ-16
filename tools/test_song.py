@@ -15,7 +15,7 @@ import test_player  # noqa: E402
 from test_patterns import make_pattern  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_MOTIF, KEY_SONG, KEY_SAVE, KEY_LOAD = 13, 14, 11, 3
+KEY_MOTIF, KEY_SONG, KEY_SAVE, KEY_LOAD = 14, 13, 11, 3
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 8
 SHIFT, CTRL, SPACE, RETURN, DEL, COPY, KEY_B = 21, 23, 47, 18, 79, 9, 54
 PAT = 260

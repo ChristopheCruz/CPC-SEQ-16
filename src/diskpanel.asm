@@ -152,7 +152,7 @@ dk_info:
 dki_msg:
         jp dsk_message
 
-; Écrit le nom de l'onglet de l'écran A ("1MOTIF"...), pris dans txt_tabs
+; Écrit le nom de l'onglet de l'écran A ("2MOTIF"...), pris dans txt_tabs
 dk_tab_name:
         ld hl,tab_screens       ; B = numéro de l'onglet de cet écran
         ld b,0
