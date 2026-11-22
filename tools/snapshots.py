@@ -3,7 +3,9 @@
 Le programme tourne dans le CPC simulé (tools/cpcsim.py) ; chaque scène
 appuie sur quelques touches, puis l'écran est dessiné avec la police de la
 ROM du CPC, dans les quatre couleurs du programme (mode 1 : 40 colonnes),
-avec la bordure, agrandi 4 fois (1344 × 864).
+avec la bordure, agrandi 4 fois (1344 × 864) pour les README, 2 fois
+(672 × 432) pour le site.  Les scènes partent de la disquette de
+démonstration (tools/gen_demo.py), morceau ARCADE chargé.
 
 La police vient de la ROM système du CPC 6128 (OS6128.ROM, la matrice des
 caractères est à #3800). Elle n'est pas dans le dépôt : le script la
@@ -13,7 +15,8 @@ cherche dans la variable CPC_ROM, puis dans le WinAPE de CPC-DISK voisin
     python tools/snapshots.py                 # fr, en et es
     python tools/snapshots.py fr --rom C:\\WinAPE\\ROM\\OS6128.ROM
 
-Sorties : snapshots/*.png (français), snapshots/en/*.png, snapshots/es/*.png.
+Sorties : snapshots/*.png (français), snapshots/en/*.png, snapshots/es/*.png,
+et docs/assets/img/<langue>/*.png (le site).
 Il faut les disquettes de build/ (build.bat) et le paquet z80.
 """
 import argparse
@@ -27,8 +30,8 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
 import cpcsim  # noqa: E402
-from cpcsim import (CPC, KEY_INST, KEY_DISK, KEY_SAMPLE, KEY_MODE, KEY_SPACE,  # noqa: E402
-                    KEY_SONG, KEY_LOAD)  # noqa: E402
+from cpcsim import (CPC, KEY_INST, KEY_DISK, KEY_SAMPLE, KEY_SPACE,  # noqa: E402
+                    KEY_SONG, KEY_MOTIF, KEY_LOAD)  # noqa: E402
 
 KEY_C, KEY_DOWN = 62, 2
 
@@ -62,8 +65,9 @@ def load_font(path):
     return rom[MATRIX:MATRIX + 256 * 8]
 
 
-def render(cpc, font):
+def render(cpc, font, scale=SCALE):
     """Image RGB (largeur, hauteur, octets) de l'écran du CPC simulé."""
+    SCALE = scale
     cols, rows = 40, 25
     w = (cols * 8 + 2 * BORDER_PX) * SCALE
     h = (rows * 8 + 2 * BORDER_PX) * SCALE
@@ -142,77 +146,120 @@ def press(cpc, key, after=1):
     cpc.frames(after)
 
 
-# Les scènes : (nom de fichier, préparation). Chacune part du démarrage.
-def s_split(cpc):
-    pass
+# Les scènes : (fichier du README, image du site, préparation).  Chacune part
+# du démarrage, sur la disquette de démonstration de la langue, avec le
+# morceau ARCADE chargé (f1, f9).
+KEY_CTRL, KEY_RIGHT, KEY_UP, KEY_TAB, KEY_F6 = 23, 1, 0, 68, 4
 
 
-def s_playing(cpc):
-    press(cpc, KEY_SPACE)
-    cpc.frames(40)
-
-
-def s_layered(cpc):
-    press(cpc, KEY_MODE)
-
-
-def s_instrument(cpc):
-    press(cpc, KEY_INST)
-
-
-def s_mixer(cpc):
-    press(cpc, KEY_DISK)
-
-
-def s_catalog(cpc):
-    press(cpc, KEY_DISK)
-    press(cpc, KEY_C, after=3)
-
-
-def s_sampler(cpc):
-    press(cpc, KEY_SAMPLE, after=3)
+def load_song(cpc, name="ARCADE.SNG"):
+    press(cpc, KEY_SONG)
+    names = [n for n in cpc.files if n.endswith(".SNG")]
+    cpc.chars = [0xF1] * names.index(name) + [13]        # flèche bas, RETURN
+    press(cpc, KEY_LOAD)
 
 
 def s_song(cpc):
-    """Panneau SONG : le morceau de test NUIT (build/seq16-songs.dsk), en lecture."""
-    cpc.use_disk(os.path.join(ROOT, "build", "seq16-songs.dsk"))
-    press(cpc, KEY_SONG)
-    names = sorted(n for n in cpc.files if n.endswith(".SNG"))
-    cpc.chars = [243] * names.index("NUIT.SNG") + [13]     # flèche droite, RETURN
-    press(cpc, KEY_LOAD)
-    for _ in range(3):
-        press(cpc, KEY_DOWN)
+    load_song(cpc)
+    press(cpc, KEY_DOWN)
+    press(cpc, KEY_SPACE)                                # le morceau, depuis 01
+    cpc.frames(60)
+
+
+def to_theme(cpc):
+    load_song(cpc)
+    press(cpc, KEY_MOTIF)
+    cpc.frames(2, keys={KEY_CTRL, KEY_RIGHT})            # motif 2 : ARTHEME
+    cpc.frames(2)
+
+
+def s_split(cpc):
+    to_theme(cpc)
+
+
+def s_playing(cpc):
+    to_theme(cpc)
     press(cpc, KEY_SPACE)
-    cpc.frames(150)
+    cpc.frames(45)
+
+
+def s_layered(cpc):
+    load_song(cpc)
+    press(cpc, KEY_MOTIF)                                # motif 1 : ARINTRO
+
+
+def s_fx(cpc):
+    """Le pas 0 de la voix C (ARPEGE 37) : TAB, puis le chiffre de l'effet."""
+    to_theme(cpc)
+    press(cpc, KEY_DOWN)
+    press(cpc, KEY_DOWN)
+    press(cpc, KEY_TAB)
+    for _ in range(3):
+        press(cpc, KEY_RIGHT)
+    press(cpc, KEY_UP)                                   # 47 REPETE...
+    press(cpc, KEY_DOWN)                                 # ... puis 37 ARPEGE
+
+
+def s_instrument(cpc):
+    load_song(cpc)
+    press(cpc, KEY_INST)
+
+
+def s_sounds(cpc):
+    load_song(cpc)
+    press(cpc, KEY_INST)
+    press(cpc, KEY_F6)
+
+
+def s_sampler(cpc):
+    load_song(cpc, "STUDIO.SNG")                         # et sa banque STUDIO.SMP
+    press(cpc, KEY_SAMPLE, after=3)
+    for _ in range(4):                                   # sample 5 : SEQ16
+        cpc.frames(2, keys={KEY_CTRL, KEY_RIGHT})
+        cpc.frames(1)
+    cpc.frames(2)
+
+
+def s_disk(cpc):
+    load_song(cpc)
+    press(cpc, KEY_DISK, after=3)
 
 
 SCENES = [
-    ("01_sequenceur_voix_separees.png", s_split),
-    ("02_sequenceur_en_lecture.png", s_playing),
-    ("03_sequenceur_son_compose.png", s_layered),
-    ("04_instrument.png", s_instrument),
-    ("05_mixage_et_disque.png", s_mixer),
-    ("06_catalogue_disquette.png", s_catalog),
-    ("07_sampler.png", s_sampler),
-    ("08_song.png", s_song),
+    ("01_song.png", "song.png", s_song),
+    ("02_motif_voix_separees.png", "pattern-split.png", s_split),
+    ("03_motif_en_lecture.png", "pattern-playing.png", s_playing),
+    ("04_motif_son_compose.png", "pattern-layered.png", s_layered),
+    ("05_effets_fx.png", "pattern-fx.png", s_fx),
+    ("06_instrument.png", "instrument.png", s_instrument),
+    ("07_sons_composes.png", "layered-sounds.png", s_sounds),
+    ("08_sampler.png", "sampler.png", s_sampler),
+    ("09_disque.png", "disk.png", s_disk),
 ]
 
 
 def snapshots(lang, font):
-    dsk = os.path.join(ROOT, "build", "seq16.dsk" if lang == "fr" else f"seq16-{lang}.dsk")
+    """Les captures du README (snapshots/, x4) et les images du site
+    (docs/assets/img/<langue>/, x2)."""
+    suffix = "" if lang == "fr" else "-" + lang
+    dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
     out = os.path.join(ROOT, "snapshots") if lang == "fr" else os.path.join(ROOT, "snapshots", lang)
-    os.makedirs(out, exist_ok=True)
+    site = os.path.join(ROOT, "docs", "assets", "img", lang)
+    for d in (out, site):
+        os.makedirs(d, exist_ok=True)
     done = []
-    for name, scene in SCENES:
+    for name, web, scene in SCENES:
         cpc = SnapCPC.from_build(dsk)
         cpc.dsk_path = dsk
         cpc.boot()
+        cpc.use_disk(dsk)
         cpc.frames(1)
         scene(cpc)
-        w, h, rgb = render(cpc, font)
-        path = os.path.join(out, name)
-        write_png(path, w, h, rgb)
-        done.append(path)
+        for folder, file, scale in ((out, name, SCALE), (site, web, SCALE // 2)):
+            w, h, rgb = render(cpc, font, scale)
+            path = os.path.join(folder, file)
+            write_png(path, w, h, rgb)
+            done.append(path)
     return done
 
 

@@ -3,8 +3,8 @@
 ; panneau SONG (lot 2 du plan, voir PLAN.md)
 ;
 ;   panneau        f8 sauve                  f9 charge
-;   1 MOTIF        le motif affiché (.PAT)   un .PAT dans le motif affiché
-;   2 SONG         le morceau (.SNG)         un morceau
+;   1 SONG         le morceau (.SNG)         un morceau
+;   2 MOTIF        le motif affiché (.PAT)   un .PAT dans le motif affiché
 ;   3 INST         la banque (.INS)          une banque .INS
 ;   4 SAMPLE       la banque (.SMP)          une banque .SMP
 ;   5 DISQUE       le morceau (.SNG)         un morceau
