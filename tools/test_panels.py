@@ -130,7 +130,8 @@ class PanelsTest(unittest.TestCase):
         cpc.chars = typed("NUIT")
         self.key(KEY_SAVE)
         data = cpc.saved["NUIT.SNG"]
-        self.assertEqual(len(data), SONG_SIZE)
+        n = data[SONG_SIZE] | data[SONG_SIZE + 1] << 8        # version 4 : + la banque
+        self.assertEqual(len(data), SONG_SIZE + 2 + n)
         self.assertEqual(data[:4], b"SQ16")
         self.assertTrue(cpc.row(2).startswith("SONG:NUIT"))  # le morceau a ce nom
         self.assertIn("MORCEAU SAUVE", cpc.row(MSG))

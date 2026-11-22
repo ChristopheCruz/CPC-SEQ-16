@@ -61,7 +61,7 @@ FW = {
     0xBC32: "SCR_SET_INK", 0xBC38: "SCR_SET_BORDER", 0xBC77: "CAS_IN_OPEN",
     0xBC7A: "CAS_IN_CLOSE", 0xBC7D: "CAS_IN_ABANDON", 0xBC83: "CAS_IN_DIRECT", 0xBC80: "CAS_IN_CHAR",
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
-    0xBC98: "CAS_OUT_DIRECT", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
+    0xBC98: "CAS_OUT_DIRECT", 0xBC95: "CAS_OUT_CHAR", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
     0xBD0D: "KL_TIME_PLEASE", 0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
     0xBCD4: "KL_FIND_COMMAND",
 }
@@ -191,6 +191,7 @@ class CPC:
         self.t = 0                            # temps en NOP
         self.files = {}                       # disquette simulée
         self.saved = {}                       # fichiers écrits
+        self.saved_headers = {}               # en-têtes écrits par le programme
         self.keys = set()                     # touches enfoncées
         self.frame = 0
         self.strict = []                      # zones à durées vérifiées
@@ -600,6 +601,7 @@ class CPC:
 
     def fw_CAS_OUT_OPEN(self):
         self.cas_out = self._name()
+        self.cas_out_chars = None             # octets écrits par CAS_OUT_CHAR
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
@@ -609,7 +611,30 @@ class CPC:
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
+    def fw_CAS_OUT_CHAR(self):
+        """Un octet de plus dans le fichier ouvert (AF corrompu)."""
+        if self.cas_out_chars is None:
+            self.cas_out_chars = bytearray()
+        self.cas_out_chars.append(self.m.a)
+        self._corrupt("af")
+        self._carry(True)
+
     def fw_CAS_OUT_CLOSE(self):
+        """Comme AMSDOS : un fichier écrit octet par octet qui commence par un
+        en-tête valide (somme des octets 0 à 66) est un fichier binaire ; ses
+        données s'arrêtent à la longueur de l'en-tête.  saved = les données,
+        saved_headers = l'en-tête écrit par le programme."""
+        data = getattr(self, "cas_out_chars", None)
+        if data is not None:
+            data = bytes(data)
+            head = data[:128]
+            if len(head) == 128 and sum(head[:67]) == head[0x43] | head[0x44] << 8:
+                n = head[0x40] | head[0x41] << 8 | head[0x42] << 16
+                self.saved_headers[self.cas_out] = head
+                self.saved[self.cas_out] = data[128:128 + n]
+            else:
+                self.saved[self.cas_out] = data
+            self.cas_out_chars = None
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 

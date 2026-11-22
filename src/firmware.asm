@@ -27,6 +27,7 @@ CAS_IN_ABANDON    equ #BC7D
 CAS_IN_DIRECT     equ #BC83   ; HL = adresse où charger le fichier
 CAS_OUT_OPEN      equ #BC8C   ; B = longueur du nom, HL = nom, DE = tampon 2 Ko
 CAS_OUT_CLOSE     equ #BC8F
+CAS_OUT_CHAR      equ #BC95   ; A = octet à écrire dans le fichier ouvert
 CAS_OUT_ABANDON   equ #BC92
 CAS_OUT_DIRECT    equ #BC98   ; HL = adresse, DE = longueur, BC = 0, A = 2
 CAS_CATALOG       equ #BC9B   ; DE = tampon 2 Ko : affiche le catalogue

@@ -1957,14 +1957,7 @@ dsv_clear:
         ldir
 dsv_go:
         call song_to_bank       ; l'image du morceau, à jour, dans le bloc 4
-        ld hl,BANK_SONG
-        ld (sf_addr),hl
-        ld a,1
-        ld (sf_bank),a
-        ld hl,txt_ext           ; NOM.SNG : tout le morceau
-        ld de,SONG_SIZE3
-        ld bc,txt_m_saved
-        jr save_block
+        jp sng_write            ; NOM.SNG : le morceau et ses samples (sngio.asm)
 ; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
 ; song_data, BC = message affiché si tout va bien.
 save_file:
@@ -2029,10 +2022,13 @@ disk_load:
         ld de,io_buffer
         call CAS_IN_OPEN
         jp nc,disk_error
+        xor a
+        ld (dl_v4f),a
         ld hl,SONG_SIZE3        ; la taille doit être exactement la bonne :
         or a                    ; version 3...
         sbc hl,bc
         jr z,dl_size
+        jr c,dl_v4              ; ... plus long : version 4, avec les samples
         ld hl,SONG_SIZE         ; ... version 2 (sans l'enchaînement)...
         or a
         sbc hl,bc
@@ -2040,12 +2036,19 @@ disk_load:
         ld hl,SONG_V1           ; ... ou version 1 (sans le bloc v2)
         or a
         sbc hl,bc
-        jr nz,dl_bad
+        jp nz,dl_bad
 dl_size:
         ld hl,BANK_SONG         ; le fichier va tel quel dans le bloc 4
         call bank_cas_in
-        jr nc,dl_abandon
+        jp nc,dl_abandon
         call CAS_IN_CLOSE
+        jr dl_loaded
+dl_v4:
+        call sng_read           ; octet par octet : l'image, puis la banque
+        ret nc                  ; (message déjà affiché)
+        ld a,1
+        ld (dl_v4f),a
+dl_loaded:
         ld hl,BANK_SONG         ; puis l'en-tête, les instruments, les noms
         ld de,song_data         ; et les sons en mémoire principale
         ld bc,SONG_FIXED
@@ -2092,6 +2095,17 @@ dl_ver:
         ld (song_data+4),a
 dl_v2:
         call song_loaded
+        ld a,(dl_v4f)           ; version 4 : la banque était dans le fichier
+        or a
+        jr z,dl_bank_name
+        ld hl,(sio_smp)
+        ld a,h
+        or l
+        ld hl,txt_m_loaded
+        jp z,dsk_message
+        ld hl,txt_m_withbank
+        jp dsk_message
+dl_bank_name:
         ld a,(song_bank)        ; une banque de samples associée ?
         or a
         jr z,dl_done
@@ -2318,6 +2332,7 @@ screen_text:
         include 'panels.asm'
         include 'grid.asm'
         include 'songpanel.asm'
+        include 'sngio.asm'
         include 'smptables.asm'
 
 ; ----------------------------------------------------------------------------
@@ -2413,6 +2428,7 @@ sf_msg:     dw 0                ;   message de réussite
 sf_addr:    dw 0                ;   et adresse du premier octet (save_block)
 sf_bank:    db 0                ;   1 = cette adresse est dans le bloc 4
 bf_name:    dw fname            ; nom utilisé par build_filename
+dl_v4f:     db 0                ; 1 = le morceau chargé était en version 4
 txt_need_6128: db "SEQ-16 : IL FAUT UN CPC 6128",0
 clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
 clip_ok:    db 0                ;   1 = il contient un instrument

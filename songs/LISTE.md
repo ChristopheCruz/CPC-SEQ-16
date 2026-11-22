@@ -27,7 +27,7 @@ Am - F - C - G, basse en doubles croches, lead tenu avec vibrato.
 
 grosse caisse et caisse claire samplées, basse buzzer, zaps.
 
-- Fichiers : `ROBOT.SNG`, `ROBOT.INS`, banque `DRUMS.SMP`
+- Fichiers : `ROBOT.SNG` (avec sa banque `DRUMS.SMP`), `ROBOT.INS`
 - Instruments à lui : ROBOBS, ROBOPL, ROBOLD, ROBOZP
 - À tester : digidrums (la banque DRUMS se recharge avec le morceau), mode BLOQUANT et rattrapage du tempo, basse à enveloppe matérielle
 - Enchaînement (panneau SONG) : RBINTRO x2 ↑RBGROOV x2 RBBASS x2 RBTHEME x2 RBBREAK RBTHEME RBFIN

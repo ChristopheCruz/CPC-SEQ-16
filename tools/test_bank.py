@@ -112,11 +112,13 @@ class BankTest(unittest.TestCase):
         self.key(KEY_S)
         self.assertIn("MORCEAU SAUVE", cpc.row(MSG_ROW))
         data = cpc.saved["MORCEAU1.SNG"]
-        self.assertEqual(len(data), SONG_SIZE)
+        n = cpc.word(cpc.addr("smp_bank_len")) if cpc.peek(cpc.addr("smp_count"))[0] else 0
+        self.assertEqual(len(data), SONG_SIZE + 2 + n)        # version 4 : + la banque
         song = cpc.addr("smp_blk_src")                        # song_data
         self.assertEqual(data[:SONG_FIXED], cpc.peek(song, SONG_FIXED))
         self.assertEqual(data[SONG_FIXED:SONG_FIXED + PAT_SIZE], mine)
-        self.assertEqual(data, cpc.bank_peek(4, 0x4000, SONG_SIZE))
+        self.assertEqual(data[:SONG_SIZE], cpc.bank_peek(4, 0x4000, SONG_SIZE))
+        self.assertEqual(data[SONG_SIZE:SONG_SIZE + 2], n.to_bytes(2, "little"))
         self.assertEqual(cpc.ram_block, 1)
 
     def test_load_song_roundtrip(self):

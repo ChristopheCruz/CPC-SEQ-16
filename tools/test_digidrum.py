@@ -193,8 +193,11 @@ class DigidrumTest(unittest.TestCase):
         self.key(KEY_DISK)
         self.key(KEY_S)
         data = cpc.saved["MORCEAU1.SNG"]
-        self.assertEqual(len(data), SONG_V1 + 16 + 2 + 64 * 3 + 32 * 8)   # version 3
-        self.assertEqual(data[4], 3)                         # version 3
+        image = SONG_V1 + 16 + 2 + 64 * 3 + 32 * 8
+        n = cpc.word(cpc.addr("smp_bank_len"))
+        self.assertEqual(len(data), image + 2 + n)           # version 4 : + la banque
+        self.assertEqual(data[4], 4)
+        self.assertEqual(data[image:image + 2], n.to_bytes(2, "little"))
         self.assertEqual(data[SONG_V1 + 1:SONG_V1 + 9], b"DRUMS   ")
 
     def test_load_song_v1(self):
@@ -213,7 +216,7 @@ class DigidrumTest(unittest.TestCase):
         cpc.files["MORCEAU1.SNG"] = bytes(v1)
         self.key(KEY_L)
         self.assertIn("MORCEAU CHARGE", cpc.row(17))
-        self.assertEqual(cpc.peek(self.song() + 4)[0], 3)
+        self.assertEqual(cpc.peek(self.song() + 4)[0], 4)
         self.assertEqual(cpc.peek(v2_addr, 16), bytes(16))
 
     def test_load_song_v2_loads_its_bank(self):
@@ -221,7 +224,8 @@ class DigidrumTest(unittest.TestCase):
         self.make_disk({})
         self.key(KEY_DISK)
         self.key(KEY_S)
-        v2 = bytearray(cpc.saved["MORCEAU1.SNG"])
+        v2 = bytearray(cpc.saved["MORCEAU1.SNG"][:SONG_V1 + 16])   # une vraie version 2 :
+        v2[4] = 2                                            # la banque par son nom
         v2[SONG_V1 + 1:SONG_V1 + 9] = b"VOIX    "
         cpc.files["MORCEAU1.SNG"] = bytes(v2)
         self.key(KEY_L)

@@ -366,11 +366,14 @@ class PlayerTest(unittest.TestCase):
         cpc.frames(1, keys={60})                 # S
         cpc.frames(1)
         self.assertIn("MORCEAU SAUVE", cpc.row(17))
-        self.assertEqual(len(cpc.saved["MORCEAU1.SNG"]), song_size)
+        data = cpc.saved["MORCEAU1.SNG"]                    # version 4 : + la banque
+        n = cpc.word(cpc.addr("smp_bank_len"))
+        self.assertEqual(len(data), song_size + 2 + n)
+        self.assertEqual(data[song_size + 2:], cpc.peek(BANK, n))
         cpc.files["MORCEAU1.SNG"] = cpc.saved["MORCEAU1.SNG"]
         cpc.frames(1, keys={36})                 # L
         cpc.frames(1)
-        self.assertIn("MORCEAU CHARGE", cpc.row(17))
+        self.assertIn("MORCEAU ET BANQUE DE SAMPLES CHARGES", cpc.row(17))
 
 
 @unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")
