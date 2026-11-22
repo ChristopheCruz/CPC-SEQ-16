@@ -171,6 +171,10 @@ pa_loop:
 
 ; Le motif numéro A (0 à 31) vient du bloc 4 dans pat_work.  -> HL = pat_work
 pat_fetch:
+        push af
+        xor a                   ; une copie fraîche : rien à ranger
+        ld (pat_dirty),a
+        pop af
         call pat_addr
         ld de,pat_work
         ld bc,PAT_SIZE

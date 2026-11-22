@@ -115,8 +115,14 @@ class DigidrumTest(unittest.TestCase):
         expected = test_player.expected_codes(self.drums[0].data)
         self.assertEqual(vols[8], expected)          # voie A, sample 0 (KICK)
         f = self.frames_of(0, 160)
-        # 2 images normales (appui + relâche) + le rattrapage
-        self.assertEqual(n, 2 + f)
+        # 2 images normales (appui + relâche), le rattrapage du sample joué
+        # interruptions coupées (dg_debt : l'horloge à 300 Hz s'arrête), et
+        # les images réellement passées à préparer les tables (interruptions
+        # permises : rattrapées par snd_catchup ; avant, le tempo les perdait)
+        di = cpc.di_spans[-1][1] - cpc.di_spans[-1][0]
+        self.assertGreaterEqual(n, 2 + f)
+        self.assertLessEqual(n, 2 + f + 6)
+        self.assertGreater(di, (f - 1) * 20000)      # le sample a bien duré f images
         self.assertEqual(cpc.peek(cpc.addr("dg_debt"))[0], 0)
         self.assertEqual(cpc.peek(cpc.addr("dg_pending"))[0], 0)
         self.assertEqual(cpc.peek(cpc.addr("spr_att"))[0], 0)   # remise à 0

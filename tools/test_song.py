@@ -180,6 +180,54 @@ class SongPanelTest(unittest.TestCase):
         self.assertEqual(self.var("song_live"), 0)
         self.assertIn("ARRET", cpc.row(2))
 
+    def test_next_pattern_prepared_in_advance(self):
+        """Pendant la dernière répétition, le motif suivant est copié dans
+        pat_ahead ; au changement de mesure, aucun échange de bloc."""
+        cpc = self.cpc
+        self.set_song([(0, 1, 0), (1, 1, 0)])
+        self.key(KEY_SONG)
+        self.key(SPACE)
+        cpc.frames(3)
+        self.assertEqual(self.var("next_id"), 1)
+        ahead = cpc.word(cpc.addr("seq_pattern")) - PAT          # pat_ahead
+        self.assertEqual(cpc.peek(ahead, PAT),
+                         cpc.bank_peek(4, 0x4000 + FIXED + PAT, PAT))
+        goto, done = cpc.addr("song_goto"), cpc.addr("seq_set_pattern")
+        copy = cpc.addr("bank_copy")
+        state = {"in": False, "copies": 0, "swaps": 0}
+        orig = cpc.step
+
+        def step():
+            pc = cpc.m.pc
+            if pc == goto:
+                state["in"] = True
+                state["swaps"] += 1
+            elif pc == done:
+                state["in"] = False
+            elif pc == copy and state["in"]:
+                state["copies"] += 1
+            orig()
+        cpc.step = step
+        self.play_until_pos(1)
+        cpc.step = orig
+        self.assertEqual(self.var("cur_pat"), 1)
+        self.assertGreaterEqual(state["swaps"], 1)
+        self.assertEqual(state["copies"], 0, "le changement de motif a touché au bloc 4")
+
+    def test_edited_pattern_stored_before_leaving(self):
+        cpc = self.cpc
+        self.set_song([(0, 1, 0), (1, 1, 0)])
+        self.key(KEY_MOTIF)
+        self.key(RETURN)                                      # une case change
+        work = cpc.word(cpc.addr("seq_pattern"))
+        edited = cpc.peek(work, PAT)
+        self.assertEqual(self.var("pat_dirty"), 1)
+        self.key(KEY_SONG)
+        self.key(SPACE)
+        self.play_until_pos(1)
+        self.assertEqual(cpc.bank_peek(4, 0x4000 + FIXED, PAT), edited)
+        self.assertEqual(self.var("pat_dirty"), 0)
+
     def test_motif_panel_follows(self):
         cpc = self.cpc
         self.set_song([(0, 1, 0), (1, 1, 0)])

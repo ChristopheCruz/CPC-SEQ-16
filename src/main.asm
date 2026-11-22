@@ -94,16 +94,16 @@ main_loop:
         call MC_WAIT_FLYBACK
         halt
         halt
-        call KL_TIME_PLEASE     ; instant de ce tour (pour snd_tick)
-        ld a,l
-        ld (tick_last),a
+        xor a
+        ld (sc_ticked),a        ; snd_tick n'a pas encore joué ce tour-ci
 
         call read_screen_keys   ; f1 / f2 : changement d'écran
         call read_cmd           ; touches de commande
         call read_piano         ; touches du piano
         call aud_release        ; fin de l'écoute quand la touche est lâchée
-        call seq_frame          ; le séquenceur déclenche les notes du pas
-        call snd_frame          ; le moteur de son les fait vivre
+        call snd_catchup        ; séquenceur et son : une image, ou toutes
+                                ; celles qu'un long dessin a fait passer
+        call song_prefetch      ; morceau : le motif suivant, à l'avance
         ld a,(dg_pending)       ; un digidrum attend ?
         or a
         call nz,dg_play         ; il joue, puis le tempo est rattrapé
@@ -389,6 +389,8 @@ cp_stop:
 
 ; --- f5 : voix séparées <-> son composé ---
 cmd_mode:
+        ld a,1
+        ld (pat_dirty),a
         call seq_stop
         ld hl,(seq_pattern)
         ld a,(hl)
@@ -626,6 +628,8 @@ speed_slower:
         dec a
 speed_set:
         ld (seq_bpm),a
+        ld hl,pat_dirty         ; (le motif a changé : à ranger)
+        ld (hl),1
         ld hl,(seq_pattern)     ; le tempo est mémorisé dans le motif
         inc hl
         ld (hl),a
@@ -849,6 +853,8 @@ piano_keys:
 ; Choix du motif.  A = 0 à 31
 select_pattern:                 ; (la lecture continue, au même pas)
         push af
+        ld a,#FF                ; le motif préparé à l'avance n'est plus sûr
+        ld (next_id),a
         call pat_store          ; le motif quitté retourne dans le bloc 4
         pop af
         ld (cur_pat),a
@@ -1897,6 +1903,8 @@ song_sig: db "SQ16"
 
 ; Le morceau vient de changer : on repart du motif 1 et on met tout à jour
 song_loaded:
+        ld a,#FF                ; rien de préparé à l'avance
+        ld (next_id),a
         xor a
         ld (sp_cur),a           ; panneau SONG : au début
         ld (sp_top),a
@@ -2181,8 +2189,9 @@ song_end    equ song_v3+SONG_V3_LEN
 ; pendant que le bloc 4 est montré) :
 io_buffer   equ #A000-2048      ; 2 Ko de travail pour AMSDOS
 pat_work    equ io_buffer-PAT_SIZE      ; le motif affiché et joué
-mem_free    equ pat_work-song_end       ; place libre pour la suite
-        assert song_end <= pat_work
+pat_ahead   equ pat_work-PAT_SIZE       ; morceau : le motif suivant, à l'avance
+mem_free    equ pat_ahead-song_end      ; place libre pour la suite
+        assert song_end <= pat_ahead
         assert pat_work >= #8000
         print "fin du programme=",{hex}end_of_program," fin du morceau=",{hex}song_end," libre=",mem_free," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end
         assert BANK_MAX >= 2048         ; la banque d'usine DRUMS.SMP doit tenir

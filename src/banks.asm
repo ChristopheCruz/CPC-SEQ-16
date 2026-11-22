@@ -179,6 +179,8 @@ disk_load_pat_named:
         jr c,dlp_mode
         ld (hl),0
 dlp_mode:
+        ld a,1
+        ld (pat_dirty),a
         call seq_set_pattern    ; le séquenceur prend le motif et son tempo
         call CAS_IN_CLOSE
         ld a,(cur_pat)          ; le motif prend le nom de son fichier

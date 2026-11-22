@@ -37,22 +37,20 @@ BANK_V2    equ BANK_PATS+NB_PAT*PAT_SIZE
 BANK_V3    equ BANK_V2+SONG_EXTRA
 
 ; Copie BC octets de HL vers DE, le bloc A étant montré en #4000-#7FFF.
-; Garde l'état des interruptions.
+; Toujours appelée interruptions permises (boucle principale, lecture et
+; écriture de fichier) : elle les rend permises en sortant.  (Pas de
+; « ld a,i » pour retrouver leur état : sur Z80, une interruption reçue
+; pendant cette instruction fait croire qu'elles étaient coupées, et elles
+; le restaient ; AMSDOS en a besoin.)
 bank_copy:
-        ld (bk_cfg),a
-        ld a,i                  ; P/V = 1 si les interruptions sont permises
-        push af
         di
         push bc
         ld b,#7F
-        ld a,(bk_cfg)
         out (c),a               ; on montre le bloc
         pop bc
         ldir
         ld bc,#7F00+RAM_NORMAL  ; et on remet la mémoire normale
         out (c),c
-        pop af
-        ret po                  ; elles étaient coupées : on les laisse
         ei
         ret
 
@@ -104,5 +102,3 @@ bank_check:
         ret z
         or a                    ; Carry = 0 : pas de mémoire supplémentaire
         ret
-
-bk_cfg: db 0
