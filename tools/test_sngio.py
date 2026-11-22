@@ -15,7 +15,7 @@ sys.path.insert(0, HERE)
 import test_player  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_SONG, KEY_SAMPLE, KEY_SAVE, KEY_LOAD = 14, 20, 11, 3
+KEY_SONG, KEY_SAMPLE, KEY_SAVE, KEY_LOAD = 13, 20, 11, 3
 PAT = 260
 FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 SONG_SIZE3 = FIXED + 32 * PAT + 16 + 2 + 64 * 3 + 32 * 8

@@ -16,9 +16,9 @@ import wav2smp  # noqa: E402
 
 cpcsim = test_player.cpcsim
 ROOT = test_player.ROOT
-KEY_MOTIF, KEY_INST, KEY_DISK, KEY_SAMPLE = 13, 5, 12, 20
+KEY_MOTIF, KEY_INST, KEY_DISK, KEY_SAMPLE = 14, 5, 12, 20
 KEY_SPACE, KEY_CTRL, KEY_LEFT, KEY_RIGHT = 47, 23, 8, 1
-KEY_SONG, KEY_SAVE, KEY_LOAD = 14, 11, 3   # f2, f8, f9
+KEY_SONG, KEY_SAVE, KEY_LOAD = 13, 11, 3   # f1, f8, f9
 DGKICK, DGSNAR = 28, 29                  # instruments d'usine 29 et 30
 SONG_V1 = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16)
 PAT_SIZE = 4 + 16 * 16

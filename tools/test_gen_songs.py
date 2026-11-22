@@ -20,7 +20,7 @@ import insbank  # noqa: E402
 import test_player  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_MOTIF, KEY_SONG, KEY_LOAD, KEY_SPACE, KEY_CTRL, KEY_RIGHT = 13, 14, 3, 47, 23, 1
+KEY_MOTIF, KEY_SONG, KEY_LOAD, KEY_SPACE, KEY_CTRL, KEY_RIGHT = 14, 13, 3, 47, 23, 1
 PAT = 260
 FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 

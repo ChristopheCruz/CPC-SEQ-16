@@ -71,7 +71,7 @@ class DiskPanelTest(unittest.TestCase):
         self.assertEqual(cpc.attr[3][8], (0, 1))
         self.assertEqual(self.var("smp_nfiles"), 2)
         self.assertIn("GROOVE", cpc.row(6) + cpc.row(7))
-        self.assertIn("ENTER : DANS 1MOTIF", cpc.row(19))
+        self.assertIn("ENTER : DANS 2MOTIF", cpc.row(19))
         self.key(TAB)
         self.assertIn("SONS", cpc.row(6))
         self.assertIn("3INST", cpc.row(19))
