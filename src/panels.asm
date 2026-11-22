@@ -33,10 +33,18 @@ ps_song:                        ; SONG
         call ask_save
         call c,disk_save
         jr panel_done
-ps_pat:
+ps_pat:                         ; le nom proposé : celui du motif
+        call pat_default_name   ; HL = nom du motif affiché
+        ex de,hl
         ld hl,txt_ext_pat
-        call ask_save
-        call c,disk_save_pat
+        call ask_save_buf
+        jr nc,panel_done
+        ld a,(cur_pat)          ; on sauve sous ce nom (pas celui du morceau)
+        call pat_name_ptr
+        ld (bf_name),hl
+        call disk_save_pat
+        ld hl,fname
+        ld (bf_name),hl
         jr panel_done
 ps_ins:
         ld hl,txt_ext_ins
@@ -180,38 +188,31 @@ as_noname:
 txt_m_file:   db "FICHIER :",0
 txt_m_exists: db "DEJA SUR LA DISQUETTE : RETURN REMPLACE",0
 
-; --- Panneau SONG -------------------------------------------------------------
-; Pour l'instant : le nom du morceau, f8 et f9.  L'enchaînement des motifs
-; arrive au lot 4.
-ds_song:
-        ld hl,song_text
-        call print_list
-        ld hl,256*11+4          ; le nom du morceau
-        call TXT_SET_CURSOR
-        xor a
-        call TXT_SET_PAPER
-        ld a,3
-        call TXT_SET_PEN
-        ld hl,fname
-        ld b,NAME_LEN
-        call print_n
-        xor a
-        jp TXT_SET_PAPER
-
-song_cmd:
-        ld a,(rc_index)
-        or a
-        jp z,cmd_play           ; ESPACE : lecture / arrêt du motif
+; HL = le nom du motif affiché ; s'il n'en a pas, « MOTIF-nn »
+pat_default_name:
+        ld a,(cur_pat)
+        call pat_name_ptr
+        ld a,(hl)
+        cp ' '+1
+        ret nc                  ; il a déjà un nom
+        push hl
+        ex de,hl
+        ld hl,txt_pat_prefix
+        ld bc,6
+        ldir
+        ld a,(cur_pat)          ; numéro sur 2 chiffres
+        inc a
+        ld b,'0'-1
+pdn_tens:
+        inc b
+        sub 10
+        jr nc,pdn_tens
+        add a,10+'0'
+        ex de,hl
+        ld (hl),b
+        inc hl
+        ld (hl),a
+        pop hl
         ret
 
-song_text:
-        db 1,4,2,0,"MORCEAU :",0
-        db 1,7,2,0,"L'ENCHAINEMENT DES MOTIFS ARRIVE",0
-        db 1,8,2,0,"DANS LA PROCHAINE VERSION.",0
-        db 1,11,3,0,"f8",0
-        db 4,11,2,0,"SAUVER LE MORCEAU (.SNG)",0
-        db 1,12,3,0,"f9",0
-        db 4,12,2,0,"CHARGER UN MORCEAU",0
-        db 1,14,3,0,"ESPACE",0
-        db 8,14,2,0,"LIRE LE MOTIF",0
-        db #FF
+txt_pat_prefix: db "MOTIF-",0

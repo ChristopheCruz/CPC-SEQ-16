@@ -56,6 +56,8 @@ seq_start:
 seq_stop:
         xor a
         ld (seq_playing),a
+        ld (song_live),a        ; (fin de la lecture du morceau)
+        ld (song_transp),a
 sst_off:                        ; relâche les 4 voix
         push af
         call snd_note_off
@@ -88,6 +90,8 @@ seq_frame:
         inc a
         and 15
         ld (seq_step),a
+        call z,song_bar         ; fin de la mesure : position suivante du
+                                ; morceau (songpanel.asm)
 sq_wait:
         ld hl,(seq_acc)         ; à chaque image, le compteur avance du tempo
         ld a,(seq_bpm)
@@ -136,6 +140,9 @@ st_lane:
         call snd_note_off
         jr st_next
 st_on:
+        ld a,(st_voice)         ; transposition du morceau (pas le bruit)
+        cp 3
+        call nz,song_trans_b
         push de
         ld a,(st_voice)
         call snd_note_on
@@ -160,9 +167,11 @@ st_comp:                        ; --- mode son composé ---
         cp NOTE_NONE
         ret z
         cp NOTE_OFF
-        jr nz,st_son
+        jr nz,st_comp_on
         xor a
         jp sst_off              ; arrêt : on relâche les 4 voix
+st_comp_on:
+        call song_trans_b       ; transposition du morceau
 
 ; Joue un son composé.  B = note, C = numéro du son
 seq_play_son:

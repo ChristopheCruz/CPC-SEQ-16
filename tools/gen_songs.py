@@ -17,10 +17,10 @@ sur les 16 pas, basses et lignes syncopées.
 
     python tools/gen_songs.py
 
-Le panneau SONG (enchaînement des motifs, lot 4 du plan) n'existe pas
-encore : pour l'instant, on charge un morceau (f2 puis f9) et on passe d'un
-motif à l'autre avec CTRL + flèches.  L'ordre prévu de chaque morceau est
-noté dans songs/LISTE.md ; il ira dans le .SNG au lot 4.
+Les .SNG sont en version 3 : ils gardent l'enchaînement du panneau SONG
+(positions, répétitions, transposition, boucle) et le nom de chaque motif.
+Dans l'ordre d'un morceau, « NOM/+5 » transpose la position de 5 demi-tons ;
+deux positions identiques qui se suivent deviennent une position x2.
 """
 import os
 import shutil
@@ -36,7 +36,8 @@ from gen_patterns import R, L, G, NK, DK, OFF  # noqa: E402,F401
 
 TON, BRUIT, ENV, PORTA = insbank.TON, insbank.BRUIT, insbank.ENV, insbank.PORTA
 NB_PAT = 32
-SONG_VER = 2
+SONG_VER = 3
+POS_MAX = 64
 EMPTY_PAT = bytes([0, 125, 0, 0] + [0xFF, 0, 0xFF, 0] * 64)
 USER_SLOTS = ["USER1", "USER2", "USER3", "USER4"]
 ROLES = {"lead": gp.MELODIC, "bass": gp.BASSY, "chord": gp.CHORDY, "pluck": set()}
@@ -61,10 +62,10 @@ SONGS = []
 
 
 def song(name, title, style, bpm, key, desc, volumes=(15, 15, 15, 15), bank=None,
-         instruments=(), order=(), tests=""):
+         instruments=(), order=(), loop=None, tests=""):
     s = dict(name=name, title=title, style=style, bpm=bpm, key=key, desc=desc,
              volumes=volumes, bank=bank, instruments=list(instruments), order=list(order),
-             tests=tests, patterns=[])
+             loop=loop, tests=tests, patterns=[])
     SONGS.append(s)
     return s
 
@@ -92,6 +93,7 @@ nuit = song("NUIT", "Nuit", "synthwave", 112, "A:min",
                          (ins("NUITPM", a=10, d=2, s=12, r=4, v=13, arp1=4, arp2=7), "chord")],
             order=["NUINTRO", "NUINTRO", "NUCOUPL", "NUCOUP2", "NUCOUPL", "NUCOUP2",
                    "NUREFR", "NUREFR2", "NUREFR", "NUREFR2", "NUBREAK", "NUREFR", "NUREFR2", "NUFIN"],
+            loop="NUCOUPL",
             tests="notes tenues jusqu'à leur arrêt (traits ■──X), vibrato du lead, "
                   "accords tenus (arpège rapide), 16 pas de charleston")
 poly(nuit, "NUINTRO", "intro : nappe Am puis F, charleston qui monte",
@@ -135,6 +137,7 @@ robot = song("ROBOT", "Robot", "electro (digidrums)", 125, "D:min",
                           (ins("ROBOZP", d=10, s=0, r=10, slide=-6), "pluck")],
              order=["RBINTRO", "RBINTRO", "RBGROOV", "RBGROOV", "RBBASS", "RBBASS",
                     "RBTHEME", "RBTHEME", "RBBREAK", "RBTHEME", "RBFIN"],
+             loop="RBGROOV",
              tests="digidrums (la banque DRUMS se recharge avec le morceau), mode "
                    "BLOQUANT et rattrapage du tempo, basse à enveloppe matérielle")
 poly(robot, "RBINTRO", "intro : digidrums seuls",
@@ -173,6 +176,7 @@ pixel = song("PIXEL", "Pixel", "chiptune", 150, "C:maj",
                           (ins("PIXBS", d=20, s=8, r=20), "bass")],
              order=["PXINTRO", "PXTHEME", "PXTHEM2", "PXTHEME", "PXTHEM2",
                     "PXPONT", "PXPONT", "PXTHEME", "PXFIN"],
+             loop="PXTHEME",
              tests="tempo rapide, arpèges d'instrument (accords en une voix), "
                    "notes sur tous les pas")
 poly(pixel, "PXINTRO", "intro : arpège do majeur seul",
@@ -209,7 +213,8 @@ funky = song("FUNKY", "Funky", "funk", 100, "E:dor",
                           (ins("FKSLID", d=4, s=13, r=8, f=TON | PORTA, slide=6), "lead"),
                           (ins("FKCLAV", d=30, s=0, r=20), "pluck")],
              order=["FKINTRO", "FKGROOV", "FKGROOV", "FKRIFF", "FKRIFF",
-                    "FKBREAK", "FKGROOV", "FKRIFF", "FKFIN"],
+                    "FKBREAK", "FKGROOV/+5", "FKRIFF/+5", "FKGROOV", "FKFIN"],
+             loop="FKGROOV",
              tests="basse sur les doubles croches, notes fantômes (volumes), "
                    "glissando (PORTA), accords mineurs 7 en une voix")
 poly(funky, "FKINTRO", "intro : charleston et notes fantômes",
@@ -242,6 +247,7 @@ nappe = song("NAPPE", "Nappe", "ambient (son composé)", 90, "A:min",
                           (ins("CHORUS", d=4, s=12, r=8, arp1=12, arps=3, vd=1, vs=20), "lead"),
                           (ins("HEROS", d=4, s=13, r=8, vd=2, vs=40, vdel=18), "lead")],
              order=["NPINTRO", "NPACCO", "NPACCO2", "NPACCO", "NPACCO2", "NPRYTHM", "NPRYTHM", "NPFIN"],
+             loop="NPACCO",
              tests="mode son composé : une seule voix SON et les 4 couches du son "
                    "affichées sous la grille ; sons 0, 1, 5, 6, 7")
 mono(nappe, "NPINTRO", "intro : sus4 lents",
@@ -293,8 +299,15 @@ def check_song(s):
     if len(set(names)) != len(names):
         err.append("motifs en double")
     for o in s["order"]:
-        if o not in names:
+        name, _, tr = o.partition("/")
+        if name not in names:
             err.append("ordre : motif inconnu %s" % o)
+        if tr and not -12 <= int(tr) <= 12:
+            err.append("ordre : transposition %s" % o)
+    if s["loop"] is not None and s["loop"] not in names:
+        err.append("boucle : motif inconnu %s" % s["loop"])
+    if len(positions(s)[0]) > POS_MAX:
+        err.append("plus de %d positions" % POS_MAX)
     undo = _apply_instruments(s)
     try:
         for p in s["patterns"]:
@@ -333,9 +346,43 @@ def song_file(s):
     pats += [EMPTY_PAT] * (NB_PAT - len(pats))
     name = (s["bank"] or "").ljust(8).encode("ascii") if s["bank"] else bytes(8)
     v2 = bytes([0]) + name + bytes(7)
-    data = head + bank[16:] + b"".join(pats) + v2
-    assert len(data) == 16 + 32 * 16 + 32 * 6 + 8 * 16 + NB_PAT * 260 + 16
+    data = head + bank[16:] + b"".join(pats) + v2 + v3_block(s)
+    assert len(data) == 16 + 32 * 16 + 32 * 6 + 8 * 16 + NB_PAT * 260 + 16 + V3_LEN
     return data
+
+
+V3_LEN = 2 + POS_MAX * 3 + NB_PAT * 8
+
+
+def positions(s):
+    """L'ordre du morceau -> ([(motif, répétitions, transposition)], boucle)."""
+    index = {p["name"]: i for i, p in enumerate(s["patterns"])}
+    out, starts = [], {}
+    for o in s["order"]:
+        name, _, tr = o.partition("/")
+        tr = int(tr) if tr else 0
+        pat = index[name]
+        if out and out[-1][0] == pat and out[-1][2] == tr and out[-1][1] < 16:
+            out[-1][1] += 1
+        else:
+            starts.setdefault(name, len(out))
+            out.append([pat, 1, tr])
+    loop = starts.get(s["loop"], 0) if s["loop"] else 0
+    return [tuple(x) for x in out], loop
+
+
+def v3_block(s):
+    """Bloc v3 : nombre de positions, boucle, 64 positions, 32 noms."""
+    pos, loop = positions(s)
+    data = bytearray([len(pos), loop])
+    for pat, rep, tr in pos:
+        data += bytes([pat, rep, tr & 0xFF])
+    data += bytes(3 * (POS_MAX - len(pos)))
+    names = [p["name"] for p in s["patterns"]] + [""] * (NB_PAT - len(s["patterns"]))
+    for n in names:
+        data += n.ljust(8).encode("ascii")
+    assert len(data) == V3_LEN
+    return bytes(data)
 
 
 def odd_ratio(s):
@@ -362,9 +409,8 @@ def validate():
 def liste_md():
     out = ["# Morceaux de test", "",
            "Fabriqués par `tools/gen_songs.py` ; tous sur `build/seq16-songs.dsk`.", "",
-           "Charger un morceau : panneau SONG (f2), puis f9.  Passer d'un motif à "
-           "l'autre : panneau MOTIF (f1), CTRL + flèches.  Le panneau SONG du lot 4 "
-           "jouera l'ordre indiqué.", ""]
+           "Charger un morceau : panneau SONG (f2), puis f9 ; ESPACE le joue depuis "
+           "la position du curseur.  ↑ marque le départ de la boucle.", ""]
     for s in SONGS:
         out += ["## %s : %s (%s, %d BPM)" % (s["name"], s["title"], s["style"], s["bpm"]), "",
                 s["desc"] + ".", "",
@@ -372,7 +418,12 @@ def liste_md():
                                                        ", banque `%s.SMP`" % s["bank"] if s["bank"] else ""),
                 "- Instruments à lui : " + ", ".join(t[0] for t, _ in s["instruments"]),
                 "- À tester : " + s["tests"],
-                "- Ordre prévu : " + " ".join(s["order"]), "",
+                "- Enchaînement (panneau SONG) : " + " ".join(
+                    "%s%s%s%s" % ("↑" if i == positions(s)[1] else "",
+                                  s["patterns"][pat]["name"],
+                                  " x%d" % rep if rep > 1 else "",
+                                  " %+d" % tr if tr else "")
+                    for i, (pat, rep, tr) in enumerate(positions(s)[0])), "",
                 "| Motif | N° | Contenu |", "|---|---|---|"]
         for i, p in enumerate(s["patterns"]):
             out.append("| `%s` | %02d | %s |" % (p["name"], i + 1, p["desc"]))

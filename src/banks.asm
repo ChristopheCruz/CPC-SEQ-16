@@ -152,6 +152,7 @@ disk_load_pat:
         ld hl,txt_ext_pat       ; on choisit un motif sur la disquette
         call choose_file        ; (coupe aussi le son)
         ret nc
+        ld (dlp_name),de        ; son nom (8 caractères)
         push hl
         push bc
         ld hl,txt_m_loading
@@ -177,6 +178,21 @@ disk_load_pat:
 dlp_mode:
         call seq_set_pattern    ; le séquenceur prend le motif et son tempo
         call CAS_IN_CLOSE
+        ld a,(cur_pat)          ; le motif prend le nom de son fichier
+        call pat_name_ptr       ; (panneau SONG)
+        ex de,hl
+        ld hl,(dlp_name)
+        ld b,8
+dlp_nm:
+        ld a,(hl)
+        cp ' '+1
+        jr nc,dlp_nc
+        ld a,' '
+dlp_nc:
+        ld (de),a
+        inc hl
+        inc de
+        djnz dlp_nm
         ld hl,txt_p_loaded
         jp dsk_message
 dlp_bad:
@@ -257,6 +273,7 @@ txt_i_saved:  db "INSTRUMENTS SAUVES (.INS)",0
 txt_i_loaded: db "INSTRUMENTS CHARGES",0
 txt_i_bad:    db "CE FICHIER N'EST PAS UNE BANQUE .INS",0
 txt_ext_pat:  db ".PAT",0
+dlp_name:     dw 0
 txt_p_saved:  db "MOTIF SAUVE (.PAT)",0
 txt_p_loaded: db "MOTIF CHARGE",0
 txt_p_bad:    db "CE FICHIER N'EST PAS UN MOTIF .PAT",0

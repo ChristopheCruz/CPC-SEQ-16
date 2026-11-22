@@ -22,7 +22,7 @@ KEY_MODE, KEY_SAVE, KEY_LOAD, KEY_F7 = 4, 11, 3, 10
 ESC = 0xFC                                # code de ESC rendu par KM_WAIT_CHAR
 PAT_SIZE = 260
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
-SONG_SIZE = SONG_FIXED + 32 * PAT_SIZE + 16
+SONG_SIZE = SONG_FIXED + 32 * PAT_SIZE + 16 + 2 + 64 * 3 + 32 * 8   # version 3
 MSG = 25                                  # ligne des messages (hors DISQUE)
 
 
@@ -85,10 +85,11 @@ class PanelsTest(unittest.TestCase):
     def test_song_panel(self):
         cpc = self.cpc
         self.key(KEY_SONG)
-        self.assertIn("MORCEAU : MORCEAU1", cpc.row(4))
-        self.assertIn("f8 SAUVER LE MORCEAU (.SNG)", cpc.row(11))
-        self.key(47)                                        # ESPACE : lecture
+        self.assertTrue(cpc.row(2).startswith("SONG:MORCEAU1"))
+        self.assertTrue(cpc.row(4).startswith("POS MOTIF"))
+        self.key(47)                                        # ESPACE : lecture du morceau
         self.assertEqual(cpc.peek(cpc.addr("seq_playing"))[0], 1)
+        self.assertEqual(cpc.peek(cpc.addr("song_live"))[0], 1)
 
     # --- f8 ------------------------------------------------------------------
     def test_f8_motif(self):
@@ -98,7 +99,7 @@ class PanelsTest(unittest.TestCase):
         seen = []
         cpc.chars = [lambda: seen.append(cpc.row(MSG)) or ord("G")] + typed("RV")
         self.key(KEY_SAVE)
-        self.assertIn("FICHIER : MORCEAU1.PAT", seen[0])   # le nom proposé
+        self.assertIn("FICHIER : MOTIF-01.PAT", seen[0])   # le nom proposé : celui du motif
         self.assertEqual(cpc.saved["GRV.PAT"], mine)
         self.assertIn("MOTIF SAUVE (.PAT)", cpc.row(MSG))
         self.assertIn("PAS  0 1 2 3", cpc.row(10))          # écran redessiné
@@ -131,7 +132,7 @@ class PanelsTest(unittest.TestCase):
         data = cpc.saved["NUIT.SNG"]
         self.assertEqual(len(data), SONG_SIZE)
         self.assertEqual(data[:4], b"SQ16")
-        self.assertIn("MORCEAU : NUIT", cpc.row(4))         # le morceau a ce nom
+        self.assertTrue(cpc.row(2).startswith("SONG:NUIT"))  # le morceau a ce nom
         self.assertIn("MORCEAU SAUVE", cpc.row(MSG))
 
     def test_f8_inst(self):

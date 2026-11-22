@@ -27,9 +27,10 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
 import cpcsim  # noqa: E402
-from cpcsim import (CPC, KEY_INST, KEY_DISK, KEY_SAMPLE, KEY_MODE, KEY_SPACE)  # noqa: E402
+from cpcsim import (CPC, KEY_INST, KEY_DISK, KEY_SAMPLE, KEY_MODE, KEY_SPACE,  # noqa: E402
+                    KEY_SONG, KEY_LOAD)  # noqa: E402
 
-KEY_C = 62
+KEY_C, KEY_DOWN = 62, 2
 
 # Couleurs : encre 0 bleu, 1 jaune, 2 cyan (couleurs du CPC au démarrage),
 # 3 orange (le programme la change). La bordure est bleue.
@@ -172,6 +173,19 @@ def s_sampler(cpc):
     press(cpc, KEY_SAMPLE, after=3)
 
 
+def s_song(cpc):
+    """Panneau SONG : le morceau de test NUIT (build/seq16-songs.dsk), en lecture."""
+    cpc.use_disk(os.path.join(ROOT, "build", "seq16-songs.dsk"))
+    press(cpc, KEY_SONG)
+    names = sorted(n for n in cpc.files if n.endswith(".SNG"))
+    cpc.chars = [243] * names.index("NUIT.SNG") + [13]     # flèche droite, RETURN
+    press(cpc, KEY_LOAD)
+    for _ in range(3):
+        press(cpc, KEY_DOWN)
+    press(cpc, KEY_SPACE)
+    cpc.frames(150)
+
+
 SCENES = [
     ("01_sequenceur_voix_separees.png", s_split),
     ("02_sequenceur_en_lecture.png", s_playing),
@@ -180,6 +194,7 @@ SCENES = [
     ("05_mixage_et_disque.png", s_mixer),
     ("06_catalogue_disquette.png", s_catalog),
     ("07_sampler.png", s_sampler),
+    ("08_song.png", s_song),
 ]
 
 
