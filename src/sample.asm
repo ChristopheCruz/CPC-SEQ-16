@@ -200,6 +200,48 @@ smp_entry:
         ret
 
 ; ----------------------------------------------------------------------------
+; COUPE (5x) sur un digidrum (dg_play, après smp_prepare) : le sample
+; s'arrête après x images, la musique perd moins de pas.  Octets joués en
+; une image = 10 000 / P (un octet = 2 échantillons de P NOP, une image =
+; 20 000 NOP) ; smp_v_len est raccourci s'il dépasse x images.  50 : pas de
+; coupe.
+; ----------------------------------------------------------------------------
+dg_cut:
+        ld a,(dg_fx)
+        ld c,a
+        and #F0
+        cp #50
+        ret nz
+        ld a,c
+        and 15
+        ret z
+        ld c,a                  ; C = x images
+        ld de,(smp_v_period)    ; DE = P (56 à 1000)
+        ld hl,10000
+        ld b,0                  ; B = octets par image (10 à 178)
+dgc_div:
+        or a
+        sbc hl,de
+        jr c,dgc_mul
+        inc b
+        jr dgc_div
+dgc_mul:
+        ld hl,0                 ; HL = B x C
+        ld e,b
+        ld d,0
+dgc_add:
+        add hl,de
+        dec c
+        jr nz,dgc_add
+        ex de,hl                ; DE = octets en x images
+        ld hl,(smp_v_len)
+        or a
+        sbc hl,de
+        ret c                   ; le sample est plus court : rien à couper
+        ld (smp_v_len),de
+        ret
+
+; ----------------------------------------------------------------------------
 ; Joue un sample.  A = numéro, B = demi-tons (-12 à +12, avec signe),
 ; C = voie de l'AY (0, 1 ou 2).  Ne fait rien si c'est impossible.
 ; ----------------------------------------------------------------------------
@@ -378,25 +420,28 @@ spr_t_pos:
         jr nz,spr_t_loop
 
         ; --- les deux tables de 256 octets : pour chaque octet du sample,
-        ;     la valeur de l'échantillon du haut et celle du bas
+        ;     la valeur de l'échantillon du haut et celle du bas.  Poids
+        ;     fort : 16 séries de 16 fois spr_t[v] ; poids faible : les 16
+        ;     octets de spr_t, 16 fois.  Remplies par blocs : environ 3 ms
+        ;     (20 ms octet par octet), musique arrêtée pendant ce temps.
         ld hl,SMP_LUT_HI
-spr_lut:
-        ld a,l                  ; 4 bits du haut
-        rrca
-        rrca
-        rrca
-        rrca
-        and #0F
-        call spr_t_get
+        ld de,spr_t
+spr_hi:
+        ld a,(de)               ; A = spr_t[v], v = 4 bits du haut
+        inc de
+        ld b,16
+spr_hi16:
         ld (hl),a
-        ld a,l                  ; 4 bits du bas
-        and #0F
-        call spr_t_get
-        inc h                   ; table du poids faible : 256 octets plus loin
-        ld (hl),a
-        dec h
         inc l
-        jr nz,spr_lut
+        djnz spr_hi16
+        jr nz,spr_hi            ; (L revient à 0 après 256 octets)
+        ld hl,spr_t             ; poids faible : spr_t,
+        ld de,SMP_LUT_LO
+        ld bc,16
+        ldir
+        ld hl,SMP_LUT_LO        ; puis 15 fois de plus (copie qui se
+        ld bc,240               ; recouvre : le motif se répète)
+        ldir
 
         ; --- décimation : bits 0-2 des réglages
         ld a,(ix+SMPF_SET)
@@ -443,17 +488,6 @@ spr_mix_done:
         or (hl)
         ld (smp_v_mixplay),a
         scf                     ; Carry = 1 : on peut jouer
-        ret
-
-; A = spr_t[A]  (HL préservé)
-spr_t_get:
-        push hl
-        ld e,a
-        ld d,0
-        ld hl,spr_t
-        add hl,de
-        ld a,(hl)
-        pop hl
         ret
 
 ; HL = nombre de NOP à attendre (au moins 4) -> A = K = HL / 4, C = R = reste.

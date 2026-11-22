@@ -297,6 +297,7 @@ Every cell of a pattern can carry an **effect**, written in hexadecimal as in tr
 - **To set an effect**: on the PATTERN panel, put the cursor on the cell, **TAB**, move to the FX with **→** (first digit, then second), and change it with **↑/↓**. The effect's name shows on the message line.
 - **In layered sound**, the step's effect applies to all the voices of the sound.
 - REPEAT, CUT and DELAY also work on the noise voice.
+- **CUT on a digidrum** shortens the sample: `52` on a KICK stops it after 2 frames (40 ms instead of 148). A sample stops all the music while it plays; cutting it loses fewer steps.
 - The effect only applies to the step's note: the piano and cell previews have no effect.
 
 The ARCADE song on the [demo disk](#-the-demo-disk) uses all 7 effects.

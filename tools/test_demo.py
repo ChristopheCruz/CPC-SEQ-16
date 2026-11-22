@@ -111,6 +111,20 @@ class DemoPlayTest(unittest.TestCase):
         self.assertTrue({0, 2}.issubset(played))          # puis la batterie
         self.assertEqual(cpc.file_errors, [])
 
+    def test_disk_panel_line_without_gap(self):
+        """Panneau DISQUE : « ENTER : DANS 1SONG » - la traduction, plus
+        courte, ne laisse pas de trou avant le nom de l'onglet."""
+        want = {"": "ARCADE.SNG  ENTER : DANS 1SONG", "-en": "ARCADE.SNG  ENTER: INTO 1SONG",
+                "-es": "ARCADE.SNG  ENTER: EN 1TEMA"}
+        for suffix, line in want.items():
+            dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
+            cpc = cpcsim.CPC.from_build(dsk)
+            cpc.boot()
+            cpc.use_disk(dsk)
+            cpc.frames(1, keys={cpcsim.KEY_DISK})
+            cpc.frames(2)
+            self.assertEqual(cpc.row(19).rstrip(), line, suffix)
+
 
 if __name__ == "__main__":
     unittest.main()

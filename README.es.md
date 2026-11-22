@@ -297,6 +297,7 @@ Cada casilla de un patrón puede llevar un **efecto**, escrito en hexadecimal co
 - **Para poner un efecto**: en el panel PATRON, pon el cursor en la casilla, **TAB**, ve al FX con **→** (la primera cifra y luego la segunda) y cámbialo con **↑/↓**. El nombre del efecto aparece en la línea de mensajes.
 - **Con sonido de 4 voces**, el efecto del paso vale para todas las voces del sonido.
 - REPITE, CORTA y DEMORA también funcionan en la voz de ruido.
+- **CORTA en un digidrum** acorta el sample: `52` en un KICK lo para después de 2 imágenes (40 ms en vez de 148). Un sample para toda la música mientras suena; cortarlo hace perder menos pasos.
 - El efecto solo vale para la nota del paso: el piano y la escucha de una casilla no lo llevan.
 
 El tema ARCADE del [disco de demostración](#-el-disco-de-demostración) usa los 7 efectos.

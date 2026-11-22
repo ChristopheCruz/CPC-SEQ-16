@@ -2540,7 +2540,8 @@ dg_pending: db 0                ; 1 = un digidrum attend d'être joué
 dg_smp:     db 0                ;   son numéro de sample,
 dg_chan:    db 0                ;   la voie de l'AY,
 dg_semi:    db 0                ;   la hauteur (demi-tons),
-dg_att:     db 0                ;   l'atténuation
+dg_att:     db 0                ;   l'atténuation,
+dg_fx:      db 0                ;   l'effet du pas (COUPE : dg_cut)
 dg_debt:    db 0                ; images de séquenceur à rattraper
 
 ; La routine de lecture des samples est en dernier : la source de sa partie
