@@ -51,11 +51,16 @@ pat_name_ptr:
 
 ; --- Lecture du morceau ------------------------------------------------------------
 ; Fin d'une mesure, en mode morceau (appelé par seq_frame) : on rejoue le
-; motif, ou on passe à la position suivante (la boucle à la fin)
+; motif, ou on passe à la position suivante (la boucle à la fin).
+; Panneau MOTIF : le motif affiché boucle, le morceau n'avance pas (on
+; change de motif soi-même, CTRL flèches) ; il reprend au retour dans SONG.
 song_bar:
         ld a,(song_live)
         or a
         ret z
+        ld a,(screen)
+        or a
+        ret z                   ; MOTIF : le motif en cours boucle
         ld hl,song_rep
         dec (hl)
         ret nz                  ; encore une fois
@@ -125,6 +130,9 @@ sg_same:
 ; changement de mesure, song_goto n'a plus qu'à le recopier dans pat_work.
 song_prefetch:
         ld a,(song_live)
+        or a
+        ret z
+        ld a,(screen)           ; MOTIF : le morceau n'avance pas
         or a
         ret z
         ld a,(song_rep)

@@ -915,7 +915,6 @@ ph_digit:
         jp TXT_OUTPUT
 
 txt_muet: db "MUET ",0
-txt_sep:  db "VOIX SEPAREES",0
 txt_comp: db "SON COMPOSE  ",0
 txt_play: db "LECTURE",0
 txt_stop: db "ARRET  ",0
@@ -2008,6 +2007,10 @@ screen_text:
         db 25,2,2,0, "BPM:",0
         db 1,HEAD_ROW,2,0, "PAS",0
         db 1,19,2,0, "PINCEAU",0
+        db 1,20,3,0, "f8",0
+        db 4,20,2,0, "SAUVER",0
+        db 11,20,3,0,"f9",0
+        db 14,20,2,0,"CHARGER",0
         db 1,21,3,0, 242,243,240,241,0
         db 6,21,2,0, "PAS/VOIX",0
         db 15,21,3,0,"ENTER",0

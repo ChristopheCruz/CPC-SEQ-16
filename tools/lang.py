@@ -43,7 +43,7 @@ TEXTS = {
     "ARRET": ("STOP", "PARAR"),
     "OCTAVE": ("OCTAVE", "OCTAVA"),
     "MOTIF": ("PATT.", "PATR."),
-    "VOIX SEPAREES": ("SPLIT VOICES", "VOCES SUELTAS"),
+    "SAUVER": ("SAVE", "GRABAR"),
     "SON COMPOSE  ": ("LAYERED SOUND", "SONIDO 4 VOC."),
     "LECTURE": ("PLAY", "TOCAR"),
     "ARRET  ": ("STOP", "PARAR"),

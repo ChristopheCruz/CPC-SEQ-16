@@ -228,15 +228,46 @@ class SongPanelTest(unittest.TestCase):
         self.assertEqual(cpc.bank_peek(4, 0x4000 + FIXED, PAT), edited)
         self.assertEqual(self.var("pat_dirty"), 0)
 
-    def test_motif_panel_follows(self):
+    def test_motif_panel_loops(self):
+        """Panneau MOTIF : le motif joué boucle, le morceau n'avance pas ; il
+        reprend au retour dans SONG."""
         cpc = self.cpc
         self.set_song([(0, 1, 0), (1, 1, 0)])
         self.key(KEY_SONG)
         self.key(SPACE)
         self.key(KEY_MOTIF)
+        trig = cpc.addr("seq_trigger")
+        bars = []
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == trig and cpc.peek(cpc.addr("seq_step"))[0] == 0:
+                bars.append(self.var("cur_pat"))
+            orig()
+        cpc.step = step
+        for _ in range(400):                                  # plus de 3 mesures
+            cpc.frames(1)
+        cpc.step = orig
+        self.assertGreaterEqual(len(bars), 3)
+        self.assertEqual(set(bars), {0})                      # toujours le motif 1
+        self.assertEqual(self.var("song_pos"), 0)
+        self.assertEqual(self.var("seq_playing"), 1)
+        self.assertIn("MOTIF:01", cpc.row(2))
+        self.key(KEY_SONG)                                    # SONG : ça repart
         self.play_until_pos(1)
-        cpc.frames(2)
-        self.assertIn("MOTIF:02", cpc.row(2))                 # l'écran suit le motif joué
+        self.assertEqual(self.var("cur_pat"), 1)
+
+    def test_motif_name_in_status(self):
+        """Ligne d'état : le numéro et le nom du motif (celui de son .PAT)."""
+        cpc = self.cpc
+        self.key(KEY_SONG)
+        code = cpc.addr("pat_name_ptr")                       # ld l,a / ld h,0 / 3 x add
+        self.assertEqual(cpc.peek(code + 6)[0], 0x11)         # hl,hl / ld de,pat_names
+        cpc.poke(cpc.word(code + 7), b"NUINTRO ")             # le nom du motif 1
+        self.key(KEY_MOTIF)
+        self.assertIn("MOTIF:01 NUINTRO ", cpc.row(2))
+        self.assertNotIn("VOIX SEPAREES", cpc.row(2))
+        self.assertIn("f8 SAUVER f9 CHARGER", cpc.row(20))
 
     def test_transposition(self):
         cpc = self.cpc
