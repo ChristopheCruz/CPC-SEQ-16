@@ -141,6 +141,27 @@ class SngV4Test(unittest.TestCase):
         self.assertIsNone(cpc.cas_in)             # fichier abandonné
         self.assertEqual(cpc.file_errors, [])
 
+    def test_byte_1A_does_not_stop_loading(self):
+        """AMSDOS signale chaque octet #1A comme une « fin douce » (Carry = 0,
+        A = #1A), même dans un fichier binaire.  Sur le CPC, NUIT.SNG (un #1A
+        au 861e octet) donnait « ERREUR DISQUE ... 1A035D »."""
+        import amsdsk
+        disk = os.path.join(HERE, "..", "build", "seq16-songs.dsk")
+        for name, at in (("NUIT.SNG", 861), ("ROBOT.SNG", None)):
+            cpc = test_player.PlayerTest._clone(self.base)
+            self.cpc = cpc
+            data = amsdsk.read_file(disk, name)
+            self.assertIn(0x1A, data)
+            if at is not None:
+                self.assertEqual(data.index(0x1A), at)
+            self.make_disk({name: data}, keep=("SEQ16.BIN",))
+            self.key(KEY_SONG)
+            cpc.chars = [13]
+            self.key(KEY_LOAD)
+            self.assertIn("CHARGE", cpc.row(MSG), name)
+            self.assertNotIn("ERREUR", cpc.row(MSG), name)
+            self.assertEqual(cpc.file_errors, [])
+
     def test_open_error_shows_code(self):
         cpc = self.cpc
         cpc.poke(cpc.addr("smp_count"), [0])

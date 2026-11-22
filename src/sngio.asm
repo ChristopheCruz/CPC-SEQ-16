@@ -350,7 +350,7 @@ cas_get:
         push bc
         push de
         push hl
-        call CAS_IN_CHAR
+        call cas_in_byte
         pop hl
         pop de
         pop bc
@@ -361,6 +361,22 @@ cas_get:
         ld (sio_count),hl
         pop hl
         scf
+        ret
+
+; Comme CAS_IN_CHAR (A = octet suivant ; garde BC, DE et HL), mais l'octet
+; #1A n'arrête pas la lecture.  AMSDOS le signale comme une « fin de fichier
+; douce » (Carry = 0, A = #1A), même dans un fichier binaire : c'est la fin
+; d'un texte, pas celle du fichier, et la lecture peut continuer.  Seule la
+; « fin dure » (A = #0F) et les erreurs de disque arrêtent.
+cas_in_byte:
+        call CAS_IN_CHAR
+        ret c
+        cp #1A
+        jr z,cib_soft
+        or a                    ; Carry = 0 : vraie fin, ou erreur
+        ret
+cib_soft:
+        scf                     ; l'octet #1A, comme un autre
         ret
 
 sio_total: dw 0
