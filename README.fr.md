@@ -62,9 +62,9 @@ La disquette est livrée avec **13 banques d'instruments (416 sons), 9 banques d
 
 ## 💾 Essayer tout de suite
 
-1. Télécharge **[`seq16-fr.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/), sous le nom `seq16.dsk`).
+1. Télécharge **[`seq16-fr.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
    - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes fichiers, mêmes touches : seuls les textes de l'écran changent.
-   - **Démonstration :** `build/seq16-demo.dsk` (et `-en`, `-es`) : le programme et deux morceaux complets, voir [La disquette de démonstration](#-la-disquette-de-démonstration).
+   - **Démonstration :** `build/seq16-demo-fr.dsk` (et `-en`, `-es`) : le programme et deux morceaux complets, voir [La disquette de démonstration](#-la-disquette-de-démonstration).
    - **Banques seules :** `seq16-inst.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme.
    - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs en son composé) et `seq16-motifs-poly.dsk` (63 motifs en voix séparées). Voir [Les motifs d'usine](#-les-motifs-dusine).
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
@@ -81,7 +81,7 @@ SEQ-16 demande un **CPC 6128** (il range les motifs dans la mémoire supplément
 
 ## 🎮 La disquette de démonstration
 
-`seq16-demo.dsk` contient le programme, deux morceaux, leurs 10 motifs, leurs instruments et leurs samples. Sur le panneau **f1 SONG**, **f9** choisit un morceau, **ESPACE** le joue.
+`seq16-demo-fr.dsk` contient le programme, deux morceaux, leurs 10 motifs, leurs instruments et leurs samples. Sur le panneau **f1 SONG**, **f9** choisit un morceau, **ESPACE** le joue.
 
 | Morceau | Style | Ce qu'il montre |
 |---|---|---|
@@ -470,7 +470,7 @@ python tools\wav2smp.py boucle.wav --slice 8 --rate 6000 -o samples\BOUCLE.SMP
 rem très sale : saturé, 2 bits, un échantillon sur 3
 python tools\wav2smp.py voix.wav --drive 4 --bits 2 --decim 3 -o samples\SALE.SMP
 
-rem ajouter la banque à la disquette build\seq16.dsk
+rem ajouter la banque à la disquette build\seq16-fr.dsk
 python tools\wav2smp.py son.wav -o samples\SON.SMP --dsk
 
 rem voir le contenu d'une banque
@@ -487,7 +487,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 | `--decim` | 1, 2, 3, 4, 6 ou 8 : un échantillon sur N est maintenu N fois. Ce réglage est stocké, il ne détruit rien |
 | `--slice N` | découpe chaque WAV en N tranches égales |
 | `--names` | noms des samples (6 caractères), séparés par des virgules |
-| `--dsk` | ajoute la banque à `build/seq16.dsk` (ou à la disquette indiquée) |
+| `--dsk` | ajoute la banque à `build/seq16-fr.dsk` (ou à la disquette indiquée) |
 | `--trim` | retire les silences au début et à la fin de chaque son |
 | `-v` | affiche la taille et la durée, et prévient au-delà de 16 Ko |
 
@@ -531,7 +531,7 @@ Sous Windows :
 2. Si tu modifies les instruments et motifs d'usine dans `tools/gen_factory.py`, lance d'abord `python tools\gen_factory.py`.
 3. Si tu modifies les sons de batterie (`tools/gen_drums.py`) ou les courbes (`tools/wav2smp.py`), lance `python tools\gen_drums.py` ou `python tools\gen_smp_tables.py`.
 4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
-5. Lance `build.bat`. Il assemble `src/main.asm`, fabrique `build\seq16.dsk` avec toutes les banques, puis les versions anglaise et espagnole, les disquettes de banques et de motifs, les morceaux de test (`build\seq16-songs.dsk`) et la démonstration (`build\seq16-demo.dsk`).
+5. Lance `build.bat`. Il assemble `src/main.asm`, fabrique `build\seq16-fr.dsk` avec toutes les banques, puis les versions anglaise et espagnole, les disquettes de banques et de motifs, les morceaux de test (`build\seq16-songs.dsk`) et la démonstration (`build\seq16-demo-fr.dsk`).
 6. Pour refaire les captures d'écran (README et site) : `python tools\snapshots.py` ; pour la vidéo : `python tools\make_video.py fr` (il faut ffmpeg et numpy).
 
 **Les traductions** sont dans [`tools/lang.py`](tools/lang.py) : le source reste en français, et le script en fait une copie par langue où chaque texte affiché est remplacé. Une traduction n'est jamais plus longue que le français (elle est complétée par des espaces) : les trois programmes ont la même taille et les mêmes adresses. Si tu ajoutes un texte au source, ajoute sa traduction ; `python tools/lang.py --check` signale les textes oubliés ou trop longs.

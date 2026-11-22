@@ -26,7 +26,7 @@ def read(path):
 
 
 def dsk(code):
-    return os.path.join(ROOT, "build", "seq16%s.dsk" % ("" if code == "fr" else "-" + code))
+    return os.path.join(ROOT, "build", "seq16-%s.dsk" % code)
 
 
 class TranslationTest(unittest.TestCase):

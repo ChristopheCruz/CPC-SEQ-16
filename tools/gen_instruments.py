@@ -7,7 +7,7 @@ pouvoir les recharger après avoir chargé une autre banque.
 
 Lancement :
     python tools/gen_instruments.py            -> instruments/*.INS
-    python tools/gen_instruments.py --dsk      -> et ajout à build/seq16.dsk
+    python tools/gen_instruments.py --dsk      -> et ajout à build/seq16-fr.dsk
     python tools/gen_instruments.py --list     -> liste des sons
 
 Sur le CPC : écran f3, touche O pour charger une banque entière ; écran f2,
@@ -477,8 +477,8 @@ def all_banks():
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--dsk", nargs="?", const=os.path.join(ROOT, "build", "seq16.dsk"),
-                    help="ajoute aussi les banques à cette disquette (build/seq16.dsk par défaut)")
+    ap.add_argument("--dsk", nargs="?", const=os.path.join(ROOT, "build", "seq16-fr.dsk"),
+                    help="ajoute aussi les banques à cette disquette (build/seq16-fr.dsk par défaut)")
     ap.add_argument("--list", action="store_true", help="affiche les sons de chaque banque")
     a = ap.parse_args(argv)
     os.makedirs(OUT_DIR, exist_ok=True)

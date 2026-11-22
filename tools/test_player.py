@@ -1,6 +1,6 @@
 """Tests de la lecture des samples sur le vrai binaire, au simulateur Z80.
 
-Le binaire testé est celui de build/seq16.dsk (et ses étiquettes dans
+Le binaire testé est celui de build/seq16-fr.dsk (et ses étiquettes dans
 build/seq16.sym) : lancer build.bat avant, après toute modification de src/.
 
 Nécessite le paquet z80 :  pip install z80
@@ -114,7 +114,7 @@ class PlayerTest(unittest.TestCase):
         src = cpc.addr("smp_blk_src") if "SMP_BLK_SRC" in cpc.sym else None
         self.assertIsNotNone(src)
         n = cpc.addr("smp_blk_end") - cpc.addr("smp_play")
-        binary = cpcsim.amsdsk.read_file(os.path.join(ROOT, "build", "seq16.dsk"), "SEQ16.BIN")
+        binary = cpcsim.amsdsk.read_file(os.path.join(ROOT, "build", "seq16-fr.dsk"), "SEQ16.BIN")
         load = cpc.addr("start")
         self.assertEqual(binary[src - load:src - load + n],
                          cpc.peek(cpc.addr("smp_play"), n))
@@ -319,7 +319,7 @@ class PlayerTest(unittest.TestCase):
         d = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, d)
         path = os.path.join(d, "t.dsk")
-        shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), path)
+        shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), path)
         if keep is not None:
             for name in amsdsk.list_files(path):
                 if name not in keep:

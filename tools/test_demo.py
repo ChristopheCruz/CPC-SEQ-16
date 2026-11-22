@@ -69,7 +69,7 @@ class DemoFilesTest(unittest.TestCase):
         want = {"SEQ16.BIN", "ARCADE.SNG", "ARCADE.INS", "STUDIO.SNG", "STUDIO.INS",
                 "STUDIO.SMP", "DRUMS.SMP"}
         want |= {p["name"] + ".PAT" for s in gen_demo.DEMO for p in s["patterns"]}
-        for suffix in ("", "-en", "-es"):
+        for suffix in ("-fr", "-en", "-es"):
             dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
             self.assertEqual(set(amsdsk.list_files(dsk)), want, suffix)
             prog = os.path.join(ROOT, "build", "seq16%s.dsk" % suffix)
@@ -83,7 +83,7 @@ class DemoPlayTest(unittest.TestCase):
         d = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, d)
         path = os.path.join(d, "t.dsk")
-        shutil.copy(os.path.join(ROOT, "build", "seq16-demo.dsk"), path)
+        shutil.copy(os.path.join(ROOT, "build", "seq16-demo-fr.dsk"), path)
         cpc = cpcsim.CPC.from_build(path)
         cpc.boot()
         cpc.use_disk(path)
@@ -114,7 +114,7 @@ class DemoPlayTest(unittest.TestCase):
     def test_disk_panel_line_without_gap(self):
         """Panneau DISQUE : « ENTER : DANS 1SONG » - la traduction, plus
         courte, ne laisse pas de trou avant le nom de l'onglet."""
-        want = {"": "ARCADE.SNG  ENTER : DANS 1SONG", "-en": "ARCADE.SNG  ENTER: INTO 1SONG",
+        want = {"-fr": "ARCADE.SNG  ENTER : DANS 1SONG", "-en": "ARCADE.SNG  ENTER: INTO 1SONG",
                 "-es": "ARCADE.SNG  ENTER: EN 1TEMA"}
         for suffix, line in want.items():
             dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)

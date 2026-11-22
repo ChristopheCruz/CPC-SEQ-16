@@ -4,7 +4,7 @@ Le source (src/*.asm) est écrit en français. Ce script en fait une copie
 par langue dans build/lang/<code>/, où chaque texte affiché est remplacé
 par sa traduction, puis l'assemble et fabrique la disquette de la langue :
 
-    build/seq16.dsk       français (build.bat)
+    build/seq16-fr.dsk    français (build.bat)
     build/seq16-en.dsk    anglais
     build/seq16-es.dsk    espagnol
 
@@ -295,7 +295,7 @@ def make_source(code):
     for path in glob.glob(os.path.join(ROOT, "src", "*.asm")):
         with open(path, encoding="latin-1") as fh:
             lines = [translate_line(line, idx) for line in fh]
-        text = "".join(lines).replace("'build/seq16.dsk'", f"'build/seq16-{code}.dsk'")
+        text = "".join(lines).replace("'build/seq16-fr.dsk'", f"'build/seq16-{code}.dsk'")
         with open(os.path.join(out, os.path.basename(path)), "w", encoding="latin-1") as fh:
             fh.write(text)
     return os.path.join(out, "main.asm")

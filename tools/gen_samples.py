@@ -262,10 +262,10 @@ def main():
         built.append((name + ".SMP", raw))
     if "--dsk" in sys.argv:
         import amsdsk
-        dsk = os.path.join(ROOT, "..", "build", "seq16.dsk")
+        dsk = os.path.join(ROOT, "..", "build", "seq16-fr.dsk")
         for fname, raw in built:
             amsdsk.add_file(dsk, fname, raw)
-        print(f"{len(built)} banques ajoutées à build/seq16.dsk")
+        print(f"{len(built)} banques ajoutées à build/seq16-fr.dsk")
 
 
 if __name__ == "__main__":

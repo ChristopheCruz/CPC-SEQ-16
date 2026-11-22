@@ -241,7 +241,7 @@ SCENES = [
 def snapshots(lang, font):
     """Les captures du README (snapshots/, x4) et les images du site
     (docs/assets/img/<langue>/, x2)."""
-    suffix = "" if lang == "fr" else "-" + lang
+    suffix = "-" + lang
     dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
     out = os.path.join(ROOT, "snapshots") if lang == "fr" else os.path.join(ROOT, "snapshots", lang)
     site = os.path.join(ROOT, "docs", "assets", "img", lang)

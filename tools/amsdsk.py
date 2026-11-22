@@ -2,7 +2,7 @@
 
 Rôle
 ----
-RASM fabrique build/seq16.dsk avec le programme SEQ16.BIN. Ce module ajoute
+RASM fabrique build/seq16-fr.dsk avec le programme SEQ16.BIN. Ce module ajoute
 d'autres fichiers sur la même disquette (banques .SMP et .INS).
 
 Depuis la fusion avec CPC DISK, le format est géré par la bibliothèque de
@@ -12,8 +12,8 @@ l'interface qu'utilisent build.bat, les générateurs et les tests.
 
 Mode d'emploi
 -------------
-    python tools/amsdsk.py build/seq16.dsk samples/DRUMS.SMP     # ajoute
-    python tools/amsdsk.py build/seq16.dsk --list                 # catalogue
+    python tools/amsdsk.py build/seq16-fr.dsk samples/DRUMS.SMP     # ajoute
+    python tools/amsdsk.py build/seq16-fr.dsk --list                 # catalogue
 
 Depuis Python :  add_file(chemin_dsk, "DRUMS.SMP", données)
                  read_file(chemin_dsk, "DRUMS.SMP") -> données (sans en-tête)

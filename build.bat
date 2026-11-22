@@ -1,6 +1,6 @@
 @echo off
 rem ---------------------------------------------------------------
-rem  SEQ-16 : assemble le programme et fabrique build\seq16.dsk
+rem  SEQ-16 : assemble le programme et fabrique build\seq16-fr.dsk
 rem  Il faut tools\rasm.exe (voir README.fr.md).
 rem ---------------------------------------------------------------
 if not exist tools\rasm.exe (
@@ -8,7 +8,7 @@ if not exist tools\rasm.exe (
   exit /b 1
 )
 if not exist build mkdir build
-if exist build\seq16.dsk del build\seq16.dsk
+if exist build\seq16-fr.dsk del build\seq16-fr.dsk
 rem -s : fichier des etiquettes build\seq16.sym (pour les tests)
 tools\rasm.exe src\main.asm -o build\seq16 -s
 if errorlevel 1 (
@@ -18,9 +18,9 @@ if errorlevel 1 (
 )
 rem Ajoute les banques de samples (.SMP) et d'instruments (.INS)
 rem (il faut Python 3)
-python tools\amsdsk.py build\seq16.dsk samples\DRUMS.SMP samples\VOIX.SMP samples\BATTERI2.SMP samples\PERCUS.SMP samples\EFFETS.SMP samples\BASSES.SMP samples\NOTES.SMP samples\CHIFFRES.SMP samples\MOTS.SMP
+python tools\amsdsk.py build\seq16-fr.dsk samples\DRUMS.SMP samples\VOIX.SMP samples\BATTERI2.SMP samples\PERCUS.SMP samples\EFFETS.SMP samples\BASSES.SMP samples\NOTES.SMP samples\CHIFFRES.SMP samples\MOTS.SMP
 if errorlevel 1 goto pas_python
-python tools\amsdsk.py build\seq16.dsk instruments\USINE.INS instruments\BATTERIE.INS instruments\BASSES.INS instruments\LEADS.INS instruments\NAPPES.INS instruments\ARPEGES.INS instruments\EFFETS.INS instruments\BUZZER.INS instruments\CLAVIERS.INS instruments\CHIPTUNE.INS instruments\PERCUS.INS instruments\GLISSES.INS instruments\BRUITS.INS
+python tools\amsdsk.py build\seq16-fr.dsk instruments\USINE.INS instruments\BATTERIE.INS instruments\BASSES.INS instruments\LEADS.INS instruments\NAPPES.INS instruments\ARPEGES.INS instruments\EFFETS.INS instruments\BUZZER.INS instruments\CLAVIERS.INS instruments\CHIPTUNE.INS instruments\PERCUS.INS instruments\GLISSES.INS instruments\BRUITS.INS
 if errorlevel 1 goto pas_python
 rem Versions anglaise et espagnole : build\seq16-en.dsk, build\seq16-es.dsk
 python tools\lang.py en es --rasm tools\rasm.exe
@@ -38,15 +38,15 @@ if errorlevel 1 goto pas_python
 rem Morceaux de test (.SNG, .INS, .PAT) : build\seq16-songs.dsk
 python tools\gen_songs.py
 if errorlevel 1 goto pas_python
-rem Disquette de demonstration (ARCADE, STUDIO) : build\seq16-demo.dsk (+ -en, -es)
+rem Disquette de demonstration (ARCADE, STUDIO) : build\seq16-demo-fr.dsk (+ -en, -es)
 python tools\gen_demo.py
 if errorlevel 1 goto pas_python
 echo.
-echo OK : build\seq16.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
+echo OK : build\seq16-fr.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
 echo      build\seq16-inst.dsk et seq16-samples.dsk : les banques seules.
 echo      build\seq16-motifs-mono.dsk et seq16-motifs-poly.dsk : les motifs (f9).
 echo      build\seq16-songs.dsk : le programme et 5 morceaux de test.
-echo      build\seq16-demo.dsk : la demonstration (2 morceaux, motifs, instruments, samples).
+echo      build\seq16-demo-fr.dsk : la demonstration (2 morceaux, motifs, instruments, samples).
 echo Sur le CPC : RUN"SEQ16
 exit /b 0
 :pas_python

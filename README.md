@@ -63,8 +63,8 @@ The disk comes with **13 instrument banks (416 sounds), 9 sample banks, 125 fact
 ## 💾 Try it now
 
 1. Download **[`seq16-en.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** from the latest release (a copy is also in [`build/`](build/)).
-   - **Version française :** `seq16-fr.dsk` (`build/seq16.dsk`). **Versión en español:** `seq16-es.dsk`. Same program, same files, same keys: only the screen texts change.
-   - **Demo:** `build/seq16-demo-en.dsk` (also `seq16-demo.dsk` in French and `-es`): the program and two complete songs, see [The demo disk](#-the-demo-disk).
+   - **Version française :** `seq16-fr.dsk` (`build/seq16-fr.dsk`). **Versión en español:** `seq16-es.dsk`. Same program, same files, same keys: only the screen texts change.
+   - **Demo:** `build/seq16-demo-en.dsk` (also `seq16-demo-fr.dsk` in French and `-es`): the program and two complete songs, see [The demo disk](#-the-demo-disk).
    - **Banks only:** `seq16-inst.dsk` (13 instrument banks `.INS`) and `seq16-samples.dsk` (9 sample banks `.SMP`), data disks without the program.
    - **Factory patterns:** `seq16-motifs-mono.dsk` (62 layered-sound patterns) and `seq16-motifs-poly.dsk` (63 split-voice patterns). See [Factory patterns](#-factory-patterns).
 2. Put the disk in an emulator (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) set to **CPC 6128**.
@@ -470,7 +470,7 @@ python tools\wav2smp.py loop.wav --slice 8 --rate 6000 -o samples\LOOP.SMP
 rem very dirty: saturated, 2 bits, one sample in 3
 python tools\wav2smp.py voice.wav --drive 4 --bits 2 --decim 3 -o samples\DIRTY.SMP
 
-rem add the bank to the build\seq16.dsk disk
+rem add the bank to the build\seq16-fr.dsk disk
 python tools\wav2smp.py sound.wav -o samples\SOUND.SMP --dsk
 
 rem show the content of a bank
@@ -487,7 +487,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 | `--decim` | 1, 2, 3, 4, 6 or 8: one sample in N is held N times. Stored as a setting, nothing is destroyed |
 | `--slice N` | slices each WAV into N equal parts |
 | `--names` | sample names (6 characters), comma-separated |
-| `--dsk` | adds the bank to `build/seq16.dsk` (or to the given disk) |
+| `--dsk` | adds the bank to `build/seq16-fr.dsk` (or to the given disk) |
 | `--trim` | removes the silences at the start and end of each sound |
 | `-v` | shows the size and length, and warns above 16 KB |
 
@@ -531,7 +531,7 @@ On Windows:
 2. If you change the factory instruments and patterns in `tools/gen_factory.py`, first run `python tools\gen_factory.py`.
 3. If you change the drum sounds (`tools/gen_drums.py`) or the curves (`tools/wav2smp.py`), run `python tools\gen_drums.py` or `python tools\gen_smp_tables.py`.
 4. If you change the banks: `python tools\gen_instruments.py` (`.INS` banks) and `python tools\gen_samples.py` (`.SMP` banks; espeak is needed for the voices).
-5. Run `build.bat`. It assembles `src/main.asm`, builds `build\seq16.dsk` with all the banks, then the English and Spanish versions, the bank and pattern disks, the test songs (`build\seq16-songs.dsk`) and the demo (`build\seq16-demo.dsk`).
+5. Run `build.bat`. It assembles `src/main.asm`, builds `build\seq16-fr.dsk` with all the banks, then the English and Spanish versions, the bank and pattern disks, the test songs (`build\seq16-songs.dsk`) and the demo (`build\seq16-demo-fr.dsk`).
 6. To redo the screenshots (READMEs and website): `python tools\snapshots.py`; for the video: `python tools\make_video.py en` (ffmpeg and numpy are needed).
 
 **The translations** are in [`tools/lang.py`](tools/lang.py): the source stays in French, and the script makes one copy per language where each displayed text is replaced. A translation is never longer than the French (it is padded with spaces): the three programs have the same size and the same addresses. If you add a text to the source, add its translation; `python tools/lang.py --check` reports missing or too-long texts.

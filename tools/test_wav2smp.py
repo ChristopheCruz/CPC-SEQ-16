@@ -248,7 +248,7 @@ class TestDsk(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         self.dsk = os.path.join(self.tmp, "t.dsk")
-        shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), self.dsk)
+        shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), self.dsk)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
@@ -296,7 +296,7 @@ class TestFactoryBank(unittest.TestCase):
         self.assertEqual(raw, committed)
 
     def test_dsk_contains_drums(self):
-        dsk = os.path.join(ROOT, "build", "seq16.dsk")
+        dsk = os.path.join(ROOT, "build", "seq16-fr.dsk")
         self.assertEqual(amsdsk.read_file(dsk, "DRUMS.SMP"),
                          open(os.path.join(ROOT, "samples", "DRUMS.SMP"), "rb").read())
 

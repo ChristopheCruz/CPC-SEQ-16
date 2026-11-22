@@ -4,7 +4,7 @@ Lancer :  python -m unittest tools.test_smp_gui
      ou :  python tools/test_smp_gui.py
 
 Les tests de l'interface sont sautés s'il n'y a pas d'écran (ou pas de Tk).
-La disquette build/seq16.dsk n'est jamais modifiée : on travaille sur une copie.
+La disquette build/seq16-fr.dsk n'est jamais modifiée : on travaille sur une copie.
 """
 import math
 import os
@@ -180,7 +180,7 @@ class TestModel(ModelBase):
         self.assertIn("16064", cm.exception.args[0].replace(" ", ""))
         self.assertFalse(os.path.exists(out))
         dsk = os.path.join(self.tmp, "t.dsk")
-        shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), dsk)
+        shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), dsk)
         before = read(dsk)
         with self.assertRaises(BankError):
             m.add_to_dsk(dsk, "TROP.SMP")
@@ -251,7 +251,7 @@ class TestModel(ModelBase):
 class TestDsk(ModelBase):
     def setUp(self):
         super().setUp()
-        self.real = os.path.join(ROOT, "build", "seq16.dsk")
+        self.real = os.path.join(ROOT, "build", "seq16-fr.dsk")
         self.dsk = os.path.join(self.tmp, "copie.dsk")
         shutil.copy(self.real, self.dsk)
         self.real_before = read(self.real)
@@ -262,7 +262,7 @@ class TestDsk(ModelBase):
         super().tearDown()
 
     def test_add_to_copy(self):
-        """Ajout puis remplacement sur une copie de build/seq16.dsk."""
+        """Ajout puis remplacement sur une copie de build/seq16-fr.dsk."""
         m = BankModel()
         m.add_wav(self.wav)
         name = smp_model.dsk_name("mes sons.smp")
