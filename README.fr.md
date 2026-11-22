@@ -74,6 +74,10 @@ La disquette est livrée avec **13 banques d'instruments (416 sons), 9 banques d
 RUN"SEQ16
 ```
 
+L'écran de chargement s'affiche pendant que le programme se charge (`RUN"SEQ16.BIN` le lance directement, sans écran).
+
+<p align="center"><img src="snapshots/ecran-chargement.png" alt="Écran de chargement de SEQ-16" width="640"></p>
+
 Le programme démarre sur le panneau **MOTIF**. **ESPACE** joue le motif de démonstration.
 Pour quitter, maintiens **ESC** une seconde : un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
 

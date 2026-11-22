@@ -203,7 +203,7 @@ def write_all():
         dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
         shutil.copy(src, dsk)
         for name in amsdsk.list_files(dsk):
-            if name != "SEQ16.BIN":
+            if name not in ("SEQ16", "SEQ16.SCR", "SEQ16.BIN"):
                 amsdsk.remove_file(dsk, name)
         for name, data in files:
             amsdsk.add_file(dsk, name, data)

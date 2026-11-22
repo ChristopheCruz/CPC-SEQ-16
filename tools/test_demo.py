@@ -66,7 +66,7 @@ class DemoFilesTest(unittest.TestCase):
 
     def test_demo_disks(self):
         import amsdsk
-        want = {"SEQ16.BIN", "ARCADE.SNG", "ARCADE.INS", "STUDIO.SNG", "STUDIO.INS",
+        want = {"SEQ16", "SEQ16.SCR", "SEQ16.BIN", "ARCADE.SNG", "ARCADE.INS", "STUDIO.SNG", "STUDIO.INS",
                 "STUDIO.SMP", "DRUMS.SMP"}
         want |= {p["name"] + ".PAT" for s in gen_demo.DEMO for p in s["patterns"]}
         for suffix in ("-fr", "-en", "-es"):

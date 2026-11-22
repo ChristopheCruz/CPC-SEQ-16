@@ -212,7 +212,7 @@ TEXTS = {
 # Textes à laisser tels quels : signatures de fichiers, extensions, noms de
 # fichiers, touches, unités, mots identiques dans les trois langues.
 KEEP = {
-    "SEQ16", "SQ16", "SQSM", ".SNG", ".INS", ".SMP", ".PAT", "DRUMS.SMP", "DRUMS   ",
+    "SEQ16", "SEQ16.SCR", "SEQ16.BIN", "SQ16", "SQSM", ".SNG", ".INS", ".SMP", ".PAT", "DRUMS.SMP", "DRUMS   ",
     "ABCN", "4321", "C-C#D-D#E-F-F#G-G#A-A#B-", "--------", "------",
     "INSTR.:", "INSTR.", "OCT:", "BPM:",
     "SHIFT ", "CTRL  ", "COPY", "RETURN", "DEL", "TAB", "CAPS", "PIANO",

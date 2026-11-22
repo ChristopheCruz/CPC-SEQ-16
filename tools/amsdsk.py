@@ -67,13 +67,14 @@ def _ouvrir(dsk_path):
         raise ValueError(str(exc))
 
 
-def add_file(dsk_path, name, data, load=0x0000):
-    """Ajoute (ou remplace) un fichier binaire AMSDOS dans l'image .dsk.
+def add_file(dsk_path, name, data, load=0x0000, exec_addr=0x0000):
+    """Ajoute (ou remplace) un fichier binaire AMSDOS dans l'image .dsk
+    (exec_addr : adresse où RUN" lance le fichier).
 
     Renvoie la taille écrite, en-tête compris."""
     disk, fs = _ouvrir(dsk_path)
     try:
-        fs.write_file(name, bytes(data), load_addr=load, exec_addr=0,
+        fs.write_file(name, bytes(data), load_addr=load, exec_addr=exec_addr,
                       mode="amsdos", overwrite=True)
     except CpcError as exc:
         raise ValueError(str(exc))
