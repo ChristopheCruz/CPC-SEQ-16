@@ -1,8 +1,8 @@
 # Plan de développement : SEQ-16 v1.0
 
 État : **validé le 22 novembre 2026** (section 9). Lots 1 (PR #16),
-2 (PR #17), 3 (PR #18), 4 (PR #20) et 5 (PR #21) faits ; morceaux de
-test (PR #19).
+2 (PR #17), 3 (PR #18), 4 (PR #20), 5 (PR #21) et 6 (PR #22) faits ;
+morceaux de test (PR #19).
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -280,6 +280,13 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
 6. **Motifs d'usine** en vraies doubles croches (charleston sur 16 pas,
    contretemps, syncopes), disquettes de motifs refaites, 2 ou 3 morceaux de
    démonstration.
+   **Fait (PR #22)** : une passe de `tools/gen_patterns.py` donne le grain
+   des doubles croches selon le style et le rôle de chaque voix (charleston
+   fantôme, basse rejouée, poussées et « tchik-tchik » des accords), en ne
+   gardant que ce qui passe les vérifications musicales.  Notes sur les pas
+   impairs : mono 26 % -> 37 %, poly 19 % -> 33 % ; seuls les deux motifs
+   de berceuse restent en croches.  Les morceaux de démonstration sont les
+   5 morceaux de test (PR #19, `build/seq16-songs.dsk`).
 7. **Langues** : textes anglais et espagnols.
 8. **Documentation** : mode d'emploi, site, captures, vidéos, README, puis
    la release v1.0 en anglais, français et espagnol.

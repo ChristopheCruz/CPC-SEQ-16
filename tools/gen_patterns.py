@@ -1058,6 +1058,106 @@ def check(p):
     return sorted(set(err), key=err.index)
 
 
+# --- doubles croches (lot 6) --------------------------------------------------------
+# Les motifs ci-dessus ont été écrits surtout en croches (80 % des notes sur
+# les pas pairs) : SEQ-16 sonnait comme un séquenceur de 8 pas.  Cette passe
+# leur donne le grain des doubles croches, selon le style et le rôle de
+# chaque voix, sans toucher à leur musique :
+#   - batterie (voix de bruit) : charleston fantôme sur les pas impairs
+#     libres pour les styles dansants ; ailleurs, une levée sur le dernier pas ;
+#   - basse : la note rejouée sur la double croche suivante (pas 3 et 11 ;
+#     7 et 15 aussi pour le funk, le disco, la house), plus doucement, à la
+#     place d'un silence ou d'un arrêt ;
+#   - son composé : la note ou l'accord rejoué de même (le « tchik-tchik »
+#     du ska et du reggae) ;
+#   - accords en son composé : une poussée, l'accord suivant joué une double
+#     croche plus tôt, plus doucement.
+# Chaque ajout n'est gardé que si le motif passe encore toutes les
+# vérifications (gamme, tessiture, frottements, notes tenues).
+HAT16 = {"techno", "house", "funk", "hip-hop", "trap", "deep house", "minimal techno",
+         "acid techno", "electro", "drum & bass", "liquid d&b", "breakbeat", "UK garage",
+         "disco", "italo disco", "synth-pop", "synthwave", "trance", "dub techno",
+         "lo-fi hip-hop", "house drums", "hip-hop drums", "electro drums", "samba drums",
+         "funk (digidrums)", "hip-hop (digidrums)", "house (digidrums)",
+         "breakbeat (digidrums)", "soul", "salsa", "reggaeton", "dubstep", "industrial",
+         "chiptune", "game jingle", "acid", "minimal", "groove", "drums", "drum fill"}
+BASS16 = {"funk", "disco", "italo disco", "house", "deep house", "funk (digidrums)",
+          "house (digidrums)", "soul", "UK garage"}
+CALM = {"ballad", "lullaby", "ambient", "waltz"}
+GHOST_HAT = (1, "HAT", 5)
+PICKUP = (12, "SNARE", 6)
+CHORD_SONS = (0, 1, 5, 6)
+
+
+def _ins_name(ev):
+    return ev[1] if isinstance(ev[1], str) else None
+
+
+def _try(p, lane, step, ev):
+    """Pose ev au pas step de la voix lane ; le garde si le motif reste bon."""
+    old = p["lanes"][lane][step]
+    p["lanes"][lane][step] = ev
+    if check(p):
+        p["lanes"][lane][step] = old
+        return False
+    return True
+
+
+def sixteenths(p):
+    style, lanes = p["style"], p["lanes"]
+    eighth = "eighth" in p["desc"][0].lower()
+    added = 0
+    if p["mode"] == POLY:
+        drums = lanes[3]
+        if drums is not None and any(ev not in (None, OFF) for ev in drums):
+            if style in HAT16:
+                for s in range(1, 16, 2):
+                    prev = drums[s - 1]
+                    if drums[s] is None and (prev is None or prev == OFF or prev[1] in ("HAT", "CYMBAL")):
+                        added += _try(p, 3, s, GHOST_HAT)
+            elif style not in CALM and drums[15] is None:
+                added += _try(p, 3, 15, PICKUP)
+        if style not in CALM and not eighth:
+            steps = (3, 11, 7, 15) if style in BASS16 else (3, 11)
+            for v in range(3):
+                lane = lanes[v]
+                if lane is None:
+                    continue
+                for s in steps:
+                    prev = lane[s - 1]
+                    if lane[s] in (None, OFF) and prev not in (None, OFF) and _ins_name(prev) in BASSY:
+                        added += _try(p, v, s, (prev[0], prev[1], 9))
+    else:
+        lane = lanes[0]
+        for u in (15, 7):
+            nxt = lane[(u + 1) % 16]
+            if lane[u] in (None, OFF) and nxt not in (None, OFF) and nxt[1] in CHORD_SONS:
+                added += _try(p, 0, u, (nxt[0], nxt[1], 9))
+        if style not in CALM:               # la note (ou l'accord, en skank) rejouée
+            for s in (3, 11):
+                prev = lane[s - 1]
+                if lane[s] in (None, OFF) and prev not in (None, OFF):
+                    vol = 8 if prev[1] in CHORD_SONS else 9
+                    added += _try(p, 0, s, (prev[0], prev[1], vol))
+    return added
+
+
+def odd_ratio(pats):
+    odd = tot = 0
+    for p in pats:
+        for lane in p["lanes"]:
+            for s, ev in enumerate(lane or []):
+                if ev not in (None, OFF):
+                    tot += 1
+                    odd += s % 2
+    return odd / tot if tot else 0.0
+
+
+for _p in PATTERNS:
+    _p["lanes"] = [list(lane) if lane is not None else None for lane in _p["lanes"]]
+    _p["added16"] = sixteenths(_p)
+
+
 def note_name(n):
     return "%s%d" % (NAMES[n % 12], n // 12)
 
