@@ -101,14 +101,15 @@ class PanelsTest(unittest.TestCase):
         self.assertIn("FICHIER : MORCEAU1.PAT", seen[0])   # le nom proposé
         self.assertEqual(cpc.saved["GRV.PAT"], mine)
         self.assertIn("MOTIF SAUVE (.PAT)", cpc.row(MSG))
-        self.assertIn("PAS", cpc.row(5))                    # écran redessiné
+        self.assertIn("PAS  0 1 2 3", cpc.row(10))          # écran redessiné
 
     def test_f8_escape_cancels(self):
         cpc = self.cpc
         cpc.chars = [ord("Z"), ESC]
         self.key(KEY_SAVE)
         self.assertEqual(cpc.saved, {})
-        self.assertEqual(cpc.row(MSG).strip()[:5], "CTRL ")   # l'aide revient
+        self.assertEqual(cpc.row(MSG).strip(), "")            # rien à dire
+        self.assertTrue(cpc.row(24).startswith("SHIFT"))      # l'aide est intacte
 
     def test_f8_existing_file(self):
         cpc = self.cpc
@@ -161,7 +162,7 @@ class PanelsTest(unittest.TestCase):
         self.key(KEY_LOAD)
         self.assertEqual(self.pat_work(), pat)
         self.assertIn("MOTIF CHARGE", cpc.row(MSG))
-        self.assertIn("BPM:111", cpc.row(3))                # écran redessiné
+        self.assertIn("BPM:111", cpc.row(2))                # écran redessiné
 
     def test_f9_song(self):
         cpc = self.cpc

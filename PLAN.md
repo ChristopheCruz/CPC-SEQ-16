@@ -1,7 +1,7 @@
 # Plan de développement : SEQ-16 v1.0
 
-État : **validé le 22 novembre 2026** (section 9). Lot 1 fait (PR #16),
-lot 2 fait (PR #17).
+État : **validé le 22 novembre 2026** (section 9). Lots 1 (PR #16),
+2 (PR #17) et 3 (PR #18) faits.
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -239,6 +239,13 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
    L'écran DISQUE garde ses anciennes touches jusqu'au lot 5 ; le mode
    d'emploi, le site et les README seront mis à jour au lot 8.
 3. **MOTIF** : nouvelle grille, panneau de la note, pinceau, `TAB`.
+   **Fait (PR #18)** : `src/grid.asm`, une case par pas, traits de durée,
+   curseur en croix, pas joué allumé, panneau de la note (clavier de 2
+   octaves, NOTE, INS, VOL, FX), pinceau, `ENTER`, `COPY`, `TAB` (édition de
+   NOTE, INS, VOL), couches du son composé.  Changer de motif écrit 281
+   caractères au lieu de 499 ; un déplacement du curseur en écrit 71 (le
+   panneau suit le curseur).  Le champ FX s'affiche mais ne se modifie pas
+   encore (l'octet d'effet n'est pas utilisé par le lecteur).
 4. **SONG** : enchaînement, lecture du morceau, boucle, mixage déplacé.
 5. **Sauvegardes par panneau et DISQUE** : `.SNG` v3, chargement des
    anciens `.SNG`, catalogue filtré, effacer, renommer, sauver tout.

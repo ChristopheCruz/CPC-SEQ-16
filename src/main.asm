@@ -46,8 +46,8 @@ KEY_I     equ 35
 KEY_E     equ 58
 KEY_M     equ 38
 
-GRID_ROW  equ 6                 ; première ligne écran de la grille
-HEAD_ROW  equ 5                 ; ligne des numéros de pas
+GRID_ROW  equ 11                ; première voix de la grille (une ligne sur deux)
+HEAD_ROW  equ 10                ; ligne des numéros de pas
 
 start:
         jp boot                 ; les routines de bank.asm doivent être hors de
@@ -180,8 +180,7 @@ ds_disk:
 ds_sequencer:
         ld hl,screen_text
         call print_list
-        xor a
-        call TXT_SET_PAPER
+        call draw_box           ; cadre du panneau de la note (grid.asm)
         jp redraw_all
 ds_instrument:
         ld hl,ins_text
@@ -344,6 +343,10 @@ rc_ctrl:
         jp song_cmd             ; panneau Song (panels.asm)
 rc_seq:
         ld a,(rc_index)
+        cp 11
+        jp z,cmd_toggle         ; ENTER : allume / éteint la case (grid.asm)
+        cp 17
+        jp z,cmd_pick           ; COPY : la case devient le pinceau
         cp 10
         jp z,cmd_mute           ; f7 : muet / son
         ret nc                  ; les autres touches ne servent pas ici
@@ -356,7 +359,7 @@ rc_seq:
         dec a
         jp z,cmd_clr
         dec a
-        jp z,cmd_clr            ; TAB fait la même chose que CLR
+        jp z,cmd_edit           ; TAB : la grille <-> le panneau de la note
         dec a
         jp z,cmd_lock
         dec a
@@ -444,7 +447,7 @@ cmd_lock:
         ld (inst_lock),a
         jp show_inst
 
-; --- CLR ou TAB : arrêt de note, puis pas suivant ---
+; --- CLR : arrêt de note, puis pas suivant ---
 cmd_clr:
         call cursor_ptr
         ld (hl),NOTE_OFF
@@ -454,10 +457,13 @@ cmd_clr:
         ld (hl),#FF
         inc hl
         ld (hl),0
+        call draw_cursor_cell   ; la voix entière (trait de durée)
         jp cursor_next
 
 ; --- Flèches ---
 cmd_left:
+        call edit_plain         ; mode édition (TAB) : champ précédent
+        jp z,edit_left
         ld a,(mod_shift)
         or a
         jp nz,inst_prev
@@ -472,6 +478,8 @@ cmd_left:
         ld c,a
         jp move_cursor
 cmd_right:
+        call edit_plain
+        jp z,edit_right
         ld a,(mod_shift)
         or a
         jp nz,inst_next
@@ -487,6 +495,8 @@ cursor_next:                    ; pas suivant
         ld c,a
         jp move_cursor
 cmd_up:
+        call edit_plain         ; mode édition : valeur + 1
+        jp z,edit_up
         ld a,(mod_shift)
         or a
         jp nz,oct_up
@@ -499,6 +509,8 @@ cmd_up:
         dec a
         jr cmd_lane
 cmd_down:
+        call edit_plain
+        jp z,edit_down
         ld a,(mod_shift)
         or a
         jp nz,oct_down
@@ -632,29 +644,6 @@ cursor_ptr:
         ld (dg_s),a
         jp cell_ptr
 
-; Redessine la case sous le curseur
-draw_cursor_cell:
-        ld a,(cur_l)
-        ld (dg_l),a
-        ld a,(cur_s)
-        ld (dg_s),a
-        jp draw_cell_full
-
-; Déplace le curseur en voix B, pas C
-move_cursor:
-        ld a,(cur_l)            ; on retient l'ancienne case
-        ld (dg_l),a
-        ld a,(cur_s)
-        ld (dg_s),a
-        ld a,b
-        ld (cur_l),a
-        ld a,c
-        ld (cur_s),a
-        call draw_cell_full     ; l'ancienne case redevient normale
-        call draw_cursor_cell   ; la nouvelle est mise en évidence
-        call pickup_inst
-        ; continue dans preview_cell
-
 ; Fait entendre brièvement la note sous le curseur, quand on se déplace
 ; (pas pendant la lecture, ni juste après avoir posé une note au piano)
 preview_cell:
@@ -764,11 +753,14 @@ rp_write:
         ld (hl),#FF             ; volume de l'instrument
         inc hl
         ld (hl),0
+        ld a,(en_note)          ; la note devient le pinceau
+        call set_brush
+        call draw_cursor_cell
 
         xor a
         ld (aud_timer),a
         call audition           ; écoute immédiate
-        jp cursor_next
+        jp cursor_next          ; et le curseur avance d'un pas
 
 ; A = note correspondant à la touche du piano rp_index, à l'octave de saisie
 calc_note:
@@ -865,160 +857,14 @@ select_pattern:                 ; (la lecture continue, au même pas)
         ld hl,(seq_pattern)     ; en son composé, une seule voix
         ld a,(hl)
         or a
-        jr z,redraw_all
+        jp z,redraw_all
         xor a
         ld (cur_l),a
-        ; continue dans redraw_all
-
-redraw_all:
-        call hide_playhead
-        call show_pattern
-        call show_state
-        call show_speed
-        call show_octave
-        call show_inst
-        call draw_heads
-        call draw_grid
-        jp pickup_inst          ; l'instrument de saisie suit la note du curseur
+        jp redraw_all           ; (grid.asm)
 
 ; ----------------------------------------------------------------------------
 ; Affichage des informations
 ; ----------------------------------------------------------------------------
-show_pattern:                   ; numéro du motif et mode
-        ld hl,#0802             ; colonne 8, ligne 2
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(cur_pat)
-        inc a
-        call print_dec2
-        ld a,' '
-        call TXT_OUTPUT
-        ld hl,(seq_pattern)
-        ld a,(hl)
-        or a
-        ld hl,txt_sep
-        jp z,print_str
-        ld hl,txt_comp
-        jp print_str
-
-show_state:
-        ld a,(screen)
-        or a
-        ret nz                  ; rien à afficher sur l'écran Instrument
-        ld hl,#2102             ; colonne 33, ligne 2
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(seq_playing)
-        or a
-        ld hl,txt_stop
-        jp z,print_str
-        ld hl,txt_play
-        jp print_str
-
-show_speed:
-        ld hl,#0503             ; colonne 5, ligne 3
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(seq_bpm)
-        ; continue dans print_dec3
-
-; Affiche A (0 à 255) sur 3 chiffres
-print_dec3:
-        ld c,'0'
-pd3_hundreds:
-        cp 100
-        jr c,pd3_out
-        sub 100
-        inc c
-        jr pd3_hundreds
-pd3_out:
-        push af
-        ld a,c
-        call TXT_OUTPUT
-        pop af
-        jp print_dec2
-
-show_octave:
-        ld hl,#1403             ; séquenceur : colonne 20, ligne 3
-        ld a,(screen)
-        or a
-        jr z,so_pos
-        ld hl,#2502             ; instrument : colonne 37, ligne 2
-so_pos:
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(cur_oct)
-        add a,'0'
-        jp TXT_OUTPUT
-
-; Instrument de saisie (voix séparées) ou son composé de saisie.
-; Verrouillé, il s'affiche en orange inversé.
-show_inst:
-        ld hl,#1703             ; colonne 23, ligne 3
-        call TXT_SET_CURSOR
-        ld a,2
-        call TXT_SET_PEN
-        ld hl,(seq_pattern)
-        ld a,(hl)
-        or a
-        ld hl,txt_inst
-        jr z,si_label
-        ld hl,txt_son
-si_label:
-        call print_str
-        ld a,(inst_lock)
-        or a
-        jr z,si_free
-        ld a,3                  ; verrouillé : fond orange, texte bleu
-        call TXT_SET_PAPER
-        xor a
-        call TXT_SET_PEN
-        jr si_value
-si_free:
-        ld a,3
-        call TXT_SET_PEN
-si_value:
-        ld hl,(seq_pattern)
-        ld a,(hl)
-        or a
-        jr nz,si_son
-        ld a,(cur_inst)
-        inc a
-        call print_dec2
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,(cur_inst)         ; nom : 6 caractères par instrument
-        ld e,a
-        add a,a
-        add a,e
-        add a,a
-        ld e,a
-        ld d,0
-        ld hl,inst_names
-        add hl,de
-        ld b,6
-        call print_n
-        jr si_end
-si_son:
-        ld a,'S'
-        call TXT_OUTPUT
-        ld a,(cur_son)
-        add a,'1'
-        call TXT_OUTPUT
-si_end:
-        xor a
-        call TXT_SET_PAPER
-        ld hl,(seq_pattern)     ; en son composé, on efface la fin de la zone
-        ld a,(hl)
-        or a
-        ret z
-        ld hl,txt_pad
-        jp print_str
-
 ; Affiche le texte pointé par HL, terminé par 0
 print_str:
         ld a,(hl)
@@ -1062,6 +908,7 @@ ph_digit:
         add a,'0'
         jp TXT_OUTPUT
 
+txt_muet: db "MUET ",0
 txt_sep:  db "VOIX SEPAREES",0
 txt_comp: db "SON COMPOSE  ",0
 txt_play: db "LECTURE",0
@@ -1069,445 +916,6 @@ txt_stop: db "ARRET  ",0
 txt_inst: db "INSTR.:",0
 txt_son:  db "SON   :",0
 txt_pad:  db "       ",0
-
-; ----------------------------------------------------------------------------
-; Ligne des numéros de pas, et repère du pas en cours de lecture
-; ----------------------------------------------------------------------------
-draw_heads:                     ; les 16 numéros, sans repère
-        xor a
-dhs_loop:
-        ld (dh_step),a
-        xor a
-        ld (dh_hi),a
-        call draw_head
-        ld a,(dh_step)
-        inc a
-        cp 16
-        jr nz,dhs_loop
-        ret
-
-; Dessine le numéro du pas dh_step ; dh_hi = 1 pour le mettre en évidence
-draw_head:
-        ld a,(dh_step)
-        add a,a
-        add a,7                 ; les pas commencent colonne 7, 2 colonnes chacun
-        ld h,a
-        ld l,HEAD_ROW
-        call TXT_SET_CURSOR
-        ld a,(dh_hi)
-        or a
-        jr z,dh_normal
-        ld a,3                  ; repère : fond orange, texte bleu
-        call TXT_SET_PAPER
-        xor a
-        call TXT_SET_PEN
-        jr dh_print
-dh_normal:
-        xor a
-        call TXT_SET_PAPER
-        ld a,(dh_step)          ; un temps sur quatre en jaune, les autres en cyan
-        and 3
-        ld a,1
-        jr z,dh_pen
-        ld a,2
-dh_pen:
-        call TXT_SET_PEN
-dh_print:
-        ld a,(dh_step)
-        call print_hex1
-        ld a,' '
-        call TXT_OUTPUT
-        xor a
-        jp TXT_SET_PAPER
-
-show_playhead:
-        ld a,(seq_playing)
-        or a
-        jr z,hide_playhead
-        ld a,(seq_pos)
-        ld hl,shown_pos
-        cp (hl)
-        ret z                   ; le repère est déjà au bon endroit
-        call hide_playhead
-        ld a,(seq_pos)
-        ld (shown_pos),a
-        ld (dh_step),a
-        ld a,1
-        ld (dh_hi),a
-        jp draw_head
-
-hide_playhead:
-        ld a,(shown_pos)
-        cp #FF
-        ret z
-        ld (dh_step),a
-        xor a
-        ld (dh_hi),a
-        ld a,#FF
-        ld (shown_pos),a
-        jp draw_head
-
-; ----------------------------------------------------------------------------
-; La grille : 4 voix de 16 pas, chaque case sur 2 colonnes et 3 lignes
-;   ligne 1 : nom de la note        (voix de bruit : "BR")
-;   ligne 2 : octave                (voix de bruit : période du bruit)
-;   ligne 3 : numéro d'instrument   (son composé : numéro du son)
-; La case sous le curseur est en jaune.
-; ----------------------------------------------------------------------------
-draw_grid:
-        xor a
-dg_lane:
-        ld (dg_l),a
-        call draw_label
-        xor a
-dg_line:
-        ld (dg_n),a
-        ld a,(dg_l)             ; ligne écran = GRID_ROW + 4 x voix + ligne
-        add a,a
-        add a,a
-        add a,GRID_ROW
-        ld b,a
-        ld a,(dg_n)
-        add a,b
-        ld l,a
-        ld h,7                  ; colonne 7
-        call TXT_SET_CURSOR
-        xor a
-dg_step:
-        ld (dg_s),a
-        call draw_cell
-        ld a,(dg_s)
-        inc a
-        cp 16
-        jr nz,dg_step
-        call snd_tick           ; la musique continue pendant le dessin
-        ld a,(dg_n)
-        inc a
-        cp 3
-        jr nz,dg_line
-        ld a,(dg_l)
-        inc a
-        cp 4
-        jr nz,dg_lane
-        xor a
-        jp TXT_SET_PAPER
-
-; Pendant un long affichage (la grille prend environ 5 images), la boucle
-; principale ne tourne pas : si une image (6 tops de 1/300 s) s'est écoulée
-; depuis le dernier tour de son, on en joue un ici.  Ne touche pas à
-; l'écran ; les registres ne sont pas gardés.
-snd_tick:
-        call KL_TIME_PLEASE     ; L = temps, en 1/300 s
-        ld a,(tick_last)
-        ld b,a
-        ld a,l
-        sub b
-        cp 6
-        ret c                   ; pas encore une image
-        ld a,b
-        add a,6
-        ld (tick_last),a
-        call seq_frame
-        jp snd_frame
-
-; Redessine les 3 lignes de la case (voix dg_l, pas dg_s)
-draw_cell_full:
-        xor a
-dcf_loop:
-        ld (dg_n),a
-        ld a,(dg_s)
-        add a,a
-        add a,7
-        ld h,a                  ; colonne
-        ld a,(dg_l)
-        add a,a
-        add a,a
-        add a,GRID_ROW
-        ld l,a
-        ld a,(dg_n)
-        add a,l
-        ld l,a                  ; ligne
-        call TXT_SET_CURSOR
-        call draw_cell
-        ld a,(dg_n)
-        inc a
-        cp 3
-        jr nz,dcf_loop
-        xor a
-        jp TXT_SET_PAPER
-
-; HL = adresse, dans le motif, de la case (voix dg_l, pas dg_s)
-cell_ptr:
-        ld a,(dg_s)
-        ld l,a
-        ld h,0
-        add hl,hl
-        add hl,hl
-        add hl,hl
-        add hl,hl               ; 16 octets par pas
-        ld a,(dg_l)
-        add a,a
-        add a,a                 ; 4 octets par voix
-        ld e,a
-        ld d,0
-        add hl,de
-        ld de,(seq_pattern)
-        add hl,de
-        ld de,PAT_HEADER
-        add hl,de
-        ret
-
-; Dessine, à la position du curseur texte, les 2 caractères d'une ligne de
-; case (voix dg_l, pas dg_s, ligne dg_n)
-draw_cell:
-        call cell_ptr
-        ld a,(hl)
-        ld (dc_note),a
-        inc hl
-        ld a,(hl)
-        ld (dc_ins),a
-        ld hl,(seq_pattern)
-        ld a,(hl)
-        ld (dc_mode),a
-
-        ld c,0                  ; état : 0 = voix non utilisée
-        or a
-        jr z,dc_st_used
-        ld a,(dg_l)             ; son composé : seule la 1re voix sert
-        or a
-        jr nz,dc_st_done
-dc_st_used:
-        ld c,1                  ; 1 = case vide
-        ld a,(dc_note)
-        cp NOTE_NONE
-        jr z,dc_st_done
-        ld c,2                  ; 2 = arrêt de note
-        cp NOTE_OFF
-        jr z,dc_st_done
-        ld c,3                  ; 3 = note
-dc_st_done:
-        ld a,c
-        ld (dc_state),a
-
-        ld a,(dg_l)             ; --- couleurs ---
-        ld hl,cur_l
-        cp (hl)
-        jr nz,dc_not_cursor
-        ld a,(dg_s)
-        ld hl,cur_s
-        cp (hl)
-        jr nz,dc_not_cursor
-        ld a,1                  ; sous le curseur : fond jaune, texte bleu
-        call TXT_SET_PAPER
-        xor a
-        call TXT_SET_PEN
-        jr dc_text
-dc_not_cursor:
-        ld a,(dc_state)
-        cp 3
-        jr z,dc_col_note
-        xor a                   ; pas de note : fond bleu
-        call TXT_SET_PAPER
-        ld a,(dc_state)
-        cp 2
-        ld a,3                  ; arrêt de note : orange
-        jr z,dc_set_pen
-        ld a,(dg_s)             ; vide : jaune sur les temps, cyan ailleurs
-        and 3
-        ld a,1
-        jr z,dc_set_pen
-        ld a,2
-dc_set_pen:
-        call TXT_SET_PEN
-        jr dc_text
-dc_col_note:
-        call dc_is_noise        ; note : un "bouton" cyan, orange pour le bruit
-        ld a,2
-        jr nz,dc_set_paper
-        ld a,3
-dc_set_paper:
-        call TXT_SET_PAPER
-        xor a
-        call TXT_SET_PEN
-
-dc_text:                        ; --- texte ---
-        ld a,(dc_state)
-        cp 3
-        jr z,dc_note_text
-        ld a,(dg_n)             ; sans note : seule la 1re ligne porte un signe
-        or a
-        jr nz,dc_spaces
-        ld a,(dc_state)
-        cp 1
-        jr z,dc_dot
-        cp 2
-        jr nz,dc_spaces
-        ld a,'-'                ; arrêt de note
-        call TXT_OUTPUT
-        ld a,'-'
-        jp TXT_OUTPUT
-dc_dot:
-        ld a,'.'                ; case vide
-        call TXT_OUTPUT
-        ld a,' '
-        jp TXT_OUTPUT
-dc_spaces:
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,' '
-        jp TXT_OUTPUT
-
-dc_note_text:
-        ld a,(dg_n)
-        or a
-        jr z,dc_line1
-        dec a
-        jr z,dc_line2
-        ld a,(dc_mode)          ; ligne 3 : instrument, ou numéro du son
-        or a
-        jr nz,dc_son
-        ld a,(dc_ins)
-        inc a
-        jp print_dec2
-dc_son:
-        ld a,'S'
-        call TXT_OUTPUT
-        ld a,(dc_ins)
-        add a,'1'
-        jp TXT_OUTPUT
-dc_line1:                       ; ligne 1 : nom de la note
-        call dc_is_noise
-        jr nz,dc_name
-        ld a,'B'
-        call TXT_OUTPUT
-        ld a,'R'
-        jp TXT_OUTPUT
-dc_name:
-        ld a,(dc_note)
-        call split_note         ; A = note dans l'octave (0-11)
-        add a,a
-        ld e,a
-        ld d,0
-        ld hl,note_names
-        add hl,de
-        ld a,(hl)
-        call TXT_OUTPUT
-        inc hl
-        ld a,(hl)
-        cp '-'                  ; "C-" s'affiche "C ", "C#" reste "C#"
-        jr nz,dc_name2
-        ld a,' '
-dc_name2:
-        jp TXT_OUTPUT
-dc_line2:                       ; ligne 2 : octave, ou période du bruit
-        call dc_is_noise
-        jr nz,dc_octave
-        ld a,(dc_note)
-        rrca
-        rrca
-        rrca
-        rrca
-        and 15
-        call print_hex1
-        ld a,(dc_note)
-        and 15
-        jp print_hex1
-dc_octave:
-        ld a,'o'
-        call TXT_OUTPUT
-        ld a,(dc_note)
-        call split_note
-        ld a,d
-        add a,'0'
-        jp TXT_OUTPUT
-
-; Z si la case en cours est sur la voix de bruit (voix 3 en voix séparées)
-dc_is_noise:
-        ld a,(dc_mode)
-        or a
-        ret nz
-        ld a,(dg_l)
-        cp 3
-        ret
-
-; A = note (0-95)  ->  A = note dans l'octave (0-11), D = octave (0-7)
-split_note:
-        ld d,0
-sn_loop:
-        cp 12
-        ret c
-        sub 12
-        inc d
-        jr sn_loop
-
-; Nom de la voix dg_l, à gauche de la grille (2 lignes de 5 caractères)
-draw_label:
-        xor a
-        call TXT_SET_PAPER
-        ld hl,(seq_pattern)
-        ld a,(hl)
-        or a
-        ld hl,lab_sep
-        jr z,dl_table
-        ld hl,lab_comp
-dl_table:
-        ld a,(dg_l)             ; 10 caractères par voix
-        ld e,a
-        add a,a
-        add a,a
-        add a,e
-        add a,a
-        ld e,a
-        ld d,0
-        add hl,de
-        ld (dl_text),hl
-        ld a,(dg_l)
-        add a,a
-        add a,a
-        add a,GRID_ROW
-        ld (dl_row),a
-        ld l,a
-        ld h,1
-        call TXT_SET_CURSOR
-        ld a,1
-        call TXT_SET_PEN
-        ld hl,(dl_text)
-        ld b,5
-        call print_n
-        ld (dl_text),hl
-        ld a,(dl_row)
-        inc a
-        ld l,a
-        ld h,1
-        call TXT_SET_CURSOR
-        ld hl,(seq_pattern)     ; voix muette ?
-        ld a,(hl)
-        or a
-        ld a,0                  ; son composé : on regarde la voix A
-        jr nz,dl_mute
-        ld a,(dg_l)
-dl_mute:
-        call chan_mask
-        ld hl,snd_mute
-        and (hl)
-        jr z,dl_normal
-        ld a,3
-        call TXT_SET_PEN
-        ld hl,txt_muet
-        jp print_str
-dl_normal:
-        ld a,2
-        call TXT_SET_PEN
-        ld hl,(dl_text)
-        ld b,5
-        jp print_n
-
-txt_muet: db "MUET ",0
-
-lab_sep:
-        db "A    TON  ","B    TON  ","C    TON  ","N    BRUIT"
-lab_comp:
-        db "SON  4 V. ","          ","          ","          "
 
 ; Affiche une liste de textes.
 ; Chaque élément : colonne, ligne, encre, fond, texte, 0.   Fin de liste : #FF.
@@ -2840,33 +2248,38 @@ dsk_text:
 
 ; Les caractères 240 à 243 du CPC sont les flèches haut, bas, gauche, droite.
 screen_text:
-        db 1,2,2,0,  "MOTIF :",0
-        db 27,2,2,0, "ETAT :",0
-        db 1,3,2,0,  "BPM:",0
-        db 13,3,2,0, "OCTAVE:",0
+        db 1,2,2,0,  "MOTIF:",0
+        db 25,2,2,0, "BPM:",0
         db 1,HEAD_ROW,2,0, "PAS",0
-        db 1,22,3,0, 242,243,240,241,0
-        db 6,22,2,0, "CURSEUR",0
-        db 14,22,3,0,"ESPACE",0
-        db 21,22,2,0,"LIRE",0
-        db 26,22,3,0,"f6",0
-        db 29,22,2,0,"MODE",0
-        db 34,22,3,0,"f7",0
-        db 37,22,2,0,"MUET",0
-        db 1,23,3,0, "DEL",0
-        db 5,23,2,0, "EFFACER",0
-        db 14,23,3,0,"TAB",0
-        db 18,23,2,0,"ARRET",0
-        db 25,23,3,0,"CAPS",0
-        db 30,23,2,0,"VERROU SON",0
-        db 1,24,3,0, "SHIFT ",240,241,0
-        db 10,24,2,0,"OCTAVE",0
-        db 20,24,3,0,"SHIFT ",242,243,0
-        db 29,24,2,0,"INSTRUMENT",0
-        db 1,25,3,0, "CTRL  ",240,241,0
-        db 10,25,2,0,"TEMPO",0
-        db 20,25,3,0,"CTRL  ",242,243,0
-        db 29,25,2,0,"MOTIF",0
+        db 1,19,2,0, "PINCEAU",0
+        db 1,21,3,0, 242,243,240,241,0
+        db 6,21,2,0, "PAS/VOIX",0
+        db 15,21,3,0,"ENTER",0
+        db 21,21,2,0,"ON/OFF",0
+        db 28,21,3,0,"DEL",0
+        db 32,21,2,0,"VIDER",0
+        db 1,22,3,0, "PIANO",0
+        db 7,22,2,0, "NOTE",0
+        db 15,22,3,0,"CLR",0
+        db 19,22,2,0,"ARRET",0
+        db 26,22,3,0,"COPY",0
+        db 31,22,2,0,"PRENDRE",0
+        db 1,23,3,0, "TAB",0
+        db 5,23,2,0, "EDITER",0
+        db 12,23,3,0,"ESPACE",0
+        db 19,23,2,0,"LIRE",0
+        db 25,23,3,0,"f6",0
+        db 28,23,2,0,"MODE",0
+        db 33,23,3,0,"f7",0
+        db 36,23,2,0,"MUET",0
+        db 1,24,3,0, "SHIFT",240,241,0
+        db 9,24,2,0, "OCT",0
+        db 13,24,3,0,242,243,0
+        db 16,24,2,0,"INS",0
+        db 20,24,3,0,"CTRL",240,241,0
+        db 27,24,2,0,"BPM",0
+        db 31,24,3,0,242,243,0
+        db 34,24,2,0,"MOTIF",0
         db #FF
 
         include 'sound.asm'
@@ -2877,6 +2290,7 @@ screen_text:
         include 'smpscreen.asm'
         include 'banks.asm'
         include 'panels.asm'
+        include 'grid.asm'
         include 'smptables.asm'
 
 ; ----------------------------------------------------------------------------
