@@ -15,9 +15,8 @@ RUN"SEQ16
 ```
 
 **Un séquenceur chiptune 4 voix (3 tons + bruit) pour Amstrad CPC 6128, écrit en assembleur Z80.**
-16 pas par motif, 32 motifs, 32 instruments, sauvegarde des morceaux sur disquette.
-Et un **sampler** : l'écran **f4** joue de vrais sons enregistrés (batterie, voix…) sur la puce sonore du CPC, avec un grain réglable en direct (fréquence, décimation, bits, courbe). Le parti pris : la dégradation du son est recherchée.
-Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette est livrée avec **13 banques d'instruments (416 sons) et 9 banques de samples**.
+32 motifs de 16 pas, enchaînés en morceau (64 positions, répétitions, transposition, boucle), 32 instruments, 8 sons composés, 7 effets par pas, et un **sampler** qui joue de vrais sons enregistrés (batterie, voix…) sur la puce sonore du CPC, avec un grain réglable en direct. Le parti pris : la dégradation du son est recherchée.
+La disquette est livrée avec **13 banques d'instruments (416 sons), 9 banques de samples, 125 motifs d'usine** et une **disquette de démonstration** avec deux morceaux complets.
 
 ![Plateforme](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Langage](https://img.shields.io/badge/Z80-assembleur-000080?style=flat-square&labelColor=00FFFF)
@@ -30,7 +29,7 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 
 🌐 **Site, mode d'emploi et vidéo : [seq16.slr-ai.com](https://seq16.slr-ai.com/fr/)**
 
-<img src="snapshots/02_sequenceur_en_lecture.png" width="720" alt="SEQ-16 : le séquenceur en lecture">
+<img src="snapshots/01_song.png" width="720" alt="SEQ-16 : le panneau SONG, un morceau en lecture">
 
 </div>
 
@@ -39,16 +38,22 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 ## Sommaire
 
 - [Essayer tout de suite](#-essayer-tout-de-suite)
+- [La disquette de démonstration](#-la-disquette-de-démonstration)
 - [Sur un vrai CPC avec un Gotek](#-sur-un-vrai-cpc-avec-un-gotek)
-- [Les écrans](#️-les-écrans)
+- [Les cinq panneaux](#️-les-cinq-panneaux)
 - [Les touches](#️-les-touches)
-- [Le format des morceaux](#-le-format-des-morceaux)
+  - [f1 — SONG](#f1--song-le-morceau)
+  - [f2 — MOTIF](#f2--motif-le-séquenceur)
+  - [f3 — INST](#f3--inst-instruments-et-sons-composés)
+  - [f4 — SAMPLE](#f4--sample-le-sampler)
+  - [f5 — DISQUE](#f5--disque-le-catalogue)
+- [Les effets des pas (FX)](#-les-effets-des-pas-fx)
+- [Les fichiers](#-les-fichiers)
 - [Les banques de sons](#-les-banques-de-sons)
 - [Les motifs d'usine](#-les-motifs-dusine)
 - [Le sampler : samples et digidrums](#-le-sampler--samples-et-digidrums)
-  - [Mode d'emploi des samples, pas à pas](#mode-demploi-des-samples-pas-à-pas)
-  - [Les digidrums : des samples dans le morceau](#les-digidrums--des-samples-dans-le-morceau)
-  - [L'éditeur graphique de banques (sur PC)](#léditeur-graphique-de-banques-sur-pc--longlet-samples-seq-16-de-cpc-disk)
+- [La mémoire et le temps réel](#-la-mémoire-et-le-temps-réel)
+- [Tester](#-tester)
 - [Réassembler](#️-réassembler)
 - [Organisation du code](#-organisation-du-code)
 - [Feuille de route](#️-feuille-de-route)
@@ -58,9 +63,10 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 ## 💾 Essayer tout de suite
 
 1. Télécharge **[`seq16-fr.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/), sous le nom `seq16.dsk`).
-   - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes banques, mêmes touches : seuls les textes de l'écran changent.
-   - **Banques seules :** `seq16-inst.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme : change de disquette, puis charge une banque (f3 : **O** ou **D**).
-   - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs mono, en son composé) et `seq16-motifs-poly.dsk` (63 motifs poly, en voix séparées) : sur f3, **P** en charge un dans le motif affiché. Voir [Les motifs d'usine](#-les-motifs-dusine).
+   - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes fichiers, mêmes touches : seuls les textes de l'écran changent.
+   - **Démonstration :** `build/seq16-demo.dsk` (et `-en`, `-es`) : le programme et deux morceaux complets, voir [La disquette de démonstration](#-la-disquette-de-démonstration).
+   - **Banques seules :** `seq16-inst.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme.
+   - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs en son composé) et `seq16-motifs-poly.dsk` (63 motifs en voix séparées). Voir [Les motifs d'usine](#-les-motifs-dusine).
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
 3. Tape :
 
@@ -68,12 +74,22 @@ Les samples se jouent aussi **dans les morceaux** (digidrums), et la disquette e
 RUN"SEQ16
 ```
 
-Pour quitter, maintiens **ESC** une seconde. Un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
+Le programme démarre sur le panneau **MOTIF**. **ESPACE** joue le motif de démonstration.
+Pour quitter, maintiens **ESC** une seconde : un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
 
-La disquette contient aussi des banques de sons toutes prêtes (voir [Les banques de sons](#-les-banques-de-sons)) :
+SEQ-16 demande un **CPC 6128** (il range les motifs dans la mémoire supplémentaire) : sur un 464, ou un 664 sans extension, il le dit au démarrage.
 
-- **9 banques de samples** `.SMP` : batterie, percussions, effets, basses, notes, voix… Appuie sur **f4** pour les écouter.
-- **13 banques d'instruments** `.INS` de 32 sons chacune. Sur **f3**, la touche **O** en charge une ; sur **f2**, la touche **O** prend un seul son.
+## 🎮 La disquette de démonstration
+
+`seq16-demo.dsk` contient le programme, deux morceaux, leurs 10 motifs, leurs instruments et leurs samples. Sur le panneau **f1 SONG**, **f9** choisit un morceau, **ESPACE** le joue.
+
+| Morceau | Style | Ce qu'il montre |
+|---|---|---|
+| **ARCADE** | chiptune, la mineur, 132 BPM, **sans sample** | l'intro et le refrain en **son composé** (une seule voix qui joue un accord), le thème et le pont en voix séparées, et les **7 effets des pas** : vibrato, arpège, basse qui descend, roulement de caisse, accords répétés, basse coupée, lead qui monte, charleston en retard, chute en laser |
+| **STUDIO** | ré mineur, 100 BPM, **avec samples** | une batterie en samples (digidrums), un crash, et la voix « SEQ seize », un **sample long** qui ouvre le morceau et revient au break. Sa banque `STUDIO.SMP` se charge avec le morceau |
+
+Pendant la voix de STUDIO, les autres sons s'arrêtent : c'est normal, un sample prend tout le processeur (voir [Les digidrums](#les-digidrums--des-samples-dans-le-morceau)).
+La disquette est fabriquée par [`tools/gen_demo.py`](tools/gen_demo.py) ; [`demo/LISTE.md`](demo/LISTE.md) décrit chaque motif.
 
 ## 🔌 Sur un vrai CPC avec un Gotek
 
@@ -84,75 +100,119 @@ L'outil compagnon **[CPC DISK](https://github.com/ChristopheCruz/CPC-DISK)** s'e
 - récupérer les morceaux `.SNG` sauvés sur la disquette, ou en ajouter ;
 - préparer la clé USB du Gotek.
 
-## 🖥️ Les écrans
+## 🖥️ Les cinq panneaux
 
-Quatre écrans, à choisir avec les touches de fonction du pavé numérique : **f1** séquenceur, **f2** instrument, **f3** disque, **f4** sampler (voir [Le sampler](#-le-sampler--samples-et-digidrums)).
+Cinq panneaux, à choisir avec les touches de fonction du pavé numérique. Les onglets en haut de l'écran montrent le panneau en cours.
+Dans chaque panneau, **f8** sauve et **f9** charge le fichier qui lui correspond.
 
 <table>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/01_sequenceur_voix_separees.png" alt="Séquenceur, voix séparées"><br>
-<b>f1 · Séquenceur, voix séparées</b><br>
-<sub>Les voix A, B, C et le bruit N sur 16 pas : note, octave, instrument.</sub>
+<img src="snapshots/01_song.png" alt="Panneau SONG"><br>
+<b>f1 · SONG</b><br>
+<sub>L'enchaînement des motifs : 64 positions, répétitions, transposition, boucle, et le mixage des voix.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/03_sequenceur_son_compose.png" alt="Séquenceur, son composé"><br>
-<b>f1 · Séquenceur, son composé</b><br>
-<sub>Une seule ligne qui joue un son composé sur les 4 voix à la fois.</sub>
-</td>
-</tr>
-<tr>
-<td width="50%" align="center">
-<img src="snapshots/04_instrument.png" alt="Édition d'instrument"><br>
-<b>f2 · Instrument</b><br>
-<sub>Enveloppe dessinée en direct, bruit, enveloppe matérielle, arpège, vibrato, glissando, portamento.</sub>
-</td>
-<td width="50%" align="center">
-<img src="snapshots/05_mixage_et_disque.png" alt="Mixage et disque"><br>
-<b>f3 · Mixage et disque</b><br>
-<sub>Volume et sourdine de chaque voix, sauvegarde et chargement des morceaux.</sub>
+<img src="snapshots/02_motif_voix_separees.png" alt="Panneau MOTIF, voix séparées"><br>
+<b>f2 · MOTIF, voix séparées</b><br>
+<sub>Les voix A, B, C et le bruit N sur 16 pas ; en haut, la note du curseur, son instrument, son volume et son effet.</sub>
 </td>
 </tr>
 <tr>
 <td width="50%" align="center">
-<img src="snapshots/02_sequenceur_en_lecture.png" alt="Séquenceur en lecture"><br>
-<b>f1 · En lecture</b><br>
-<sub>Le pas joué est suivi à l'écran pendant la lecture.</sub>
+<img src="snapshots/04_motif_son_compose.png" alt="Panneau MOTIF, son composé"><br>
+<b>f2 · MOTIF, son composé</b><br>
+<sub>Une seule ligne de notes qui joue un son composé sur les 4 voix à la fois ; ses couches s'affichent dessous.</sub>
 </td>
 <td width="50%" align="center">
-<img src="snapshots/06_catalogue_disquette.png" alt="Catalogue de la disquette"><br>
-<b>f3 · Catalogue</b><br>
-<sub>Le contenu de la disquette, sans quitter le programme.</sub>
+<img src="snapshots/05_effets_fx.png" alt="Édition d'un effet"><br>
+<b>f2 · Un effet (FX)</b><br>
+<sub>TAB : le panneau du pas s'édite ; ici l'effet ARPEGE (37) d'une case.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<img src="snapshots/06_instrument.png" alt="Panneau INST"><br>
+<b>f3 · INST, instruments</b><br>
+<sub>Enveloppe dessinée en direct, bruit, enveloppe matérielle, arpège, vibrato, glissando, portamento, digidrum.</sub>
+</td>
+<td width="50%" align="center">
+<img src="snapshots/07_sons_composes.png" alt="Panneau INST, sons composés"><br>
+<b>f3 · INST, sons composés</b><br>
+<sub>f6 : les 8 sons composés, voix par voix : instrument, décalage, volume.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<img src="snapshots/08_sampler.png" alt="Panneau SAMPLE"><br>
+<b>f4 · SAMPLE</b><br>
+<sub>La banque de samples à gauche, le grain du sample choisi à droite (ici la banque du morceau STUDIO).</sub>
+</td>
+<td width="50%" align="center">
+<img src="snapshots/09_disque.png" alt="Panneau DISQUE"><br>
+<b>f5 · DISQUE</b><br>
+<sub>Le catalogue par type de fichier ; ENTER charge le fichier dans son panneau.</sub>
 </td>
 </tr>
 </table>
 
-**f4 · Sampler (Sample Composer)** : la banque de sons à gauche, le grain du son choisi à droite.
-
-<p align="center"><img src="snapshots/07_sampler.png" width="720" alt="sampler f4"></p>
+<p align="center"><img src="snapshots/03_motif_en_lecture.png" width="720" alt="Le panneau MOTIF en lecture"><br><sub>f2 · En lecture : le pas joué est suivi à l'écran, la musique ne s'interrompt pas pendant les dessins.</sub></p>
 
 ## ⌨️ Les touches
 
-### f1 — Séquenceur
+### f1 — SONG (le morceau)
+
+Un morceau enchaîne jusqu'à **64 positions**. Chaque position joue un motif, un certain nombre de fois (1 à 16), transposé de −12 à +12 demi-tons (les voix A, B et C ; le bruit ne bouge pas). Une colonne APERCU montre les pas du motif.
 
 | Touches | Effet |
 |---|---|
-| Flèches | déplacer le curseur ; on entend la note sur laquelle on arrive |
-| Touches du piano | poser une note, l'entendre, passer au pas suivant |
-| DEL | effacer la case |
-| TAB (ou CLR) | arrêt de note (`--`) |
-| CAPS LOCK | verrouiller l'instrument de saisie |
+| ↑/↓ | choisir une position (sous la ligne FIN : le mixage) |
+| ←/→ | choisir un champ : motif, répétitions, transposition (dans le mixage : la voix) |
+| SHIFT + ↑/↓ | changer la valeur du champ (dans le mixage : le volume de la voix) |
+| ENTER | insérer une position |
+| DEL | ôter la position |
+| COPY | doubler la position |
+| B | la boucle part d'ici ; **B sur la position de la boucle la retire** : la ligne FIN dit alors `ARRET` et la lecture s'arrête à la fin du morceau |
+| ESPACE | lire le morceau depuis la position du curseur / arrêter |
+| f8 / f9 | sauver / charger un morceau `.SNG` |
+
+- **Le repère ►** suit la position jouée ; **↑** marque le départ de la boucle.
+- **Le nom d'un motif** est celui de son fichier `.PAT` (sauvé ou chargé) : il apparaît dans SONG et dans MOTIF.
+- **La ligne MIXAGE** règle le volume général de chaque voix (A, B, C, N), sauvé avec le morceau. Le circuit sonore envoie la voie A à gauche, la voie C à droite et la voie B des deux côtés : selon l'écoute, une voie peut paraître plus forte que les autres ; on l'équilibre ici.
+- **La ligne DUREE** donne la longueur du morceau (mesures, minutes) et le nombre de positions.
+- **Dans le panneau MOTIF**, le morceau n'avance pas : le motif affiché boucle, on change de motif soi-même. Au retour dans SONG, le morceau reprend.
+
+### f2 — MOTIF (le séquenceur)
+
+La grille : les voix A, B, C et N (bruit) sur 16 pas, ou une seule ligne `SON` en mode son composé. Au-dessus, le **panneau du pas** : le pas et la voix du curseur, un clavier de 2 octaves, et la note, l'instrument, le volume et l'effet de la case.
+
+| Touches | Effet |
+|---|---|
+| Flèches | déplacer le curseur (pas / voix) ; on entend la note sur laquelle on arrive |
+| Touches du piano | poser une note avec l'instrument du pinceau, l'entendre, passer au pas suivant |
+| ENTER | allumer la case avec le pinceau, ou l'éteindre |
+| DEL | vider la case |
+| CLR | arrêt de note (`X`) |
+| COPY | prendre la case comme pinceau (note et instrument) |
+| TAB | éditer le panneau du pas : ←/→ choisit NOTE, INS, VOL, puis les deux chiffres du FX (l'effet, sa force) ; ↑/↓ change la valeur ; TAB à nouveau revient à la grille |
+| CAPS LOCK | verrouiller l'instrument du pinceau (`VERROU`) |
 | ESPACE | lecture / arrêt |
-| f5 | voix séparées / son composé |
+| L | **BOUCLE** (le motif se répète) ou **1 FOIS** (une lecture, puis arrêt) |
+| f6 | voix séparées / son composé |
 | f7 | rendre muette (ou audible) la voix du curseur |
 | SHIFT + ↑/↓ | octave de saisie |
-| SHIFT + ←/→ | instrument de saisie (et de la note sous le curseur) |
+| SHIFT + ←/→ | instrument du pinceau (et de la note sous le curseur) |
 | CTRL + ↑/↓ | tempo en BPM |
-| CTRL + ←/→ | motif précédent / suivant (32 motifs) ; pendant la lecture, la musique continue, au même pas |
+| CTRL + ←/→ | motif précédent / suivant (32 motifs) ; pendant la lecture, la musique continue |
+| f8 / f9 | sauver / charger le motif affiché (`.PAT`) |
 
-Une voix muette affiche `MUET` à gauche de la grille.
+Une note tenue est prolongée par un trait jusqu'à son arrêt. Une voix muette s'affiche en orange.
 
-### f2 — Instrument
+### f3 — INST (instruments et sons composés)
+
+**f6** passe des instruments aux sons composés, et inversement.
+
+**Les instruments :**
 
 | Touches | Effet |
 |---|---|
@@ -165,40 +225,30 @@ Une voix muette affiche `MUET` à gauche de la grille.
 | COPY | copier l'instrument (réglages et nom) |
 | P | coller : l'instrument copié remplace l'instrument affiché |
 | O | prendre un son dans une banque `.INS` de la disquette : on choisit la banque, puis l'un de ses 32 sons (flèches, RETURN ; ESC annule) |
+| f8 / f9 | sauver / charger une banque d'instruments `.INS` |
 
-Le dessin de l'enveloppe se met à jour à chaque changement d'attaque, de déclin, de tenue ou de relâche.
-Les instruments 25 à 28 (`USER1` à `USER4`) sont libres pour créer ses propres sons. Les instruments 29 à 32 sont les digidrums d'usine (`DGKICK`, `DGSNAR`, `DGHAT`, `DGCLAP`).
+- Le dessin de l'enveloppe se met à jour à chaque changement d'attaque, de déclin, de tenue ou de relâche.
+- Les instruments 25 à 28 (`USER1` à `USER4`) sont libres pour créer ses propres sons ; les instruments 29 à 32 sont les digidrums d'usine (`DGKICK`, `DGSNAR`, `DGHAT`, `DGCLAP`).
+- **Le réglage DIGIDRUM** (le dernier) : à `OUI`, l'instrument joue un sample au lieu d'une note. La ligne `PERIODE` devient alors `SAMPLE` suivi du nom du sample : sa valeur est le numéro du sample dans la banque (0 = le premier). Voir [Les digidrums](#les-digidrums--des-samples-dans-le-morceau).
 
-**Copier un son dans un autre instrument** : choisis l'instrument de départ (CTRL + ←/→), appuie sur **COPY**, va sur l'instrument d'arrivée, appuie sur **P**.
-
-**Le réglage DIGIDRUM** (le dernier) : à `OUI`, l'instrument joue un sample au lieu d'une note. La ligne `PERIODE` devient alors `SAMPLE` suivi du nom du sample : sa valeur est le numéro du sample dans la banque (0 = le premier). Voir [Les digidrums](#les-digidrums--des-samples-dans-le-morceau).
-
-### f3 — Mixage et disque
+**Les sons composés (f6) :** un son composé joue jusqu'à 4 instruments à la fois, un par voix, à partir d'une seule note. Le tableau montre ses 4 voix.
 
 | Touches | Effet |
 |---|---|
-| ↑/↓ | choisir une voix (A, B, C, N) ou le nom de fichier |
-| ←/→ | volume de la voix (0 à 15) |
-| RETURN ou f7 | muet / audible (sur la ligne du nom : saisir le nom) |
-| S | sauver le morceau |
-| L | charger le morceau |
-| C | afficher le catalogue de la disquette |
-| I | sauver les instruments : les 32 instruments et les 8 sons composés, dans `NOM.INS` |
-| O | charger une banque d'instruments `.INS` (flèches, puis RETURN ; ESC annule). Les motifs ne changent pas |
-| D | choisir une banque de samples `.SMP` sur la disquette (pour l'écran f4) : flèches, puis RETURN ; ESC annule |
-| E | sauver la banque de samples (avec les réglages faits sur f4), sous son nom : `DRUMS.SMP`… |
-| M | sauver le motif affiché (celui de f1), seul, dans `NOM.PAT` : son mode, son tempo et ses 16 pas |
-| P | charger un motif `.PAT` de la disquette à la place du motif affiché (flèches, puis RETURN ; ESC annule). Il joue avec les instruments du moment |
-| N | nouveau morceau (appuyer deux fois) |
-| ESPACE | écouter le motif pendant le réglage |
+| ↑/↓ | choisir un champ : pour chaque voix, l'instrument, le décalage, le volume |
+| ←/→ | changer sa valeur (avec SHIFT : par 10) |
+| CTRL + ←/→ | son composé précédent / suivant (S1 à S8) |
+| Touches du piano | essayer le son composé |
 
-**Le nom de fichier** : descends sur la ligne `NOM`, appuie sur RETURN, tape le nom (8 lettres ou chiffres au plus), puis RETURN.
-La première lettre tapée remplace l'ancien nom ; DEL corrige. L'extension `.SNG` est ajoutée toute seule.
+| Champ | Valeurs |
+|---|---|
+| INSTRUMENT | `--` (voix inutilisée) ou 01 à 32 |
+| DECAL. | décalage en demi-tons, de −24 à +24 ; pour la voix N, la période du bruit (`BR00` à `BR1F`) |
+| VOL | `-` (le volume de l'instrument) ou 0 à 15 |
 
-**Le volume des voix** : le circuit sonore du CPC envoie la voie A à gauche, la voie C à droite et la voie B des deux côtés.
-Selon l'écoute (haut-parleur interne, une seule oreillette, ampli branché sur une seule sortie), une voie peut paraître plus forte que les autres : on l'équilibre ici, et le réglage est sauvé avec le morceau.
+Le même tableau s'affiche sous la grille du panneau MOTIF en mode son composé.
 
-### f4 — Sampler
+### f4 — SAMPLE (le sampler)
 
 | Touches | Effet |
 |---|---|
@@ -208,38 +258,71 @@ Selon l'écoute (haut-parleur interne, une seule oreillette, ampli branché sur 
 | ↑/↓ | choisir un réglage : fréquence, décimation, bits, courbe |
 | ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
 | O | prendre un sample dans une autre banque `.SMP` : il s'ajoute à la fin de la banque en mémoire (16 samples et 16 Ko au plus) |
+| f8 / f9 | sauver la banque (réglages et samples ajoutés compris) / charger une autre banque `.SMP` |
 
-Pour changer de banque : écran **f3**, touche **D**, choisir le fichier `.SMP` avec les flèches, puis RETURN.
-Pour sauver la banque (réglages et samples ajoutés compris) : écran **f3**, touche **E**.
-La première fois que l'on ouvre f4, la banque `DRUMS.SMP` se charge toute seule.
-Tout est détaillé plus bas, dans le [mode d'emploi du sampler](#mode-demploi-des-samples-pas-à-pas).
+La première fois que l'on ouvre SAMPLE, la banque `DRUMS.SMP` se charge toute seule. Tout est détaillé plus bas, dans [le mode d'emploi du sampler](#mode-demploi-des-samples-pas-à-pas).
 
-## 🎵 Le format des morceaux
+### f5 — DISQUE (le catalogue)
 
-Un fichier `.SNG` (environ 9 Ko) contient **tout le morceau** :
+Le catalogue de la disquette, par type de fichier : `SNG` (morceaux), `PAT` (motifs), `INS` (instruments), `SMP` (samples). En haut, la place libre et le nombre de fichiers.
 
-- les 32 motifs ;
-- les 32 instruments et leurs noms ;
-- les 8 sons composés ;
-- les volumes et les voix muettes ;
-- le nom de la banque de samples utilisée (format **version 2**).
+| Touches | Effet |
+|---|---|
+| Flèches | choisir un fichier |
+| TAB | type suivant (SNG, PAT, INS, SMP) |
+| ENTER | charger le fichier dans son panneau, qui s'affiche (un `.PAT` va dans le motif affiché) |
+| DEL | effacer le fichier (appuyer deux fois ; `\|ERA` d'AMSDOS) |
+| COPY | renommer le fichier (`\|REN`) |
+| N | nouveau morceau (appuyer deux fois) |
+| C | relire la disquette (après en avoir changé) |
+| ESPACE | écouter le motif |
+| f8 | sauver le morceau `.SNG` |
 
-Au chargement d'un morceau version 2, sa banque de samples est rechargée si ce n'est pas celle qui est en mémoire (message `MORCEAU ET BANQUE DE SAMPLES CHARGES`). Si elle n'est pas sur la disquette, le morceau se charge quand même.
-Les morceaux de l'ancien format (version 1, sauvés avant les digidrums) se chargent toujours.
+**Sauver avec f8** (dans n'importe quel panneau) : le nom proposé s'affiche sur la ligne des messages ; tape le nom (8 lettres ou chiffres au plus), puis RETURN ; ESC annule. Si le fichier existe déjà, un second RETURN le remplace.
 
-Si un fichier du même nom existe, AMSDOS garde l'ancien sous l'extension `.BAK`.
+## ✨ Les effets des pas (FX)
+
+Chaque case d'un motif peut porter un **effet**, noté en hexadécimal comme dans les trackers : le premier chiffre choisit l'effet, le second règle sa force x (0 à F). `--` : aucun effet.
+
+| FX | Effet | Ce qui se passe | Exemple |
+|---|---|---|---|
+| `1x` | MONTE | la note glisse vers l'aigu, plus vite avec x | `14` montée lente |
+| `2x` | DESCEND | la note glisse vers le grave | `2C` chute en laser |
+| `3x` | ARPEGE | la note, puis la note + x demi-tons, en alternance rapide | `37` quinte, `3C` octave |
+| `4x` | REPETE | la note est rejouée toutes les x images (1/50 s) | `43` roulement de caisse |
+| `5x` | COUPE | la note est relâchée après x images | `52` staccato |
+| `6x` | RETARD | la note part x images après le pas | `62` swing, fla |
+| `7x` | VIBRATO | vibrato de profondeur x sur cette note | `73` |
+
+- **Pour poser un effet** : sur le panneau MOTIF, mets le curseur sur la case, **TAB**, va sur le FX avec **→** (le premier chiffre, puis le second), et change-le avec **↑/↓**. Le nom de l'effet s'affiche sur la ligne des messages.
+- **En son composé**, l'effet du pas vaut pour toutes les voix du son.
+- REPETE, COUPE et RETARD marchent aussi sur la voix de bruit.
+- L'effet ne vaut que pour la note du pas : le piano et l'écoute d'une case restent sans effet.
+
+Le morceau ARCADE de la [disquette de démonstration](#-la-disquette-de-démonstration) utilise les 7 effets.
+
+## 🎵 Les fichiers
+
+| Fichier | Contenu | Panneau |
+|---|---|---|
+| `.SNG` | **tout le morceau** : les 32 motifs (et leurs noms), les 32 instruments, les 8 sons composés, le mixage, l'enchaînement (positions, boucle), et **la banque de samples** utilisée, s'il y en a une | SONG, DISQUE |
+| `.PAT` | un motif seul (260 octets) : son mode, son tempo et ses 16 pas | MOTIF |
+| `.INS` | 32 instruments, leurs noms et les 8 sons composés (848 octets) | INST |
+| `.SMP` | une banque de samples (16 au plus, 16 Ko au plus), avec leurs réglages | SAMPLE |
+
+- **Un `.SNG` emporte sa banque de samples** (format version 4) : on peut le copier sur une autre disquette sans rien oublier. Au chargement : `MORCEAU ET BANQUE DE SAMPLES CHARGES`.
+- Les morceaux des anciens formats (versions 1 à 3) se chargent toujours.
+- Si un fichier du même nom existe, AMSDOS garde l'ancien sous l'extension `.BAK`.
 
 ## 🎹 Les banques de sons
 
-Les sons par défaut restent **dans le programme** : au démarrage et après **N** (nouveau morceau), on retrouve toujours les mêmes 32 instruments. Les banques de la disquette s'y ajoutent.
+Les sons par défaut restent **dans le programme** : au démarrage et après **N N** (nouveau morceau, panneau DISQUE), on retrouve toujours les mêmes 32 instruments. Les banques de la disquette s'y ajoutent.
 
 ### Banques d'instruments `.INS` (13 banques, 416 sons)
 
-Une banque `.INS` contient 32 instruments, leurs noms et 8 sons composés (848 octets). On peut :
-
-- **charger une banque entière** : écran **f3**, touche **O** ;
-- **prendre un seul son** pour l'instrument affiché : écran **f2**, touche **O**, puis choisir la banque et le son ;
-- **sauver ses propres instruments** : écran **f3**, touche **I** (fichier `NOM.INS`, avec le nom de la ligne NOM).
+- **Charger une banque entière** : panneau **INST**, **f9** (ou DISQUE, ENTER sur un `.INS`).
+- **Prendre un seul son** pour l'instrument affiché : panneau **INST**, touche **O**, puis choisir la banque et le son.
+- **Sauver ses propres instruments** : panneau **INST**, **f8**.
 
 | Banque | Contenu |
 |---|---|
@@ -261,7 +344,7 @@ Elles sont fabriquées par [`tools/gen_instruments.py`](tools/gen_instruments.py
 
 ### Banques de samples `.SMP` (9 banques)
 
-`DRUMS.SMP` reste la banque par défaut : elle se charge toute seule à la première ouverture de f4.
+`DRUMS.SMP` reste la banque par défaut : elle se charge toute seule à la première ouverture de SAMPLE.
 
 | Banque | Contenu | Taille |
 |---|---|---|
@@ -270,121 +353,92 @@ Elles sont fabriquées par [`tools/gen_instruments.py`](tools/gen_instruments.py
 | `BATTERI2` | batterie façon boîte à rythmes : grosse caisse longue, toms, cloche, crash… (12 sons) | 12 Ko |
 | `PERCUS` | congas, bongo, claves, triangle, tambourin, agogo, tabla… (12 sons) | 13 Ko |
 | `EFFETS` | laser, zap, explosion, pièce, saut, sirène, alarme, OVNI… (12 sons) | 14 Ko |
-| `BASSES` | 10 notes de basse (DO), à jouer avec le piano de f4 | 15 Ko |
+| `BASSES` | 10 notes de basse (DO), à jouer avec le piano | 15 Ko |
 | `NOTES` | pincé, piano, cloche, orgue, cuivre, choeur, orchestre… (10 notes, DO) | 14 Ko |
 | `CHIFFRES` | « zéro » à « dix » | 11 Ko |
 | `MOTS` | « allez », « oui », « non », « encore », « stop », « bravo », « CPC »… (14 mots) | 16 Ko |
 
+La disquette de démonstration ajoute `STUDIO.SMP` (DRUMS, la voix SEQ16 et le CRASH de BATTERI2), la banque du morceau STUDIO.
 Tous les sons sont **synthétisés** ([`tools/gen_samples.py`](tools/gen_samples.py)) ou **dits par espeak** : aucun échantillon venu d'Internet, donc aucune question de droits.
-Sur f4, la touche **O** prend un sample dans l'une de ces banques et l'ajoute à la banque en mémoire. **f3 + E** sauve le résultat.
 
 ## 🎼 Les motifs d'usine
 
-Deux disquettes pleines de motifs tout prêts, pour commencer un morceau, apprendre le séquenceur ou emprunter un groove. Chaque motif est un fichier `.PAT` (260 octets : mode, tempo et les 16 pas).
+Deux disquettes pleines de motifs tout prêts, pour commencer un morceau, apprendre le séquenceur ou emprunter un groove. Chaque motif est un fichier `.PAT`.
 
 | Disquette | Motifs | Contenu |
 |---|---|---|
-| `seq16-motifs-mono.dsk` | 62 motifs **mono** | mode **son composé** : une seule ligne de notes jouée par l'un des 8 sons composés (accords, basse + percussion…) : riffs, arpèges, basses, accords plaqués, jingles de jeu |
-| `seq16-motifs-poly.dsk` | 63 motifs **poly** | mode **voix séparées** : 4 voix indépendantes : grooves complets (batterie sur N, basse, accords ou mélodie), plus des briques batterie seule et basse + batterie |
+| `seq16-motifs-mono.dsk` | 62 motifs **mono** | mode **son composé** : une seule ligne de notes jouée par l'un des 8 sons composés : riffs, arpèges, basses, accords plaqués, jingles de jeu |
+| `seq16-motifs-poly.dsk` | 63 motifs **poly** | mode **voix séparées** : grooves complets (batterie sur N, basse, accords ou mélodie), plus des briques batterie seule et basse + batterie |
 
-Styles : techno, house, electro, hip-hop, trap, rock, funk, reggae, dub, bossa, salsa, drum & bass, synth-pop, synthwave, disco, chiptune et jingles de jeu, blues, jazz, valse, marche, ambient… de 80 à 170 BPM. La liste complète, avec la description de chaque motif, est dans [`patterns/LISTE.md`](patterns/LISTE.md).
+Styles : techno, house, electro, hip-hop, trap, rock, funk, reggae, dub, bossa, salsa, drum & bass, synth-pop, synthwave, disco, chiptune et jingles de jeu, blues, jazz, valse, marche, ambient… de 80 à 170 BPM. La liste complète est dans [`patterns/LISTE.md`](patterns/LISTE.md).
 
-**Charger un motif** :
-1. Sur f1, affiche l'emplacement à remplir (CTRL + ←/→).
-2. Mets une disquette de motifs, va sur **f3** et appuie sur **P**.
-3. La liste montre tous les `.PAT` de la disquette, par pages de 24 : flèches pour choisir (en sortant du bord, la page change), RETURN pour charger, ESC pour annuler.
-4. Le motif remplace celui qui est affiché, avec son mode et son tempo. Les autres motifs ne changent pas.
+**Charger un motif** : sur le panneau **MOTIF**, affiche l'emplacement à remplir (CTRL + ←/→), mets une disquette de motifs, appuie sur **f9**, choisis avec les flèches (en sortant du bord, la page change), RETURN. Le motif remplace celui qui est affiché, avec son mode, son tempo et son nom. On peut aussi passer par le panneau **DISQUE** (TAB jusqu'à `PAT`, puis ENTER).
 
-**Sauver un motif** : sur f3, tape un nom sur la ligne `NOM`, puis appuie sur **M** : le motif affiché est sauvé seul dans `NOM.PAT`.
+**Sauver un motif** : sur le panneau **MOTIF**, **f8**, tape un nom, RETURN : le motif affiché est sauvé seul dans `NOM.PAT`, et prend ce nom.
 
-Les motifs sont écrits pour les **instruments et sons composés d'usine** (ceux du morceau au démarrage, aussi dans `USINE.INS`). Avec d'autres instruments, ils jouent les mêmes notes avec d'autres sons. Quatre motifs poly (`DIGIHOP1`, `DIGIHSE1`, `DIGIFNK1`, `DIGIBRK1`) utilisent les digidrums : charge d'abord une banque de samples (f4, ou f3 puis D).
-
+Les motifs sont écrits pour les **instruments et sons composés d'usine** (aussi dans `USINE.INS`). Quatre motifs poly (`DIGIHOP1`, `DIGIHSE1`, `DIGIFNK1`, `DIGIBRK1`) utilisent les digidrums : charge d'abord une banque de samples.
 Ils sont fabriqués par [`tools/gen_patterns.py`](tools/gen_patterns.py), qui vérifie aussi que chaque note est dans la tonalité du motif, dans la tessiture de son instrument, et que deux voix ne se heurtent jamais.
 
 ## 🥁 Le sampler : samples et digidrums
 
-SEQ-16 joue des **samples** : un écran **f4 Sample Composer** pour écouter et salir un son, et des **digidrums**, des samples déclenchés au pas comme une note.
+SEQ-16 joue des **samples** : un panneau **SAMPLE** pour écouter et salir un son, et des **digidrums**, des samples déclenchés au pas comme une note.
 Le parti pris est assumé : **la dégradation est recherchée**. Grain, repliement de spectre, souffle et hachures sont des effets voulus et réglables.
 
 Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en changeant très vite le **volume** d'une voie de l'AY : 16 niveaux sur une courbe presque logarithmique. C'est ce qui donne le grain.
 
 ### Mode d'emploi des samples, pas à pas
 
-**1. Lancer.** Insère `seq16-fr.dsk` et tape `RUN"SEQ16`.
+**1. Ouvrir le sampler.** Appuie sur **f4**. La première fois, la banque `DRUMS.SMP` se charge toute seule, et ses 4 sons s'affichent à gauche.
 
-**2. Ouvrir l'écran des samples.** Appuie sur **f4**, la touche 4 du pavé numérique. La première fois, la banque `DRUMS.SMP` se charge toute seule, et ses 4 sons s'affichent à gauche.
-
-**3. Écouter.**
+**2. Écouter.**
 - Choisis un sample avec **CTRL + ←/→**. Le sample choisi est en jaune inversé.
 - **ESPACE** le joue à sa hauteur d'origine. ESPACE à nouveau l'arrête.
-- **Les touches du piano** le jouent plus aigu ou plus grave :
-  - la rangée du haut, à partir de la touche du DO, part de la hauteur d'origine et monte de demi-ton en demi-ton ;
-  - la rangée du bas joue une octave plus bas.
+- **Les touches du piano** le jouent plus aigu ou plus grave : la rangée du haut, à partir de la touche du DO, part de la hauteur d'origine et monte de demi-ton en demi-ton ; la rangée du bas joue une octave plus bas.
 - Pendant l'écoute, l'écran ne bouge plus : c'est normal.
 
-**4. Salir le son.** À droite, choisis un réglage avec **↑/↓** et change sa valeur avec **←/→** (pour la fréquence, avec SHIFT, par pas de 10). Réécoute après chaque changement.
-- **FREQUENCE** : plus bas, c'est plus grave et plus sale.
-- **DECIMATION** : de 2 à 8, des sifflements métalliques apparaissent.
-- **BITS** : de 3 à 1, le son devient de plus en plus « bip ».
-- **COURBE** : SATUREE, REPLIEE, LINEAIRE et INVERSEE déforment le son ; LOG est le son d'origine.
+**3. Salir le son.** À droite, choisis un réglage avec **↑/↓** et change sa valeur avec **←/→** (pour la fréquence, avec SHIFT, par pas de 10). Réécoute après chaque changement.
 
-**5. Changer de banque.**
-1. Va sur l'écran **f3** et appuie sur **D**.
-2. La liste des fichiers `.SMP` de la disquette s'affiche en bas. Choisis avec les flèches.
-3. **RETURN** charge la banque, **ESC** annule.
-4. Reviens sur **f4**.
-
-Le champ NOM de l'écran f3 sert seulement aux morceaux `.SNG`.
-
-**6. Fabriquer ses propres sons.** Sur le PC, convertis tes fichiers WAV avec [`tools/wav2smp.py`](#convertir-ses-propres-sons--toolswav2smppy). Par exemple, pour un enregistrement de voix :
-
-```bat
-python tools\wav2smp.py mavoix.wav --trim --rate 6250 -o samples\MAVOIX.SMP --dsk
-```
-
-- La banque est ajoutée directement à `build\seq16.dsk`.
-- Le script écrit aussi un WAV d'écoute, qui permet d'entendre le résultat sur le PC avant de copier la disquette.
-- On peut aussi ajouter le fichier `.SMP` sur une disquette avec [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK).
-
-**À savoir**
-- **Taille d'une banque** : 16 Ko au plus, soit environ 4 secondes à 8 kHz, ou 5 secondes à 6,25 kHz. Une banque contient 16 sons au plus.
-- **Les réglages ne sont pas encore sauvés.** Ils sont perdus quand on recharge la banque. La sauvegarde des banques viendra en phase 6.
-- **Si le motif jouait** pendant une écoute, il se fige le temps du sample, puis repart.
-
-### Où on en est : phase 4, les digidrums jouent dans le morceau
-
-| Phase | Contenu | État |
+| Réglage | Valeurs | Effet |
 |---|---|---|
-| 1 | convertisseur `wav2smp.py`, WAV d'écoute, banque d'usine de synthèse | ✅ fait |
-| 2 | lecture sur CPC (accès direct à l'AY), écran f4, choix de la banque (f3 + D) | ✅ fait |
-| 3 | mémoire supplémentaire du 6128, jauge, repli 464 | à venir |
-| 4 | digidrums dans le séquenceur (mode BLOQUANT), `.SNG` version 2, instruments d'usine | ✅ fait |
-| 5 | lecture directe du clavier, mode HACHÉ | à venir |
-| 6 | finitions de f4 : forme d'onde, découpe, boucle, gravure (la sauvegarde `.SMP` et l'ajout d'un sample sont déjà là) | à venir |
+| FREQUENCE | 4 000 à 16 129 Hz | la hauteur et la brillance ; plus bas, c'est plus grave et plus sale |
+| DECIMATION | 1, 2, 3, 4, 6, 8 | un échantillon sur N, maintenu N fois : des sifflements métalliques apparaissent |
+| BITS | 4, 3, 2, 1 | moins de niveaux ; en 1 bit, il ne reste qu'un « bip » dur et faible |
+| COURBE | LOG, LINEAIRE, SATUREE, REPLIEE, INVERSEE | LOG est le son d'origine ; LINEAIRE est plus creux, SATUREE écrête, REPLIEE replie ce qui dépasse, INVERSEE retourne la forme d'onde |
+| PERIODE | (information) | la durée d'un échantillon en µs, c'est-à-dire en NOP |
+
+**4. Changer de banque.** **f9**, choisis le fichier `.SMP` avec les flèches, RETURN (ESC annule).
+
+**5. Sauver la banque** avec ses réglages et les samples ajoutés : **f8**.
+
+**6. Fabriquer ses propres sons.** Sur le PC, convertis tes fichiers WAV avec [`tools/wav2smp.py`](#convertir-ses-propres-sons--toolswav2smppy), ou avec l'éditeur graphique de [CPC DISK](#léditeur-graphique-de-banques-sur-pc--longlet-samples-seq-16-de-cpc-disk).
+
+**À savoir** : une banque tient en 16 Ko au plus (environ 4 secondes à 8 kHz, 5 secondes à 6,25 kHz) et contient 16 sons au plus.
 
 ### Les digidrums : des samples dans le morceau
 
 Un **digidrum** est un instrument qui joue un sample de la banque chargée au lieu d'une note. Les 4 instruments d'usine 29 à 32 (`DGKICK`, `DGSNAR`, `DGHAT`, `DGCLAP`) jouent les 4 sons de `DRUMS.SMP`.
 
-**Pour en faire un soi-même**, sur l'écran **f2** :
+**Pour en faire un soi-même**, sur le panneau **INST** :
 
 1. Mets le dernier réglage, **DIGIDRUM**, à `OUI`.
 2. La ligne `PERIODE` devient `SAMPLE` et affiche le nom du sample. Change sa valeur avec ←/→ : 0 = le premier sample de la banque, 1 = le deuxième…
-3. Le **VOLUME** règle la force du sample (15 = plein, en dessous : plus doux). Les autres réglages ne servent pas.
-4. Essaie-le avec le piano : le sample joue tout de suite.
+3. Le **VOLUME** règle la force du sample (15 = plein). Les autres réglages ne servent pas.
+4. Essaie-le avec le piano.
 
-**Dans le séquenceur**, pose ce digidrum comme une note :
+**Dans le motif**, pose ce digidrum comme une note :
 
-- **la hauteur** : la note **DO de l'octave 4** (rangée du haut du piano, octave de saisie 3) joue le sample tel quel ; chaque demi-ton au-dessus ou au-dessous le rend plus aigu ou plus grave, jusqu'à ±12 demi-tons ;
-- **la voix** choisit la voie de l'AY : A, B ou C. Sur la voix N (bruit), le sample joue sur la voie C, à sa hauteur d'origine ;
+- **la hauteur** : la note **DO de l'octave 4** joue le sample tel quel ; chaque demi-ton au-dessus ou au-dessous le rend plus aigu ou plus grave, jusqu'à ±12 demi-tons ;
+- **la voix** choisit la voie de l'AY : A, B ou C. Sur la voix N (bruit), le sample joue sur la voie C ;
 - **une voix muette** (f7) ne joue pas ses digidrums.
 
-**Le mode BLOQUANT.** Le sample joue en entier à la fin de l'image, interruptions coupées. Ensuite, le séquenceur **rattrape le tempo** : il avance d'autant d'images que le sample a duré, pour que les pas suivants tombent à l'heure. Pendant le sample :
+**Un sample prend tout le processeur.** Il joue en entier, interruptions coupées. Pendant ce temps :
 
 - l'écran et le clavier ne répondent plus ;
-- les autres voix **continuent de sonner**, mais leurs enveloppes, arpèges et vibratos sont **gelés**. Ce gel fait partie du rendu : il n'est pas corrigé.
+- le séquenceur s'arrête et les autres voix sont **gelées** (leurs enveloppes, arpèges et vibratos ne bougent plus) ;
+- à la fin du sample, le séquenceur **rattrape le tempo** : les pas tombés pendant le sample sont joués d'un coup, puis la musique repart à l'heure.
 
-Garde les digidrums **courts : moins de 150 ms** (les 4 sons de `DRUMS.SMP` le sont). Un sample plus long fait « bégayer » l'interface et les autres voix.
+Avec des sons courts (moins de 150 ms, comme ceux de `DRUMS.SMP`), cela ne s'entend presque pas. Un sample long (la voix du morceau STUDIO) coupe les autres sons le temps qu'il joue : c'est le prix de la qualité du sample.
+Autre point : quand on change de sample, ou de hauteur ou de volume, le programme doit d'abord **préparer les tables** de lecture du sample, ce qui peut prendre jusqu'à environ 300 ms. Dans un motif qui alterne beaucoup de samples différents, cela peut s'entendre comme un petit accroc.
 
 ### L'éditeur graphique de banques (sur PC) : l'onglet SAMPLES SEQ-16 de CPC DISK
 
@@ -397,102 +451,9 @@ python tools\smp_gui.py          rem l'éditeur seul, dans sa fenêtre
 - **À gauche**, la liste des samples (16 au plus) : ajouter des WAV (Ctrl+W, plusieurs à la fois), ouvrir une banque `.SMP` existante (Ctrl+O), retirer, monter, descendre. Une jauge montre la place prise sur les 16 064 octets de la mémoire du CPC ; elle passe au rouge si la banque est trop grande.
 - **À droite**, les réglages du sample choisi : nom (6 caractères), fréquence, saturation, coupure des silences, adoucissement, tramage, bits, décimation, courbe, découpe en tranches. La forme d'onde montre l'original en haut et le rendu du CPC en bas.
 - **Écouter** l'original ou le rendu du CPC.
-- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette** : dans CPC DISK, la disquette ouverte dans l'onglet Disquette est proposée directement.
+- **Sauver .SMP** (Ctrl+S), puis **Ajouter à la disquette**.
 
-Pour une banque `.SMP` ouverte, il n'y a plus de WAV d'origine : on peut changer le nom, la fréquence, les bits, la décimation et la courbe, mais pas les réglages qui demandent de reconvertir le son.
-
-Le code est dans CPC DISK (`cpc_dsk/seq16/`) ; `tools/smp_gui.py`, `tools/smp_model.py` et `tools/wav2smp.py` y renvoient (voir [Réassembler](#️-réassembler)).
-
-### L'écran f4 : Sample Composer
-
-Appuie sur **f4**. La première fois, le programme charge tout seul la banque d'usine `DRUMS.SMP`, qui se trouve sur la disquette.
-
-```
-SEQ16 f1 SEQ f2 INST f3 DISQUE f4 SAMPLE
-BANQUE : DRUMS      MEMOIRE: 2037/16320
-
-N  NOM   DUREE      REGLAGES
-01 KICK    147MS    FREQUENCE   6250 HZ
-02 SNARE   140MS    DECIMATION 1
-03 HAT      60MS    BITS       4 BITS
-04 CLAP    140MS    COURBE     LOG
-                    PERIODE    160 NOP
-```
-
-| Touches | Effet |
-|---|---|
-| ESPACE | écouter le sample choisi (ESPACE à nouveau : arrêt) |
-| Touches du piano | écouter le sample à cette hauteur. La rangée du haut, à partir de la touche du DO, joue la hauteur d'origine ; la rangée du bas, une octave plus bas |
-| ↑/↓ | choisir un réglage |
-| ←/→ | changer sa valeur (avec SHIFT : par 10, pour la fréquence) |
-| CTRL + ←/→ | sample précédent / suivant |
-| f3, puis **D** | choisir une autre banque parmi les fichiers `.SMP` de la disquette |
-
-Les réglages sont ceux de la fiche du sample, en mémoire. Ils ne touchent pas aux données.
-
-| Réglage | Valeurs | Effet |
-|---|---|---|
-| FREQUENCE | 4 000 à 16 129 Hz | la hauteur et la brillance ; plus bas, c'est plus sale. → monte, ← descend |
-| DECIMATION | 1, 2, 3, 4, 6, 8 | un échantillon sur N, maintenu N fois : repliement de spectre marqué |
-| BITS | 4, 3, 2, 1 | moins de niveaux. En 1 bit, il ne reste que les niveaux 0 et 8 : un « bip » dur et faible |
-| COURBE | LINEAIRE, LOG, SATUREE, REPLIEE, INVERSEE | une table de 16 valeurs entre le sample et le volume (voir plus bas) |
-| PERIODE | (information) | la durée d'un échantillon en µs, c'est-à-dire en NOP |
-
-**Pendant une écoute, l'écran ne répond plus** : le processeur ne fait que jouer le sample, interruptions coupées.
-Les autres voies de l'AY continuent de sonner avec leurs derniers réglages. Si le motif jouait, ses enveloppes, arpèges et vibratos sont **gelés** jusqu'à la fin du sample. C'est voulu.
-
-Les courbes :
-
-- **LOG** est le rendu fidèle, celui des WAV d'écoute.
-- **LINEAIRE** traite chaque valeur comme une amplitude linéaire, écrite telle quelle dans l'AY qui, lui, est logarithmique. Le son est plus creux et distordu.
-- **SATUREE** multiplie le signal par 2,5 et écrête.
-- **REPLIEE** multiplie aussi par 2,5, puis replie ce qui dépasse.
-- **INVERSEE** retourne la forme d'onde.
-
-### Ce qu'on doit entendre
-
-1. **f4, puis ESPACE** sur chaque son. Ils doivent ressembler aux WAV de [`samples/ecoute/`](samples/ecoute/), à la même hauteur.
-2. **FREQUENCE** : de 6 250 Hz à 4 000 Hz, le kick devient plus grave et plus « baveux ». Vers 16 000 Hz, il devient aigu et court comme un tom.
-3. **DECIMATION 4 ou 8** sur le charley : un sifflement métallique apparaît, c'est le repliement de spectre.
-4. **BITS 1** : le charley devient un grésillement métallique et faible, et le kick un « pop » de haut-parleur.
-5. **COURBE SATUREE** : la caisse claire devient un mur de bruit. **REPLIEE** donne un timbre « cassé », **LINEAIRE** un son plus mou.
-6. **Le piano** : la rangée du haut monte demi-ton par demi-ton. Un demi-ton un peu faux fait partie du charme.
-7. **ESPACE pendant l'écoute** l'arrête. Pour l'entendre, prends un long sample ou mets la fréquence au plus bas.
-8. Après une écoute, **f1 puis ESPACE** : le séquenceur doit jouer normalement.
-
-### Limites connues et points à surveiller
-
-- **La mémoire basse.** La banque est chargée en `#0040-#3EFF`. Après `RUN"`, cette zone, celle des programmes BASIC, est libre et se lit en RAM (la ROM basse n'y est pas visible). Si les sons étaient remplacés par un bruit continu, c'est que la ROM basse était visible pendant la lecture.
-- **La place pour la routine** (`#A000-#A67B`) est prise juste sous la mémoire réservée par AMSDOS (au-dessus de `#A67B` sur 6128). Le programme le vérifie au démarrage. Si f4 affiche `PAS ASSEZ DE MEMOIRE`, c'est que cette hypothèse est fausse sur ta machine : les samples, les digidrums et la touche O de f2 sont alors désactivés, le reste fonctionne.
-- **Les 32 motifs vivent dans la mémoire supplémentaire du 6128** (bloc 4, voir [`src/bank.asm`](src/bank.asm)) ; seul le motif affiché reste en mémoire principale. Cela libère environ 7,8 Ko pour les prochaines fonctions ([PLAN.md](PLAN.md)). SEQ-16 demande donc un 6128 : sur un 464, ou un 664 sans extension mémoire, il le dit au démarrage.
-- **Les banques d'instruments se lisent octet par octet** (`CAS IN CHAR` d'AMSDOS), faute de place pour une copie du fichier en mémoire. C'est testé dans le simulateur, pas encore sur la vraie machine.
-- **Le rattrapage du tempo** est calculé à partir de la durée théorique du sample (nombre d'échantillons × durée d'un échantillon). Sur 32 mesures, une petite dérive reste possible : à vérifier à l'oreille, avec une boucle de batterie samplée.
-- **La cadence** est calculée avec la table des durées propre au CPC. Elle est exacte dans le simulateur, mais il faut comparer la hauteur du kick avec le WAV d'écoute.
-- **Au-dessus d'environ 6 kHz** (moins de 167 NOP par échantillon), le test de la touche ESPACE allonge un échantillon sur 256. Cela peut donner un très léger grésillement, environ 31 fois par seconde à 8 kHz.
-- **Un « toc » au début ou à la fin** de l'écoute est possible, quand le volume passe du réglage du moteur au premier échantillon.
-- **La liste des banques** (f3, puis D) lit le répertoire de la disquette avec la commande cachée « lecture de secteur » d'AMSDOS (`#84`). Elle ne fonctionne que sur le **lecteur A**.
-- **Les niveaux de l'AY** viennent de l'émulateur Ayumi. La sortie du CPC passe par un filtre et par l'ampli interne : le rendu peut différer un peu des WAV d'écoute.
-
-### La banque d'usine `DRUMS.SMP`
-
-Quatre sons fabriqués **par synthèse** dans [`tools/gen_drums.py`](tools/gen_drums.py) (sinus à hauteur descendante, bruit filtré). Aucun échantillon trouvé sur Internet, donc aucune question de droits.
-La banque fait 2 037 octets.
-
-| N° | Nom | Durée | Fréquence | À écouter dans [`samples/ecoute/`](samples/ecoute/) |
-|---|---|---|---|---|
-| 0 | KICK | 148 ms | 6 250 Hz | une grosse caisse sourde, avec un léger « toc » d'attaque granuleux |
-| 1 | SNARE | 140 ms | 8 000 Hz | une caisse claire sèche et sale, comme une radio mal réglée |
-| 2 | HAT | 60 ms | 12 500 Hz | un charley court et métallique, qui « crépite » plus qu'il ne siffle |
-| 3 | CLAP | 140 ms | 8 000 Hz | trois claquements rapprochés, puis une courte queue qui s'éteint par paliers |
-
-Les fichiers `*_ecoute.wav` simulent le rendu du CPC (mêmes niveaux de l'AY, même fréquence).
-Les sons de synthèse d'origine, propres, sont dans [`samples/synth/`](samples/synth/), pour comparer ou les reconvertir autrement.
-
-**Ce qui doit s'entendre** :
-
-- Les fins de son s'arrêtent **par marches**, pas en douceur : sous un certain seuil, le signal tombe d'un coup sur le niveau de repos. C'est la courbe de l'AY.
-- Le charley a une **brillance râpeuse**, due au repliement de spectre (aucun filtre).
-- Rien ne doit **claquer** au début ni à la fin du fichier.
+Le code est dans CPC DISK (`cpc_dsk/seq16/`) ; `tools/smp_gui.py`, `tools/smp_model.py` et `tools/wav2smp.py` y renvoient.
 
 ### Convertir ses propres sons : `tools/wav2smp.py`
 
@@ -517,40 +478,19 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 
 | Option | Effet |
 |---|---|
-| `--rate` | fréquence de 4 000 à 16 000 Hz. Plus bas, c'est plus sale et plus long en mémoire |
+| `--rate` | fréquence de 4 000 à 16 000 Hz. Plus bas, c'est plus sale et plus court en mémoire |
 | `--drive` | gain avant écrêtage (1 = rien, 4 = très saturé). Remonte aussi les fins de son |
 | `--clean` | ajoute un filtre avant le rééchantillonnage, pour moins de repliement |
-| `--bits 4/3/2/1` | moins de niveaux. En 1 bit, il ne reste que 2 niveaux, et le son devient un « bip » dur et faible |
+| `--bits 4/3/2/1` | moins de niveaux |
 | `--dither noise` | tramage : un souffle remplace les marches |
 | `--decim` | 1, 2, 3, 4, 6 ou 8 : un échantillon sur N est maintenu N fois. Ce réglage est stocké, il ne détruit rien |
 | `--slice N` | découpe chaque WAV en N tranches égales |
 | `--names` | noms des samples (6 caractères), séparés par des virgules |
 | `--dsk` | ajoute la banque à `build/seq16.dsk` (ou à la disquette indiquée) |
 | `--trim` | retire les silences au début et à la fin de chaque son |
-| `-v` | affiche la taille et la durée, et prévient au-delà de 16 Ko (mémoire principale) ou de 64 Ko (6128) |
+| `-v` | affiche la taille et la durée, et prévient au-delà de 16 Ko |
 
-Chaque conversion écrit aussi les WAV d'écoute à côté de la banque.
-Pour la place : une seconde à 8 kHz occupe 4 Ko. Une banque contient 16 samples au plus, 16 Ko au plus chacun.
-Pour l'instant, une banque doit tenir dans les 16 064 octets de la mémoire principale, soit environ 4 secondes à 8 kHz. La mémoire du 6128 viendra en phase 3.
-
-### La banque de voix `VOIX.SMP`
-
-Quatre mots en français, fabriqués avec le synthétiseur vocal libre **espeak**. Les sources sont dans [`samples/voix/`](samples/voix/).
-
-| N° | Nom | Durée | Ce qu'on entend |
-|---|---|---|---|
-| 0 | BONJOU | 0,52 s | « Bonjour » |
-| 1 | AMSTRA | 0,67 s | « Amstrad » |
-| 2 | SEQ16 | 1,20 s | « Séquenceur seize » |
-| 3 | COMPTE | 1,76 s | « Un, deux, trois, quatre » |
-
-Pour l'écouter sur le CPC : écran **f3**, touche **D**, choisis **VOIX** avec les flèches, RETURN, puis **f4**.
-La voix est à 6 250 Hz. Elle doit rester compréhensible, avec un grain de « jouet parlant ». En BITS 2 ou avec la courbe SATUREE, elle devient un robot très sale.
-La banque fait 12 951 octets. Elle a été fabriquée ainsi :
-
-```bat
-python tools\wav2smp.py samples\voix\bonjour.wav samples\voix\amstrad.wav samples\voix\seq16.wav samples\voix\compte.wav --names BONJOU,AMSTRA,SEQ16,COMPTE --trim --rate 6250 -o samples\VOIX.SMP --preview-dir samples\ecoute
-```
+Chaque conversion écrit aussi des WAV d'écoute à côté de la banque, qui simulent le rendu du CPC. Une seconde à 8 kHz occupe 4 Ko.
 
 ### Le format `.SMP`
 
@@ -560,82 +500,42 @@ Le format est décrit en détail en tête de `cpc_dsk/seq16/wav2smp.py`, dans CP
 - une fiche de 16 octets par sample : nom, position, longueur, fréquence, boucle, drapeaux, réglages ;
 - les données, 2 échantillons de 4 bits par octet.
 
-Trois choix faits pendant la phase 1 :
+La fréquence est stockée comme la durée d'un échantillon en NOP (µs), de 62 à 250 : c'est directement le réglage de la boucle de lecture du Z80. Chaque échantillon est un code de niveau de l'AY, de 0 à 15. La table des 16 niveaux de l'AY vient de l'émulateur open source [Ayumi](https://github.com/true-grue/ayumi) (licence MIT).
 
-- **La fréquence** est stockée comme la durée d'un échantillon en NOP (µs), de 62 à 250. C'est directement le réglage de la boucle de lecture du Z80.
-- **Un sample ne chevauche jamais une frontière de 16 Ko**, pour que la lecture n'ait pas à changer de bloc mémoire en cours de route.
-- **Chaque échantillon est un code de niveau de l'AY**, de 0 à 15. Écrit tel quel dans le registre de volume, il redonne le son au plus près. Le silence correspond au niveau 12.
+## 🧠 La mémoire et le temps réel
 
-La table des 16 niveaux de l'AY vient de l'émulateur open source [Ayumi](https://github.com/true-grue/ayumi) (licence MIT).
+- **Mémoire principale** : le programme, le morceau en cours et le tampon d'AMSDOS occupent `#3F00` à `#9FFF`. La banque de samples est en mémoire basse (`#0040-#3EFF`, 16 064 octets), la routine de lecture des samples et ses tables en zone haute (`#A000-#A67B`, sous la mémoire d'AMSDOS).
+- **Mémoire supplémentaire du 6128** : le **bloc 4** garde les 32 motifs (seul le motif affiché est en mémoire principale, et le motif suivant d'un morceau y est préparé à l'avance) ; le **bloc 5** garde le morceau d'usine, que **N N** relit. Les blocs 6 et 7 sont libres pour la suite.
+- **La musique ne s'arrête pas pendant les dessins.** Sur le vrai CPC, le firmware écrit un caractère en 3,5 ms environ : redessiner un écran prend plus d'une seconde. Chaque caractère écrit laisse donc la main au son, et les images de son en retard sont rattrapées : les pas tombent à l'heure, même au changement de motif.
+- **Les erreurs de disque** affichent le code d'AMSDOS et le nombre d'octets lus (par exemple `ERREUR DISQUE (DISQUETTE ? NOM ?) 0F03E8`), pour savoir où et pourquoi un chargement a échoué.
 
-### Tester
+## 🧪 Tester
 
 ```bat
 pip install z80
 python -m unittest discover -s tools -p "test_*.py"
 ```
 
-**Le convertisseur** : 24 tests, sans dépendance. Ils vérifient :
+Plus de 220 tests. La plupart font tourner le vrai `SEQ16.BIN` dans un CPC simulé ([`tools/cpcsim.py`](tools/cpcsim.py)) : chaque routine du firmware y est remplacée par une version simulée qui modifie les registres comme le vrai firmware ; le PPI, l'AY, la mémoire supplémentaire, AMSDOS (avec ses règles : un seul fichier ouvert, fin de fichier « douce » sur l'octet `#1A`…) et l'écran texte sont modélisés, et le temps est compté en NOP. Un CPC « lent » écrit chaque caractère en 3,5 ms, comme le vrai firmware.
 
-- un sinus converti puis relu, et sa taille ;
-- le respect des 16 niveaux de l'AY, des bits et de la décimation ;
-- l'en-tête et les fiches de la banque ;
-- le découpage en tranches ;
-- l'écriture sur la disquette, relue ensuite ;
-- que `DRUMS.SMP` correspond bien au script et fait moins de 4 Ko ;
-- que les tables de l'assembleur sont celles du convertisseur.
+Ils vérifient entre autres : la lecture au tempo (pas réguliers au changement de motif, même au rythme réel de l'écran), chaque panneau et ses touches, les effets des pas image par image, les sons composés, la sauvegarde et le chargement de tous les fichiers (morceaux avec leur banque de samples compris), les digidrums, les traductions (chaque texte tient dans la place du français), les motifs d'usine, les morceaux de test et la disquette de démonstration.
 
-**Le programme du CPC** : 17 tests dans [`tools/test_player.py`](tools/test_player.py), qui font tourner le vrai `SEQ16.BIN` dans un simulateur Z80 (paquet `z80`). Le banc d'essai [`tools/cpcsim.py`](tools/cpcsim.py) :
-
-- remplace chaque routine du firmware par une version simulée, qui modifie les registres comme le vrai firmware ;
-- modélise le PPI et l'AY ;
-- compte le temps en NOP, avec les durées propres au CPC ;
-- garde l'écran texte en mémoire.
-
-Ces tests vérifient :
-
-- la fréquence réelle : l'écart entre deux écritures du volume vaut exactement la durée voulue, aussi avec le piano ;
-- que chaque valeur écrite correspond aux données, après décimation, bits et courbe ;
-- que le bon registre est sélectionné pour les voies A, B et C ;
-- que le mixeur, le volume, les registres « bis » du firmware et les interruptions sont restaurés à la fin ;
-- l'arrêt par ESPACE, et les erreurs de chargement (fichier absent, trop grand, pas une banque) ;
-- l'écran f4 et ses touches, le chargement par f3 + D ;
-- que sauver et recharger un `.SNG` marche toujours.
-
-**Les instruments et les digidrums** : 24 tests de plus dans le simulateur.
-
-- [`tools/test_banks.py`](tools/test_banks.py) (10 tests) : copier / coller, sauver et charger une banque `.INS`, prendre un seul son (et annuler), fichier qui n'est pas une banque, les 13 banques de la vraie disquette.
-- [`tools/test_digidrum.py`](tools/test_digidrum.py) (14 tests) :
-  - le digidrum joue les bonnes valeurs sur la bonne voie, à la bonne hauteur et au bon volume ;
-  - une voix muette se tait ;
-  - le séquenceur rattrape exactement la durée du sample ;
-  - l'affichage et le piano de f2 ;
-  - un `.SNG` version 1 se charge, un version 2 recharge sa banque ;
-  - f3 + E sauve la banque ;
-  - f4 + O ajoute un sample pris dans une autre banque, et refuse s'il n'y a pas la place.
-
-**Les langues** : [`tools/test_lang.py`](tools/test_lang.py) (7 tests : chaque traduction tient dans la place du français, aucun texte oublié ; les versions anglaise et espagnole démarrent dans le simulateur et affichent leurs textes sur les quatre écrans, avec les mêmes adresses que la version française).
-
-**Sans simulateur** : [`tools/test_insbank.py`](tools/test_insbank.py) (6 tests : format et bornes des 416 sons, banque USINE = instruments d'usine) et [`tools/test_smp_gui.py`](tools/test_smp_gui.py) (17 tests de l'éditeur graphique ; ceux de la fenêtre sont sautés sans écran).
-
-Les tests lisent `build/seq16.dsk` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
+Les tests lisent les disquettes de `build/` et `build/seq16.sym` : relance `build.bat` après toute modification de `src/`.
 
 ## 🛠️ Réassembler
 
 Sous Windows :
 
 1. Place `rasm.exe` dans `tools\` (dépôt [EdouardBERGE/rasm](https://github.com/EdouardBERGE/rasm), page *Releases*).
-2. Si tu modifies les instruments et motifs d'usine dans `tools/gen_factory.py`, lance d'abord :
-   ```bat
-   python tools\gen_factory.py
-   ```
-3. Si tu modifies les sons de batterie dans `tools/gen_drums.py`, lance `python tools\gen_drums.py`. Si tu modifies les courbes dans `tools/wav2smp.py`, lance `python tools\gen_smp_tables.py`.
-4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`, à relancer aussi après `gen_factory.py`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
-5. Lance `build.bat` : il assemble `src/main.asm`, fabrique `build\seq16.dsk` et y ajoute toutes les banques `.SMP` et `.INS` (il faut Python 3). Il fabrique aussi les versions anglaise et espagnole, `build\seq16-en.dsk` et `build\seq16-es.dsk`.
+2. Si tu modifies les instruments et motifs d'usine dans `tools/gen_factory.py`, lance d'abord `python tools\gen_factory.py`.
+3. Si tu modifies les sons de batterie (`tools/gen_drums.py`) ou les courbes (`tools/wav2smp.py`), lance `python tools\gen_drums.py` ou `python tools\gen_smp_tables.py`.
+4. Si tu modifies les banques : `python tools\gen_instruments.py` (banques `.INS`) et `python tools\gen_samples.py` (banques `.SMP` ; il faut espeak pour les voix).
+5. Lance `build.bat`. Il assemble `src/main.asm`, fabrique `build\seq16.dsk` avec toutes les banques, puis les versions anglaise et espagnole, les disquettes de banques et de motifs, les morceaux de test (`build\seq16-songs.dsk`) et la démonstration (`build\seq16-demo.dsk`).
+6. Pour refaire les captures d'écran (README et site) : `python tools\snapshots.py` ; pour la vidéo : `python tools\make_video.py fr` (il faut ffmpeg et numpy).
 
-**Les traductions** sont dans [`tools/lang.py`](tools/lang.py) : le source reste en français, et le script en fait une copie par langue où chaque texte affiché est remplacé. Une traduction n'est jamais plus longue que le français (elle est complétée par des espaces) : les trois programmes ont la même taille et les mêmes adresses, ce qui compte avec une mémoire pleine. Si tu ajoutes un texte au source, ajoute sa traduction ; `python tools/lang.py --check` signale les textes oubliés ou trop longs.
+**Les traductions** sont dans [`tools/lang.py`](tools/lang.py) : le source reste en français, et le script en fait une copie par langue où chaque texte affiché est remplacé. Une traduction n'est jamais plus longue que le français (elle est complétée par des espaces) : les trois programmes ont la même taille et les mêmes adresses. Si tu ajoutes un texte au source, ajoute sa traduction ; `python tools/lang.py --check` signale les textes oubliés ou trop longs.
 
-**Il faut aussi le projet CPC DISK**, l'éditeur de disquettes : SEQ-16 utilise sa bibliothèque (`cpc_dsk`) pour écrire sur les disquettes. Place-le à côté de ce projet, sur une version qui contient `cpc_dsk/core/amsdos.py` :
+**Il faut aussi le projet CPC DISK**, l'éditeur de disquettes : SEQ-16 utilise sa bibliothèque (`cpc_dsk`) pour écrire sur les disquettes. Place-le à côté de ce projet :
 
 ```
 _Codes/
@@ -649,50 +549,47 @@ _Codes/
 
 | Fichier | Rôle |
 |---|---|
-| [`src/main.asm`](src/main.asm) | les trois écrans, le curseur, la saisie, la disquette |
-| [`src/song.asm`](src/song.asm) | le morceau : organisation en mémoire, remise à zéro |
-| [`src/seq.asm`](src/seq.asm) | le séquenceur : format du motif, lecture au tempo |
-| [`src/sound.asm`](src/sound.asm) | le moteur de son (4 voix, volumes, voix muettes) |
+| [`src/main.asm`](src/main.asm) | le démarrage, la boucle principale, les touches, le panneau INST, la disquette, la carte de la mémoire |
+| [`src/grid.asm`](src/grid.asm) | le panneau MOTIF : la grille, le panneau du pas, l'édition, les couches d'un son composé |
+| [`src/songpanel.asm`](src/songpanel.asm) | le panneau SONG : l'enchaînement, la lecture du morceau, le mixage |
+| [`src/panels.asm`](src/panels.asm) | f8 / f9 dans chaque panneau |
+| [`src/diskpanel.asm`](src/diskpanel.asm) | le panneau DISQUE : catalogue, chargement, effacer, renommer |
+| [`src/sngio.asm`](src/sngio.asm) | le `.SNG` version 4 (morceau et banque de samples), lu et écrit octet par octet |
+| [`src/song.asm`](src/song.asm) | le morceau en mémoire, les motifs dans le bloc 4 |
+| [`src/bank.asm`](src/bank.asm) | la mémoire supplémentaire du 6128 (blocs 4 et 5) |
+| [`src/boot.asm`](src/boot.asm) | ce qui ne sert qu'au démarrage : la construction du morceau d'usine, rangé dans le bloc 5 |
+| [`src/seq.asm`](src/seq.asm) | le séquenceur : format du motif, lecture au tempo, BOUCLE / 1 FOIS |
+| [`src/sound.asm`](src/sound.asm) | le moteur de son (4 voix, enveloppes, arpège, vibrato, glissando, effets des pas) |
 | [`src/factory.asm`](src/factory.asm) | instruments, sons et motifs d'usine (fichier généré) |
 | [`src/tables.asm`](src/tables.asm) | tables des notes et des volumes (fichier généré) |
 | [`src/firmware.asm`](src/firmware.asm) | les adresses des routines système du CPC utilisées |
-| [`src/sample.asm`](src/sample.asm) | la lecture des samples : accès direct à l'AY, chargement d'une banque |
-| [`src/smpscreen.asm`](src/smpscreen.asm) | l'écran f4 (Sample Composer), la liste de choix des fichiers |
-| [`src/banks.asm`](src/banks.asm) | copier / coller d'instruments, banques `.INS`, sauvegarde `.SMP`, digidrums |
-| [`src/hizone.asm`](src/hizone.asm) | routines recopiées en zone haute : prendre un son ou un sample dans une banque, jouer un digidrum |
-| [`src/smptables.asm`](src/smptables.asm) | courbes et hauteurs des samples (fichier généré) |
-| [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py) | les scripts qui génèrent ces fichiers |
-| [`tools/gen_drums.py`](tools/gen_drums.py) | fabrique la banque d'usine `DRUMS.SMP` par synthèse |
-| [`tools/gen_samples.py`](tools/gen_samples.py) | fabrique les autres banques `.SMP` (synthèse, espeak) |
-| [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/insbank.py`](tools/insbank.py) | fabrique les banques d'instruments `.INS` ; le format `.INS` |
-| [`tools/smp_gui.py`](tools/smp_gui.py), [`tools/smp_model.py`](tools/smp_model.py), [`tools/wav2smp.py`](tools/wav2smp.py) | renvois vers l'éditeur de banques et le convertisseur, qui sont dans CPC DISK (`cpc_dsk/seq16/`) |
-| [`tools/amsdsk.py`](tools/amsdsk.py), [`tools/cpcdisk.py`](tools/cpcdisk.py) | ajoute un fichier sur une disquette `.dsk` (ou en affiche le catalogue), avec la bibliothèque de CPC DISK |
-| [`tools/gen_smp_tables.py`](tools/gen_smp_tables.py) | génère `src/smptables.asm` |
-| [`tools/test_wav2smp.py`](tools/test_wav2smp.py) | les tests du convertisseur |
-| [`tools/cpcsim.py`](tools/cpcsim.py), [`tools/test_player.py`](tools/test_player.py), [`tools/test_banks.py`](tools/test_banks.py), [`tools/test_digidrum.py`](tools/test_digidrum.py) | le CPC simulé et les tests du programme |
-| [`tools/test_insbank.py`](tools/test_insbank.py), [`tools/test_smp_gui.py`](tools/test_smp_gui.py) | les tests des banques `.INS` et de l'éditeur graphique |
-| [`tools/lang.py`](tools/lang.py), [`tools/test_lang.py`](tools/test_lang.py) | les versions anglaise et espagnole (traductions, fabrication) et leurs tests |
-| [`tools/gen_patterns.py`](tools/gen_patterns.py), [`patterns/`](patterns/) | fabrique les motifs d'usine (`.PAT`) et leurs deux disquettes |
-| [`tools/test_patterns.py`](tools/test_patterns.py), [`tools/test_gen_patterns.py`](tools/test_gen_patterns.py) | les tests de la sauvegarde et du chargement des motifs (f3 M et P) et des motifs d'usine |
-| [`samples/`](samples/) | les banques `.SMP`, leurs sons d'origine et leurs WAV d'écoute |
-| [`instruments/`](instruments/) | les banques d'instruments `.INS` |
-| [`build.bat`](build.bat) | assemble et fabrique la disquette |
-| [`build/seq16.dsk`](build/seq16.dsk) | la disquette prête à l'emploi |
+| [`src/sample.asm`](src/sample.asm), [`src/smptables.asm`](src/smptables.asm) | la lecture des samples : accès direct à l'AY, chargement d'une banque ; courbes et hauteurs (généré) |
+| [`src/smpscreen.asm`](src/smpscreen.asm) | le panneau SAMPLE, la liste de choix des fichiers |
+| [`src/banks.asm`](src/banks.asm), [`src/hizone.asm`](src/hizone.asm) | copier / coller d'instruments, banques `.INS` et `.SMP`, digidrums ; routines recopiées en zone haute |
+| [`tools/cpcsim.py`](tools/cpcsim.py), `tools/test_*.py` | le CPC simulé et les tests |
+| [`tools/lang.py`](tools/lang.py) | les versions anglaise et espagnole |
+| [`tools/gen_patterns.py`](tools/gen_patterns.py), [`tools/gen_songs.py`](tools/gen_songs.py), [`tools/gen_demo.py`](tools/gen_demo.py) | les motifs d'usine, les morceaux de test, la disquette de démonstration |
+| [`tools/gen_factory.py`](tools/gen_factory.py), [`tools/gen_tables.py`](tools/gen_tables.py), [`tools/gen_instruments.py`](tools/gen_instruments.py), [`tools/gen_samples.py`](tools/gen_samples.py), [`tools/gen_drums.py`](tools/gen_drums.py) | les fichiers générés et les banques |
+| [`tools/snapshots.py`](tools/snapshots.py), [`tools/make_video.py`](tools/make_video.py) | les captures d'écran et la vidéo, tournées dans le CPC simulé |
+| [`tools/amsdsk.py`](tools/amsdsk.py), [`tools/cpcdisk.py`](tools/cpcdisk.py) | écrire sur une disquette `.dsk`, avec la bibliothèque de CPC DISK |
+| [`samples/`](samples/), [`instruments/`](instruments/), [`patterns/`](patterns/), [`songs/`](songs/), [`demo/`](demo/) | banques, motifs, morceaux de test, démonstration |
+| [`build/`](build/) | les disquettes prêtes à l'emploi |
 | [`snapshots/`](snapshots/) | les captures d'écran de ce README |
 
 ## 🗺️ Feuille de route
 
-- [x] **Étape 6 : instruments, mixage et disquette** ← version actuelle
-- [ ] Étape 7 : édition des sons composés à l'écran
-- [ ] Étape 8 : enchaînement des motifs en morceau
+- [x] Motifs de 16 pas, 32 motifs, 4 voix, son composé
+- [x] Cinq panneaux, f8 / f9 partout, panneau DISQUE (catalogue, effacer, renommer)
+- [x] Enchaînement des motifs en morceau : 64 positions, répétitions, transposition, boucle
+- [x] Édition des sons composés à l'écran
+- [x] Les 7 effets des pas (FX)
+- [x] `.SNG` qui emporte sa banque de samples
+- [x] Copier-coller d'instruments, 13 banques d'instruments, 9 banques de samples, 125 motifs d'usine
+- [x] Samples : convertisseur, lecture sur CPC, panneau SAMPLE, digidrums, éditeur graphique sur PC
+- [x] Disquette de démonstration
 - [ ] Renommer les instruments
-- [ ] Étape 10 : copier-coller de blocs
-- [x] Copier-coller d'instruments, banques d'instruments `.INS` (13 banques, 416 sons)
-- [x] Samples, phase 1 : convertisseur et banque d'usine (sur PC)
-- [x] Samples, phase 2 : lecture sur CPC, écran f4 minimal
-- [x] Samples, phase 4 : digidrums dans le séquenceur, `.SNG` version 2, sauvegarde `.SMP`, 9 banques de samples
-- [x] Éditeur graphique de banques `.SMP` sur PC
-- [ ] Samples, phases 3, 5 et 6 : mémoire du 6128, mode HACHÉ, finitions de f4
+- [ ] Copier-coller de blocs de pas
+- [ ] Samples : tables gardées dans la mémoire supplémentaire, mode HACHÉ, finitions du panneau SAMPLE
 
 ## 🙏 Remerciements
 
@@ -701,7 +598,7 @@ SEQ-16 repose sur le travail d'autres personnes. Merci à elles.
 **Outils et bibliothèques**
 - [RASM](https://github.com/EdouardBERGE/rasm), l'assembleur Z80 d'Édouard Bergé : il assemble le programme et écrit la disquette.
 - [z80](https://github.com/kosarev/z80), l'émulateur Z80 pour Python d'Ivan Kosarev : il fait tourner le CPC simulé des tests.
-- [Ayumi](https://github.com/true-grue/ayumi), l'émulateur d'AY-3-8912 de Peter Sovietov (licence MIT) : sa table de volumes du DAC sert au convertisseur de samples.
+- [Ayumi](https://github.com/true-grue/ayumi), l'émulateur d'AY-3-8912 de Peter Sovietov (licence MIT) : sa table de volumes sert au convertisseur de samples.
 - [eSpeak NG](https://github.com/espeak-ng/espeak-ng) : les voix des banques de samples `VOIX`, `CHIFFRES` et `MOTS`.
 - [CPC DISK](https://github.com/ChristopheCruz/CPC-DISK) : la bibliothèque disque, et l'éditeur de banques de samples (son onglet SAMPLES SEQ-16).
 - [Python](https://www.python.org/) et [tkinter](https://docs.python.org/3/library/tkinter.html) : les outils, les tests et l'éditeur.

@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SEQ-16 · secuenciador chiptune para Amstrad CPC 6128</title>
-<meta name="description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones, instrumentos, sampler y digidrums, 13 bancos de instrumentos y 9 bancos de samples.">
+<meta name="description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones de 16 pasos encadenados en temas, 7 efectos por paso, sonidos de 4 voces, sampler y digidrums, 13 bancos de instrumentos, 9 bancos de samples y un disco de demostración.">
 <meta name="theme-color" content="#000080">
 <link rel="canonical" href="https://seq16.slr-ai.com/es/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://seq16.slr-ai.com/es/">
 <meta property="og:site_name" content="SEQ-16">
 <meta property="og:title" content="SEQ-16 · secuenciador chiptune para Amstrad CPC 6128">
-<meta property="og:description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones, instrumentos, sampler y digidrums, 13 bancos de instrumentos y 9 bancos de samples.">
+<meta property="og:description" content="SEQ-16 es un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80: patrones de 16 pasos encadenados en temas, 7 efectos por paso, sonidos de 4 voces, sampler y digidrums, 13 bancos de instrumentos, 9 bancos de samples y un disco de demostración.">
 <meta property="og:image" content="https://seq16.slr-ai.com/assets/img/og-seq16.png">
 <meta property="og:image:width" content="1344">
 <meta property="og:image:height" content="864">
-<meta property="og:image:alt" content="Pantalla del secuenciador SEQ-16 en un Amstrad CPC: cuatro voces en 16 pasos">
+<meta property="og:image:alt" content="El panel TEMA de SEQ-16 en un Amstrad CPC: un tema sonando">
 <meta property="og:locale" content="es_ES">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" hreflang="en" href="../index.html">
@@ -36,7 +36,7 @@
 <a class="logo" href="../es/index.html" aria-label="SEQ-16, página de inicio">SEQ<span>-</span>16</a>
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menú</button>
 <nav aria-label="Principal" class="nav-wrap">
-<ul class="nav" id="nav"><li><a href="#video">Vídeo</a></li><li><a href="#features">Funciones</a></li><li><a href="#screens">Pantallas</a></li><li><a href="#download">Descargar</a></li><li><a href="../es/manual.html">Manual</a></li><li><a href="#pc">En PC</a></li><li><a href="#dev">Desarrollo</a></li><li><a href="#thanks">Agradecimientos</a></li></ul>
+<ul class="nav" id="nav"><li><a href="#video">Vídeo</a></li><li><a href="#features">Funciones</a></li><li><a href="#screens">Paneles</a></li><li><a href="#download">Descargar</a></li><li><a href="../es/manual.html">Manual</a></li><li><a href="#pc">En PC</a></li><li><a href="#dev">Desarrolladores</a></li><li><a href="#thanks">Agradecimientos</a></li></ul>
 </nav>
 <ul class="langs" aria-label="Idioma"><li><a href="../index.html" hreflang="en" lang="en" title="English" aria-label="English">EN</a></li><li><a href="../fr/index.html" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a></li><li><span aria-current="true" title="Español">ES</span></li></ul>
 </div>
@@ -49,15 +49,15 @@
 <p class="tag">SECUENCIADOR CHIPTUNE · AMSTRAD CPC 6128</p>
 <h1 id="top-title">SEQ-16</h1>
 <p class="lead">Un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80.</p>
-<p>16 pasos por patrón, 32 patrones, 32 instrumentos, los temas se graban en disquete. Y un sampler que toca sonidos grabados de verdad con el chip de sonido del CPC, con un grano que ajustas en directo: degradar el sonido es justo lo que se busca.</p>
+<p>32 patrones de 16 pasos encadenados en un tema (64 posiciones, repeticiones, transposición, bucle), 32 instrumentos, 8 sonidos de 4 voces, 7 efectos por paso. Y un sampler que toca sonidos grabados de verdad en el chip de sonido del CPC, con un grano que se ajusta en directo: el sonido degradado es lo que se busca.</p>
 <div class="actions">
 <a class="btn" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk">Descargar<small>seq16-es.dsk · versión en español</small></a>
-<a class="btn ghost" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Todos los disquetes<small>última release</small></a>
+<a class="btn ghost" href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">Todos los discos<small>última release</small></a>
 </div>
 <p class="muted">Luego, en el CPC (configurado como 6128 en un emulador):</p>
-<p class="ready" aria-label='Teclea RUN"SEQ16 y pulsa RETURN'>Ready<br>RUN"SEQ16<br><span class="cursor" aria-hidden="true"></span></p>
+<p class="ready" aria-label='Escribe RUN"SEQ16 y RETURN'>Ready<br>RUN"SEQ16<br><span class="cursor" aria-hidden="true"></span></p>
 </div>
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f1-playing.png" width="672" height="432" alt="El secuenciador SEQ-16 tocando: voces A, B, C y ruido N en 16 pasos" fetchpriority="high" decoding="async"></div></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/song.png" width="672" height="432" alt="El panel TEMA de SEQ-16: un tema sonando" fetchpriority="high" decoding="async"></div></figure>
 
 </div>
 </section>
@@ -73,41 +73,37 @@
 <div class="wrap">
 <h2 id="features-h">Funciones</h2>
 <ul class="grid">
-<li class="card"><h3>4 voces</h3><p>Los tres canales de tono A, B, C del chip de sonido AY-3-8912, más una voz de ruido N.</p></li>
-<li class="card"><h3>Patrones</h3><p>32 patrones de 16 pasos: nota, octava e instrumento en cada paso, tempo en BPM, reproducción seguida en pantalla.</p></li>
+<li class="card"><h3>Temas</h3><p>El panel TEMA encadena los patrones: 64 posiciones, repeticiones, transposición, bucle, mezcla de las voces.</p></li>
+<li class="card"><h3>Patrones</h3><p>32 patrones de 16 pasos en 4 voces (A, B, C y ruido N): nota, instrumento, volumen y efecto en cada paso.</p></li>
+<li class="card"><h3>7 efectos por paso</h3><p>Sube, baja, arpegio, repite, corta, demora, vibrato: escritos en hexadecimal como en los trackers.</p></li>
 <li class="card"><h3>Instrumentos</h3><p>32 instrumentos: envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</p></li>
-<li class="card"><h3>Sonidos compuestos</h3><p>Una sola línea toca un sonido compuesto en las 4 voces a la vez (8 sonidos compuestos).</p></li>
-<li class="card"><h3>Sampler</h3><p>La pantalla f4 toca sonidos grabados (batería, voces…) con frecuencia, decimación, bits y curva ajustables en directo.</p></li>
-<li class="card"><h3>Digidrums</h3><p>Samples que se disparan en un paso como una nota, dentro de tus temas.</p></li>
-<li class="card"><h3>Bancos de sonidos</h3><p>13 bancos de instrumentos <code>.INS</code> (416 sonidos) y 9 bancos de samples <code>.SMP</code> en el disquete.</p></li>
-<li class="card"><h3>3 idiomas</h3><p>Disquetes en español, francés e inglés: el mismo programa, los mismos bancos, las mismas teclas; solo cambian los textos de la pantalla.</p></li>
-<li class="card"><h3>Máquina real</h3><p>Funciona en un CPC 6128 real con una disquetera Gotek (firmware FlashFloppy o HxC), o en un emulador.</p></li>
+<li class="card"><h3>Sonidos de 4 voces</h3><p>Una sola nota toca hasta 4 instrumentos a la vez; los 8 sonidos se editan voz por voz.</p></li>
+<li class="card"><h3>Sampler</h3><p>El panel SAMPLE toca sonidos grabados (batería, voces…) con frecuencia, decimación, bits y curva ajustables.</p></li>
+<li class="card"><h3>Digidrums</h3><p>Samples disparados en un paso como una nota; un tema .SNG lleva consigo su banco de samples.</p></li>
+<li class="card"><h3>Bancos y patrones</h3><p>13 bancos de instrumentos (416 sonidos), 9 bancos de samples, 125 patrones de fábrica y un disco de demostración.</p></li>
+<li class="card"><h3>Máquina real</h3><p>Funciona en un CPC 6128 de verdad (con una disquetera Gotek) o en un emulador, en español, francés o inglés.</p></li>
 </ul>
 </div>
 </section>
 
 <section id="screens" aria-labelledby="screens-h">
 <div class="wrap">
-<h2 id="screens-h">Las pantallas</h2>
-<p>Cuatro pantallas, que se eligen con las teclas de función del teclado numérico: <kbd class="fn">f1</kbd> secuenciador, <kbd class="fn">f2</kbd> instrumento, <kbd class="fn">f3</kbd> mezcla y disco, <kbd class="fn">f4</kbd> sampler.</p>
-<p class="note">Las capturas muestran la versión en español (<code>seq16-es.dsk</code>); los disquetes en francés y en inglés muestran las mismas pantallas con sus propios textos.</p>
+<h2 id="screens-h">Los cinco paneles</h2>
+<p>Cinco paneles, que se eligen con las teclas de función del teclado numérico; en cada uno, <kbd class="fn">f8</kbd> graba y <kbd class="fn">f9</kbd> carga.</p>
+<p class="note">Las capturas muestran la versión en español (<code>seq16-es.dsk</code>), con el tema ARCADE del disco de demostración.</p>
 <div class="gallery">
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f1-split-voices.png" width="672" height="432" alt="Secuenciador con las voces sueltas" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Secuenciador, voces sueltas</strong>Las voces A, B, C y el ruido N en 16 pasos: nota, octava, instrumento.</figcaption></figure>
-
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f1-layered-sound.png" width="672" height="432" alt="Secuenciador tocando un sonido de 4 voces" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Secuenciador, sonido de 4 voces</strong>Una sola línea que toca un sonido compuesto en las 4 voces a la vez.</figcaption></figure>
-
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f2-instrument.png" width="672" height="432" alt="Pantalla de edición de instrumento con el dibujo de la envolvente" loading="lazy" decoding="async"></div><figcaption><strong>f2 · Instrumento</strong>Envolvente dibujada en directo, ruido, envolvente hardware, arpegio, vibrato, glissando, portamento.</figcaption></figure>
-
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f3-mixer-disk.png" width="672" height="432" alt="Pantalla de mezcla y disco" loading="lazy" decoding="async"></div><figcaption><strong>f3 · Mezcla y disco</strong>Volumen y silencio de cada voz, grabar y cargar temas.</figcaption></figure>
-
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f1-playing.png" width="672" height="432" alt="Secuenciador durante la reproducción" loading="lazy" decoding="async"></div><figcaption><strong>f1 · Tocando</strong>El paso que suena se sigue en pantalla durante la reproducción.</figcaption></figure>
-
-<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/f3-catalog.png" width="672" height="432" alt="Catálogo del disquete mostrado dentro del programa" loading="lazy" decoding="async"></div><figcaption><strong>f3 · Catálogo</strong>El contenido del disquete, sin salir del programa.</figcaption></figure>
-
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/song.png" width="672" height="432" alt="f1 · TEMA" loading="lazy" decoding="async"></div><figcaption><strong>f1 · TEMA</strong>El encadenamiento de los patrones: posiciones, repeticiones, transposición, bucle, mezcla.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/pattern-split.png" width="672" height="432" alt="f2 · PATRON, voces sueltas" loading="lazy" decoding="async"></div><figcaption><strong>f2 · PATRON, voces sueltas</strong>Las voces A, B, C y N en 16 pasos; arriba, la nota del cursor y su efecto.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/pattern-layered.png" width="672" height="432" alt="f2 · PATRON, sonido de 4 voces" loading="lazy" decoding="async"></div><figcaption><strong>f2 · PATRON, sonido de 4 voces</strong>Una sola línea que toca un sonido de 4 voces; sus capas debajo.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/pattern-fx.png" width="672" height="432" alt="f2 · Un efecto (FX)" loading="lazy" decoding="async"></div><figcaption><strong>f2 · Un efecto (FX)</strong>TAB: el panel del paso se edita; aquí el efecto ARPEG. (37).</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/instrument.png" width="672" height="432" alt="f3 · INST, instrumentos" loading="lazy" decoding="async"></div><figcaption><strong>f3 · INST, instrumentos</strong>La envolvente dibujada en directo y todos los ajustes del sonido.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/layered-sounds.png" width="672" height="432" alt="f3 · INST, sonidos de 4 voces" loading="lazy" decoding="async"></div><figcaption><strong>f3 · INST, sonidos de 4 voces</strong>f6: los 8 sonidos de 4 voces, voz por voz.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/sampler.png" width="672" height="432" alt="f4 · SAMPLE" loading="lazy" decoding="async"></div><figcaption><strong>f4 · SAMPLE</strong>El banco de samples y el grano del sample elegido.</figcaption></figure>
+<figure class="crt-fig"><div class="crt"><img src="../assets/img/es/disk.png" width="672" height="432" alt="f5 · DISCO" loading="lazy" decoding="async"></div><figcaption><strong>f5 · DISCO</strong>El catálogo por tipo; ENTER carga el fichero en su panel.</figcaption></figure>
 </div>
 <figure>
-<div class="crt"><img src="../assets/img/es/f4-sampler.png" width="672" height="432" alt="pantalla f4 del sampler" loading="lazy" decoding="async"></div>
-<figcaption><strong>f4 · Sampler (Sample Composer)</strong>El banco de sonidos a la izquierda, el grano del sonido elegido a la derecha.</figcaption>
+<div class="crt"><img src="../assets/img/es/pattern-playing.png" width="672" height="432" alt="f2 · Sonando" loading="lazy" decoding="async"></div>
+<figcaption><strong>f2 · Sonando</strong>El paso que suena se sigue en pantalla; la música no se para mientras se redibuja la pantalla.</figcaption>
 </figure>
 </div>
 </section>
@@ -115,24 +111,23 @@
 <section id="download" aria-labelledby="download-h">
 <div class="wrap">
 <h2 id="download-h">Descargar</h2>
-<p>Todos los disquetes están en la página de la <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">última release</a>. Cada imagen <code>.dsk</code> es un disquete de CPC estándar.</p>
-<div class="table-wrap" role="region" aria-label="Disquetes" tabindex="0"><table><thead><tr><th scope="col">Disquete</th><th scope="col">Contenido</th></tr></thead><tbody><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk"><code>seq16-es.dsk</code></a></td><td data-label="Contenido">SEQ-16 en español, con los 13 bancos de instrumentos y los 9 bancos de samples</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-fr.dsk"><code>seq16-fr.dsk</code></a></td><td data-label="Contenido">SEQ-16 en francés (version française), los mismos bancos</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-en.dsk"><code>seq16-en.dsk</code></a></td><td data-label="Contenido">SEQ-16 en inglés (English version), los mismos bancos</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-inst.dsk"><code>seq16-inst.dsk</code></a></td><td data-label="Contenido">solo los bancos: los 13 bancos de instrumentos <code>.INS</code> (disquete de datos, sin el programa)</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-samples.dsk"><code>seq16-samples.dsk</code></a></td><td data-label="Contenido">solo los bancos: los 9 bancos de samples <code>.SMP</code> (disquete de datos, sin el programa)</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-mono.dsk"><code>seq16-motifs-mono.dsk</code></a></td><td data-label="Contenido">62 patrones de fábrica <strong>mono</strong> (sonido de 4 voces): riffs, arpegios, bajos, jingles — se cargan con f3 P</td></tr><tr><td data-label="Disquete"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-poly.dsk"><code>seq16-motifs-poly.dsk</code></a></td><td data-label="Contenido">63 patrones de fábrica <strong>poli</strong> (voces sueltas): grooves completos, batería, bajo + batería — se cargan con f3 P</td></tr></tbody></table></div>
+<p>Los discos del programa están en la página de la <a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest">última release</a>; la demostración está en la carpeta <code>build/</code> del repositorio. Cada imagen <code>.dsk</code> es un disco de CPC normal.</p>
+<div class="table-wrap" role="region" aria-label="Disco" tabindex="0"><table><thead><tr><th scope="col">Disco</th><th scope="col">Contenido</th></tr></thead><tbody><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-es.dsk"><code>seq16-es.dsk</code></a></td><td data-label="Contenido">SEQ-16 en español, con los 13 bancos de instrumentos y los 9 bancos de samples</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-fr.dsk"><code>seq16-fr.dsk</code></a></td><td data-label="Contenido">SEQ-16 en francés (version française), mismos bancos</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-en.dsk"><code>seq16-en.dsk</code></a></td><td data-label="Contenido">SEQ-16 en inglés (English version), mismos bancos</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/raw/main/build/seq16-demo-es.dsk"><code>seq16-demo-es.dsk</code></a></td><td data-label="Contenido"><strong>demostración</strong>: SEQ-16 en español y dos temas, ARCADE (sonido de 4 voces, los 7 efectos) y STUDIO (samples, voz); también en <a href='https://github.com/ChristopheCruz/CPC-SEQ-16/raw/main/build/seq16-demo.dsk'>francés</a> y <a href='https://github.com/ChristopheCruz/CPC-SEQ-16/raw/main/build/seq16-demo-en.dsk'>-en</a></td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-inst.dsk"><code>seq16-inst.dsk</code></a></td><td data-label="Contenido">solo bancos: los 13 bancos de instrumentos <code>.INS</code> (sin el programa)</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-samples.dsk"><code>seq16-samples.dsk</code></a></td><td data-label="Contenido">solo bancos: los 9 bancos de samples <code>.SMP</code> (sin el programa)</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-mono.dsk"><code>seq16-motifs-mono.dsk</code></a></td><td data-label="Contenido">62 patrones de fábrica <strong>mono</strong> (sonido de 4 voces) — panel PATRON, f9</td></tr><tr><td data-label="Disco"><a href="https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest/download/seq16-motifs-poly.dsk"><code>seq16-motifs-poly.dsk</code></a></td><td data-label="Contenido">63 patrones de fábrica <strong>poly</strong> (voces sueltas) — panel PATRON, f9</td></tr></tbody></table></div>
 
-<p>El mismo programa, los mismos bancos, las mismas teclas en los tres idiomas: solo cambian los textos de la pantalla. Con un disquete de solo bancos, cambia de disquete y carga un banco (pantalla <kbd class="fn">f3</kbd>: <kbd>O</kbd> o <kbd>D</kbd>).</p>
+<p>Mismo programa, mismos ficheros, mismas teclas en los tres idiomas: solo cambian los textos de la pantalla. Con un disco de bancos o de patrones, cambia de disco y luego <kbd class="fn">f9</kbd> en el panel correspondiente (o el panel <kbd class="fn">f5</kbd> DISCO).</p>
 <div class="split">
 <div>
 <h3 id="emulator">En un emulador</h3>
 <ol class="steps">
 <li>Descarga <code>seq16-es.dsk</code>.</li>
-<li>Mete el disquete en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como <strong>CPC 6128</strong>.</li>
-<li>Teclea <code>RUN"SEQ16</code> y pulsa <kbd>RETURN</kbd>.</li>
+<li>Mete el disco en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como <strong>CPC 6128</strong>.</li>
+<li>Escribe <code>RUN"SEQ16</code> y <kbd>RETURN</kbd>.</li>
 </ol>
-<p>Para salir, mantén <kbd>ESC</kbd> pulsada un segundo. Una pulsación sola no basta, para no perder tu trabajo por error.</p>
+<p>Para salir, mantén <kbd>ESC</kbd> pulsada un segundo. Una pulsación sola no basta, para no perder el trabajo por error.</p>
 </div>
 <div>
-<h3 id="gotek">En un CPC real con un Gotek</h3>
-<p>Copia <code>seq16-es.dsk</code> en el pendrive USB de una disquetera Gotek (firmware FlashFloppy o HxC) y teclea <code>RUN"SEQ16</code> en el CPC.</p>
-<p>La herramienta compañera <a href="#pc">CPC DISK</a> prepara el pendrive del Gotek, incluido uno para el firmware HxC.</p>
+<h3 id="gotek">En un CPC de verdad con un Gotek</h3>
+<p>Copia <code>seq16-es.dsk</code> en la memoria USB de una disquetera Gotek (firmware FlashFloppy o HxC) y escribe <code>RUN"SEQ16</code> en el CPC. La herramienta compañera <a href="#pc">CPC DISK</a> prepara la memoria USB del Gotek.</p>
 </div>
 </div>
 <p><a class="btn ghost" href="../es/manual.html">Leer el manual</a></p>
