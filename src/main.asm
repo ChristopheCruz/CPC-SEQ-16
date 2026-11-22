@@ -47,6 +47,12 @@ GRID_ROW  equ 6                 ; première ligne écran de la grille
 HEAD_ROW  equ 5                 ; ligne des numéros de pas
 
 start:
+        jp boot                 ; les routines de bank.asm doivent être hors de
+                                ; #4000-#7FFF : on les met tout au début
+        include 'bank.asm'
+        assert $ <= #4000
+
+boot:
         ld a,1                  ; Mode 1 : 40 colonnes, 4 couleurs
         call SCR_SET_MODE
         ld bc,COL_BLEU*257
@@ -55,6 +61,13 @@ start:
         ld bc,COL_ORANGE*257
         call SCR_SET_INK
 
+        call bank_check         ; il faut les 128 Ko du 6128 (bank.asm)
+        jr c,boot_6128
+        ld hl,txt_need_6128     ; 464, ou 664 sans extension : on prévient,
+        call print_str          ; et une touche ramène au BASIC
+        call KM_WAIT_CHAR
+        rst 0
+boot_6128:
         ld c,7                  ; RUN" d'un fichier binaire réinitialise le
         ld de,#0040             ; système sans réveiller le lecteur de
         ld hl,#ABFF             ; disquette : on relance AMSDOS (ROM 7),
@@ -65,7 +78,8 @@ start:
         ld (#BE78),a            ; l'écran, c'est le programme qui les affiche
         call init_song          ; morceau d'usine
         call snd_init
-        ld hl,patterns          ; motif 1
+        xor a                   ; motif 1
+        call pat_fetch
         call seq_set_pattern
         call draw_screen        ; affiche le séquenceur
 
@@ -794,8 +808,11 @@ piano_keys:
 ; ----------------------------------------------------------------------------
 ; Choix du motif.  A = 0 à 31
 select_pattern:                 ; (la lecture continue, au même pas)
+        push af
+        call pat_store          ; le motif quitté retourne dans le bloc 4
+        pop af
         ld (cur_pat),a
-        call pat_addr
+        call pat_fetch          ; et le nouveau vient dans pat_work
         call seq_set_pattern
         ld hl,(seq_pattern)     ; en son composé, une seule voix
         ld a,(hl)
@@ -2440,9 +2457,15 @@ dsv_clear:
         ld bc,8
         ldir
 dsv_go:
+        call song_to_bank       ; l'image du morceau, à jour, dans le bloc 4
+        ld hl,BANK_SONG
+        ld (sf_addr),hl
+        ld a,1
+        ld (sf_bank),a
         ld hl,txt_ext           ; NOM.SNG : tout le morceau
         ld de,SONG_SIZE
         ld bc,txt_m_saved
+        jr save_block
 ; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
 ; song_data, BC = message affiché si tout va bien.
 save_file:
@@ -2451,6 +2474,10 @@ save_file:
         ld (sf_addr),hl
         pop hl
 ; Même chose, mais depuis l'adresse (sf_addr) : un motif seul, par exemple.
+; (sf_bank) = 1 : l'adresse est dans le bloc 4 (remis à 0 ici).
+save_block_main:
+        xor a
+        ld (sf_bank),a
 save_block:
         ld (sf_size),de
         ld (sf_msg),bc
@@ -2467,11 +2494,18 @@ save_block:
         ld de,io_buffer
         call CAS_OUT_OPEN
         jp nc,disk_error
+        ld a,(sf_bank)
+        or a
         ld hl,(sf_addr)
         ld de,(sf_size)
         ld bc,0
         ld a,2                  ; fichier binaire
+        jr z,ds_main
+        call bank_cas_out       ; depuis le bloc 4
+        jr ds_written
+ds_main:
         call CAS_OUT_DIRECT
+ds_written:
         jp nc,ds_abandon
         call CAS_OUT_CLOSE
         jp nc,disk_error
@@ -2505,10 +2539,14 @@ disk_load:
         sbc hl,bc
         jr nz,dl_bad
 dl_size:
-        ld hl,song_data
-        call CAS_IN_DIRECT
+        ld hl,BANK_SONG         ; le fichier va tel quel dans le bloc 4
+        call bank_cas_in
         jr nc,dl_abandon
         call CAS_IN_CLOSE
+        ld hl,BANK_SONG         ; puis l'en-tête, les instruments, les noms
+        ld de,song_data         ; et les sons en mémoire principale
+        ld bc,SONG_FIXED
+        call bank_get
         ld hl,song_data         ; signature "SQ16" ?
         ld de,song_sig
         ld b,4
@@ -2521,7 +2559,13 @@ dl_sig:
         djnz dl_sig
         ld a,(song_data+4)      ; version 1 : bloc v2 par défaut
         cp SONG_VER
-        jr nc,dl_v2
+        jr c,dl_v1
+        ld hl,BANK_V2           ; version 2 : le bloc v2 du fichier
+        ld de,song_v2
+        ld bc,SONG_EXTRA
+        call bank_get
+        jr dl_v2
+dl_v1:
         ld hl,song_v2
         ld b,SONG_EXTRA
 dl_clear:
@@ -2562,7 +2606,7 @@ song_loaded:
         ld (cur_pat),a
         ld (cur_l),a
         ld (cur_s),a
-        call pat_addr
+        call pat_fetch
         call seq_set_pattern
         call snd_init
         jp dsk_show_all
@@ -2837,6 +2881,8 @@ last_msg:   dw txt_m_none       ; dernier message affiché
 sf_size:    dw 0                ; save_file : nombre d'octets,
 sf_msg:     dw 0                ;   message de réussite
 sf_addr:    dw 0                ;   et adresse du premier octet (save_block)
+sf_bank:    db 0                ;   1 = cette adresse est dans le bloc 4
+txt_need_6128: db "SEQ-16 : IL FAUT UN CPC 6128",0
 clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
 clip_ok:    db 0                ;   1 = il contient un instrument
 it_pick:    db 0                ; son choisi dans la banque
@@ -2855,8 +2901,10 @@ dg_debt:    db 0                ; images de séquenceur à rattraper
 end_of_program:
 
 ; ----------------------------------------------------------------------------
-; Le morceau, juste après le programme (il n'est pas dans SEQ16.BIN : il est
-; rempli au démarrage, puis sauvé et chargé à part, en fichier .SNG)
+; Le morceau en mémoire principale, juste après le programme (il n'est pas
+; dans SEQ16.BIN : il est rempli au démarrage).  Les 32 motifs sont dans le
+; bloc 4 de la mémoire supplémentaire (voir bank.asm) ; seul le motif
+; affiché et joué est ici, dans pat_work.
 ; ----------------------------------------------------------------------------
 song_data   equ smp_blk_src     ; le morceau recouvre la source de la zone
                                 ; haute, déjà recopiée par smp_install
@@ -2865,14 +2913,19 @@ snd_mute    equ song_data+9     ; voix muettes (bits 0 à 3)
 instruments equ song_data+16
 inst_names  equ instruments+NB_INST*16
 sons        equ inst_names+NB_INST*6
-patterns    equ sons+NB_SONS*16
-song_v2  equ patterns+NB_PAT*PAT_SIZE   ; bloc v2 (voir song.asm)
+song_v2     equ sons+NB_SONS*16 ; bloc v2 (voir song.asm)
 song_mode   equ song_v2      ; mode de lecture des samples
 song_bank   equ song_v2+1    ; nom de la banque .SMP (8 caractères)
 song_end    equ song_v2+SONG_EXTRA
-io_buffer   equ song_end        ; 2 Ko de travail pour AMSDOS
-        assert io_buffer+2048 < #A000
-        print "fin du programme=",{hex}end_of_program," io_buffer=",{hex}io_buffer," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end
+
+; En haut de la mémoire principale, hors de #4000-#7FFF (bank_copy y copie
+; pendant que le bloc 4 est montré) :
+io_buffer   equ #A000-2048      ; 2 Ko de travail pour AMSDOS
+pat_work    equ io_buffer-PAT_SIZE      ; le motif affiché et joué
+mem_free    equ pat_work-song_end       ; place libre pour la suite
+        assert song_end <= pat_work
+        assert pat_work >= #8000
+        print "fin du programme=",{hex}end_of_program," fin du morceau=",{hex}song_end," libre=",mem_free," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end
         assert BANK_MAX >= 2048         ; la banque d'usine DRUMS.SMP doit tenir
 
         save 'SEQ16.BIN',start,end_of_program-start,DSK,'build/seq16.dsk'

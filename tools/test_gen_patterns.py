@@ -177,7 +177,7 @@ class SimulatorTest(unittest.TestCase):
         cpc.chars = [13]                   # un seul .PAT : RETURN
         self.key(KEY_P)
         self.assertIn("MOTIF CHARGE", cpc.row(DSK_ROW))
-        slot = cpc.addr("smp_blk_src") + SONG_FIXED       # motif 1 (en cours)
+        slot = cpc.word(cpc.addr("seq_pattern"))          # motif 1 (pat_work)
         self.assertEqual(cpc.peek(slot, 260), data)
         self.assertEqual(cpc.peek(cpc.addr("seq_bpm"))[0], p["bpm"])
         self.key(KEY_F1)

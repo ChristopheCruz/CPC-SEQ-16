@@ -51,7 +51,12 @@ class PatternsTest(unittest.TestCase):
         self.cpc.frames(1)
 
     def pattern(self, n):
-        return self.cpc.peek(self.cpc.addr("smp_blk_src") + SONG_FIXED + PAT_SIZE * n, PAT_SIZE)
+        """Le motif n : le motif affiché est dans pat_work (pointé par
+        seq_pattern), les autres dans le bloc 4 de la mémoire supplémentaire."""
+        cpc = self.cpc
+        if cpc.peek(cpc.addr("cur_pat"))[0] == n:
+            return cpc.peek(cpc.word(cpc.addr("seq_pattern")), PAT_SIZE)
+        return cpc.bank_peek(4, 0x4000 + SONG_FIXED + PAT_SIZE * n, PAT_SIZE)
 
     def goto_pattern(self, n):
         self.key(KEY_F1)

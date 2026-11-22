@@ -1,8 +1,10 @@
 ; ============================================================================
 ; SEQ-16 - Le morceau : tout ce qui est sauvegardé sur disquette
 ;
-; Le morceau est un seul bloc de mémoire, placé juste après le programme.
-; On le sauve et on le charge d'un seul tenant (fichier .SNG).
+; Le fichier .SNG est l'image, octet pour octet, du bloc 4 de la mémoire
+; supplémentaire (voir bank.asm) : on le sauve et on le charge d'un seul
+; tenant.  En mémoire principale, il n'y a que la copie de travail de tout
+; sauf les motifs, et le motif affiché (pat_work).
 ;
 ;   en-tête       16 octets : "SQ16", version, volume des 4 voix, voix muettes
 ;   instruments   32 x 16 octets
@@ -51,9 +53,9 @@ is_lit:
         inc de
         jr is_rle
 is_rle_end:
-        ld hl,patterns          ; tous les motifs vides, en voix séparées,
-        ld c,NB_PAT             ; à 125 BPM
-is_pat:
+        ld hl,io_buffer         ; 3 motifs vides, en voix séparées, à 125 BPM,
+        ld c,3                  ; dans le tampon d'AMSDOS (libre ici) : les
+is_pat:                         ; 2 de démonstration, puis un vide
         ld (hl),0               ; mode
         inc hl
         ld (hl),125             ; tempo
@@ -85,7 +87,7 @@ is_extra:
 fc_loop:                        ; par case (voir factory.asm)
         ld a,(hl)               ; A = numéro de case
         cp #FF
-        ret z                   ; fin de la liste
+        jr z,fc_end             ; fin de la liste
         inc hl
         push hl
         ld e,a                  ; E = numéro (bit 7 : en-tête du motif)
@@ -97,7 +99,7 @@ fc_loop:                        ; par case (voir factory.asm)
         ld a,e                  ; en-tête : motif = numéro - #80
         and #7F
 fc_cell:
-        call pat_addr           ; HL = début du motif
+        call stage_addr         ; HL = début du motif (dans io_buffer)
         bit 7,e
         jr nz,fc_put            ; en-tête : on écrit au début du motif
         ld a,e                  ; case : 4 + 4 x (numéro modulo 64)
@@ -115,9 +117,39 @@ fc_put:
         ldi                     ; instrument (ou tempo)
         jr fc_loop
 
-; HL = adresse du motif numéro A (0 à 31)
+fc_end:                         ; les 32 motifs vont dans le bloc 4 : les 2 de
+        xor a                   ; démonstration, puis 30 fois le motif vide
+fc_bank:
+        push af
+        cp 2
+        jr c,fc_demo
+        ld a,2
+fc_demo:
+        call stage_addr         ; HL = motif préparé
+        pop af
+        push af
+        push hl
+        call pat_addr           ; HL = sa place dans le bloc 4
+        ex de,hl
+        pop hl
+        ld bc,PAT_SIZE
+        ld a,RAM_SONG
+        call bank_copy
+        pop af
+        inc a
+        cp NB_PAT
+        jr nz,fc_bank
+        ret
+
+; HL = motif numéro A (0 à 2) préparé dans io_buffer par init_song
+stage_addr:
+        ld hl,io_buffer
+        jr pa_add
+
+; HL = adresse du motif numéro A (0 à 31) dans le bloc 4 (voir bank.asm)
 pat_addr:
-        ld hl,patterns
+        ld hl,BANK_PATS
+pa_add:
         or a
         ret z
         ld de,PAT_SIZE
@@ -125,4 +157,67 @@ pa_loop:
         add hl,de
         dec a
         jr nz,pa_loop
+        ret
+
+; Le motif numéro A (0 à 31) vient du bloc 4 dans pat_work.  -> HL = pat_work
+pat_fetch:
+        call pat_addr
+        ld de,pat_work
+        ld bc,PAT_SIZE
+        ld a,RAM_SONG
+        call bank_copy
+        ld hl,pat_work
+        ret
+
+; pat_work retourne dans le bloc 4, à la place du motif cur_pat
+pat_store:
+        ld a,(cur_pat)
+        call pat_addr
+        ex de,hl
+        ld hl,pat_work
+        ld bc,PAT_SIZE
+        ld a,RAM_SONG
+        jp bank_copy
+
+; Met à jour l'image du morceau dans le bloc 4, avant une sauvegarde : le
+; motif affiché, l'en-tête, les instruments, les noms, les sons et le bloc v2
+song_to_bank:
+        call pat_store
+        ld hl,song_data
+        ld de,BANK_SONG
+        ld bc,SONG_FIXED
+        call bank_put
+        ld hl,song_v2
+        ld de,BANK_V2
+        ld bc,SONG_EXTRA
+        jp bank_put
+
+; song_data et song_v2 sont en #4000-#7FFF, que cache le bloc 4 : on ne peut
+; pas les copier directement avec bank_copy.  On passe par io_buffer (hors
+; de la fenêtre, libre en dehors des lectures et écritures de fichier).
+; BC <= 2048 octets.
+
+; HL (mémoire principale, n'importe où) -> DE (bloc 4)
+bank_put:
+        push de
+        push bc
+        ld de,io_buffer
+        ldir
+        pop bc
+        pop de
+        ld hl,io_buffer
+        ld a,RAM_SONG
+        jp bank_copy
+
+; HL (bloc 4) -> DE (mémoire principale, n'importe où)
+bank_get:
+        push de
+        push bc
+        ld de,io_buffer
+        ld a,RAM_SONG
+        call bank_copy
+        pop bc
+        pop de
+        ld hl,io_buffer
+        ldir
         ret

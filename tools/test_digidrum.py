@@ -50,8 +50,9 @@ class DigidrumTest(unittest.TestCase):
         return self.song() + 16 + 16 * i
 
     def pattern_with(self, cells, mode=0):
-        """Motif 1 vidé, puis ces cases : {(pas, voix): (note, instrument)}."""
-        p = self.song() + 16 + 32 * 16 + 32 * 6 + 8 * 16
+        """Motif 1 vidé, puis ces cases : {(pas, voix): (note, instrument)}.
+        Le motif 1 est le motif affiché : il est dans pat_work."""
+        p = self.cpc.word(self.cpc.addr("seq_pattern"))
         data = bytearray([mode, 125, 0, 0] + [0xFF, 0, 0xFF, 0] * 64)
         for (step, lane), (note, ins) in cells.items():
             o = 4 + 16 * step + 4 * lane
@@ -205,12 +206,15 @@ class DigidrumTest(unittest.TestCase):
         v2 = cpc.saved["MORCEAU1.SNG"]
         v1 = bytearray(v2[:SONG_V1])
         v1[4] = 1
-        cpc.poke(self.song() + SONG_V1, b"\x01XXXXXXXX")    # bloc v2 sali
+        # en mémoire principale, le bloc v2 suit l'en-tête, les instruments,
+        # les noms et les sons (les motifs sont dans le bloc 4)
+        v2_addr = self.song() + SONG_V1 - 32 * PAT_SIZE
+        cpc.poke(v2_addr, b"\x01XXXXXXXX")                  # bloc v2 sali
         cpc.files["MORCEAU1.SNG"] = bytes(v1)
         self.key(KEY_L)
         self.assertIn("MORCEAU CHARGE", cpc.row(17))
         self.assertEqual(cpc.peek(self.song() + 4)[0], 2)
-        self.assertEqual(cpc.peek(self.song() + SONG_V1, 16), bytes(16))
+        self.assertEqual(cpc.peek(v2_addr, 16), bytes(16))
 
     def test_load_song_v2_loads_its_bank(self):
         cpc = self.cpc

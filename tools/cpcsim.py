@@ -200,6 +200,9 @@ class CPC:
         self.ppi_a_input = False
         self.ppi_ctrl = []                    # écritures sur #F7
         self.gate_array = []                  # écritures sur #7F
+        self.window = 1                       # bloc montré en #4000-#7FFF
+        self.blocks = {b: bytes(0x4000) for b in (4, 5, 6, 7)}   # 64 Ko de plus
+        self.ram_configs = []                 # (instant, configuration)
         self.key_reads = 0
         self.on_key_read = None               # fonction appelée à chaque lecture
         self.chars = []                       # frappes rendues par KM_WAIT_CHAR
@@ -264,6 +267,36 @@ class CPC:
                     self.ppi_c &= ~(1 << bit)
         elif hi == 0x7F:
             self.gate_array.append((self.t, value))
+            if value & 0xC0 == 0xC0:          # configuration de la mémoire (6128)
+                self._ram_config(value & 7)
+
+    # --- mémoire du 6128 -----------------------------------------------------
+    # Les configurations #C0 et #C4 à #C7 montrent en #4000-#7FFF la mémoire
+    # normale ou l'un des 4 blocs de 16 Ko de la mémoire supplémentaire.  La
+    # mémoire du Z80 simulé reste plate : on échange le contenu de la fenêtre.
+    def _ram_config(self, cfg):
+        if cfg not in (0, 4, 5, 6, 7):
+            raise NotImplementedError(f"configuration mémoire #C{cfg} non simulée")
+        target = 1 if cfg == 0 else cfg       # 1 = bloc normal de #4000
+        if target == self.window:
+            return
+        self.blocks[self.window] = bytes(self.mem[0x4000:0x8000])
+        self.m.set_memory_block(0x4000, self.blocks[target])
+        self.window = target
+        self.ram_configs.append((self.t, cfg))
+
+    def bank_peek(self, block, addr, n=1):
+        """Lit le bloc supplémentaire 4 à 7, adresse vue en #4000-#7FFF."""
+        if block == self.window:
+            return self.peek(addr, n)
+        return bytes(self.blocks[block][addr - 0x4000:addr - 0x4000 + n])
+
+    def bank_poke(self, block, addr, data):
+        if block == self.window:
+            return self.poke(addr, data)
+        b = bytearray(self.blocks[block])
+        b[addr - 0x4000:addr - 0x4000 + len(data)] = bytes(data)
+        self.blocks[block] = bytes(b)
 
     def _in(self, port):
         hi = (port >> 8) & 0xFF
