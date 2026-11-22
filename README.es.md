@@ -16,7 +16,7 @@ RUN"SEQ16
 
 **Un secuenciador chiptune de 4 voces (3 tonos + ruido) para Amstrad CPC 6128, escrito en ensamblador Z80.**
 32 patrones de 16 pasos, encadenados en un tema (64 posiciones, repeticiones, transposición, bucle), 32 instrumentos, 8 sonidos de 4 voces, 7 efectos por paso, y un **sampler** que toca sonidos grabados de verdad (batería, voces…) en el chip de sonido del CPC, con un grano que se ajusta en directo. La idea: el sonido degradado es lo que se busca.
-El disco trae **13 bancos de instrumentos (416 sonidos), 9 bancos de samples, 125 patrones de fábrica** y un **disco de demostración** con dos temas completos.
+El disco trae **13 bancos de instrumentos (416 sonidos), 8 bancos de samples (el 9.º, `CHIFFRES`, está en `seq16-samples.dsk`), 125 patrones de fábrica** y un **disco de demostración** con dos temas completos.
 
 ![Plataforma](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Lenguaje](https://img.shields.io/badge/Z80-ensamblador-000080?style=flat-square&labelColor=00FFFF)
@@ -360,7 +360,7 @@ Los fabrica [`tools/gen_instruments.py`](tools/gen_instruments.py) (`--list` mue
 | `EFFETS` | láser, zap, explosión, moneda, salto, sirena, alarma, ovni… (12 sonidos) | 14 KB |
 | `BASSES` | 10 notas de bajo (DO), para tocar con el piano | 15 KB |
 | `NOTES` | pulsado, piano, campana, órgano, metal, coro, orquesta… (10 notas, DO) | 14 KB |
-| `CHIFFRES` | «zéro» a «dix» (números en francés) | 11 KB |
+| `CHIFFRES` | «zéro» a «dix» (números en francés; solo en `seq16-samples.dsk`) | 11 KB |
 | `MOTS` | «allez», «oui», «non», «encore», «stop», «bravo», «CPC»… (14 palabras en francés) | 16 KB |
 
 El disco de demostración añade `STUDIO.SMP` (DRUMS, la voz SEQ16 y el CRASH de BATTERI2), el banco del tema STUDIO.
@@ -611,6 +611,7 @@ SEQ-16 se apoya en el trabajo de otras personas. Gracias a ellas.
 
 **Documentación y referencias**
 - [CPCWiki](https://www.cpcwiki.eu/): el firmware del CPC, el chip de sonido AY-3-8912, AMSDOS y el formato de las imágenes DSK.
+- [Un ejemplo de cargador](https://cpcwiki.eu/index.php/Programming:An_example_loader) y la [Amstrad Whole Memory Guide](https://cpcwiki.eu/index.php/Amstrad_Whole_Memory_Guide_-_The_machine_pack) (CPCWiki), y el [manual del firmware del 6128](https://archive.org/stream/SOFT968TheAmstrad6128FirmwareManual/SOFT968%20-%20The%20Amstrad%206128%20Firmware%20manual_djvu.txt) (SOFT968, archive.org): la rutina `MC START PROGRAM`, que lanza el programa después de la pantalla de carga.
 - [HxC2001](https://hxc2001.com/) y [FlashFloppy](https://github.com/keirf/FlashFloppy): los firmwares del Gotek y su documentación.
 
 **Pruebas**

@@ -16,7 +16,7 @@ RUN"SEQ16
 
 **A 4-voice chiptune sequencer (3 tones + noise) for the Amstrad CPC 6128, written in Z80 assembly.**
 32 patterns of 16 steps, chained into a song (64 positions, repeats, transposition, loop), 32 instruments, 8 layered sounds, 7 per-step effects, and a **sampler** that plays real recorded sounds (drums, voices…) on the CPC sound chip, with a grain you can tweak live. The point: the degraded sound is the goal.
-The disk comes with **13 instrument banks (416 sounds), 9 sample banks, 125 factory patterns** and a **demo disk** with two complete songs.
+The disk comes with **13 instrument banks (416 sounds), 8 sample banks (the 9th, `CHIFFRES`, is on `seq16-samples.dsk`), 125 factory patterns** and a **demo disk** with two complete songs.
 
 ![Platform](https://img.shields.io/badge/Amstrad-CPC%206128-000080?style=flat-square&labelColor=FFFF00)
 ![Language](https://img.shields.io/badge/Z80-assembly-000080?style=flat-square&labelColor=00FFFF)
@@ -360,7 +360,7 @@ They are built by [`tools/gen_instruments.py`](tools/gen_instruments.py) (`--lis
 | `EFFETS` | laser, zap, explosion, coin, jump, siren, alarm, UFO… (12 sounds) | 14 KB |
 | `BASSES` | 10 bass notes (C), to play with the piano | 15 KB |
 | `NOTES` | pluck, piano, bell, organ, brass, choir, orchestra… (10 notes, C) | 14 KB |
-| `CHIFFRES` | "zéro" to "dix" (French numbers) | 11 KB |
+| `CHIFFRES` | "zéro" to "dix" (French numbers; only on `seq16-samples.dsk`) | 11 KB |
 | `MOTS` | "allez", "oui", "non", "encore", "stop", "bravo", "CPC"… (14 French words) | 16 KB |
 
 The demo disk adds `STUDIO.SMP` (DRUMS, the SEQ16 voice and the BATTERI2 CRASH), the STUDIO song's bank.
@@ -611,6 +611,7 @@ SEQ-16 builds on other people's work. Thank you.
 
 **Documentation and references**
 - [CPCWiki](https://www.cpcwiki.eu/): the CPC firmware, the AY-3-8912 sound chip, AMSDOS and the DSK image format.
+- [An example loader](https://cpcwiki.eu/index.php/Programming:An_example_loader) and the [Amstrad Whole Memory Guide](https://cpcwiki.eu/index.php/Amstrad_Whole_Memory_Guide_-_The_machine_pack) (CPCWiki), and the [6128 firmware manual](https://archive.org/stream/SOFT968TheAmstrad6128FirmwareManual/SOFT968%20-%20The%20Amstrad%206128%20Firmware%20manual_djvu.txt) (SOFT968, archive.org): the `MC START PROGRAM` routine, which starts the program after the loading screen.
 - [HxC2001](https://hxc2001.com/) and [FlashFloppy](https://github.com/keirf/FlashFloppy): the Gotek firmwares and their documentation.
 
 **Testing**
