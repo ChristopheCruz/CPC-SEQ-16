@@ -32,6 +32,7 @@ CAS_OUT_ABANDON   equ #BC92
 CAS_OUT_DIRECT    equ #BC98   ; HL = adresse, DE = longueur, BC = 0, A = 2
 CAS_CATALOG       equ #BC9B   ; DE = tampon 2 Ko : affiche le catalogue
 KL_INIT_BACK      equ #BCCE   ; C = numéro de ROM, DE et HL = mémoire libre
+MC_START_PROGRAM  equ #BD16   ; HL = adresse, C = ROM : réinitialise tout, puis lance
 KL_FIND_COMMAND   equ #BCD4   ; HL = nom d'une commande (RSX) -> Carry si
                               ;   trouvée, HL = adresse, C = numéro de ROM
 KL_TIME_PLEASE    equ #BD0D   ; -> DEHL = temps écoulé, en 1/300 s

@@ -63,7 +63,7 @@ FW = {
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
     0xBC98: "CAS_OUT_DIRECT", 0xBC95: "CAS_OUT_CHAR", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
     0xBD0D: "KL_TIME_PLEASE", 0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
-    0xBCD4: "KL_FIND_COMMAND",
+    0xBCD4: "KL_FIND_COMMAND", 0xBD16: "MC_START_PROGRAM",
 }
 FAKE_READ_SECTOR = 0xC0F0          # adresse fictive de la commande AMSDOS #84
 FAKE_ERA = 0xC0F2                  # |ERA,"nom"
@@ -223,6 +223,8 @@ class CPC:
         self.pen, self.paper = 1, 0
         self.fw_log = []
         self.cas_in = None
+        self.mode, self.inks, self.border = 1, {}, None   # écran (SCR_SET_*)
+        self.started = []                     # MC_START_PROGRAM : (adresse, ROM)
         self.cas_in_mode = None
         self.cas_out_open = False
         self.file_errors = []                 # ce qu'AMSDOS aurait refusé
@@ -557,6 +559,7 @@ class CPC:
         pass
 
     def fw_SCR_SET_MODE(self):
+        self.mode = self.m.a
         self.screen = [[" "] * 40 for _ in range(25)]
         self.codes = [[32] * 40 for _ in range(25)]
         self.attr = [[(1, 0)] * 40 for _ in range(25)]
@@ -564,10 +567,26 @@ class CPC:
         self._corrupt("af", "bc", "de", "hl")
 
     def fw_SCR_SET_INK(self):
+        self.inks[self.m.a & 15] = self.m.b
         self._corrupt("af", "bc", "de", "hl")
 
     def fw_SCR_SET_BORDER(self):
+        self.border = self.m.b
         self._corrupt("af", "bc", "de", "hl")
+
+    def fw_MC_START_PROGRAM(self):
+        """Comme RUN" : le firmware repart de zéro (mode 1, couleurs, pile),
+        puis le programme HL est lancé.  On ne revient pas : la pile repart
+        de #C000 avec l'adresse du programme, que le retour simulé dépile."""
+        prog = self.m.hl
+        self.started.append((prog, self.m.c))
+        self.fw_SCR_SET_MODE()
+        self.mode = 1
+        self.inks = {}
+        self.m.sp = 0xC000 - 2
+        self.mem[self.m.sp] = prog & 0xFF
+        self.mem[self.m.sp + 1] = prog >> 8
+        self.m.iff1 = self.m.iff2 = 1
 
     def fw_KL_INIT_BACK(self):
         self.m.de = self.m.de                 # AMSDOS se loge en haut

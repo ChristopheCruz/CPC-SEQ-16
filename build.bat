@@ -29,6 +29,14 @@ if errorlevel 1 (
   echo *** VERSIONS ANGLAISE ET ESPAGNOLE NON FABRIQUEES ***
   exit /b 1
 )
+rem Ecran de chargement : le chargeur SEQ16 et SEQ16.SCR sur les 3 disquettes
+tools\rasm.exe src\loader.asm -o build\loader
+if errorlevel 1 (
+  echo *** CHARGEUR NON ASSEMBLE ***
+  exit /b 1
+)
+python tools\gen_screen.py --disks
+if errorlevel 1 goto pas_python
 rem Disquettes de banques seules : build\seq16-inst.dsk, build\seq16-samples.dsk
 python tools\bank_disks.py
 if errorlevel 1 goto pas_python

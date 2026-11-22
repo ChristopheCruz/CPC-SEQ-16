@@ -469,7 +469,7 @@ def write_all():
     dsk = os.path.join(ROOT, "build", "seq16-songs.dsk")   # programme + DRUMS + tout
     shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), dsk)
     for name in amsdsk.list_files(dsk):
-        if name not in ("SEQ16.BIN", "DRUMS.SMP"):
+        if name not in ("SEQ16", "SEQ16.SCR", "SEQ16.BIN", "DRUMS.SMP"):
             amsdsk.remove_file(dsk, name)
     for name, data in files:
         amsdsk.add_file(dsk, name, data)

@@ -74,6 +74,10 @@ El disco trae **13 bancos de instrumentos (416 sonidos), 9 bancos de samples, 12
 RUN"SEQ16
 ```
 
+La pantalla de carga aparece mientras se carga el programa (`RUN"SEQ16.BIN` lo lanza directamente, sin pantalla).
+
+<p align="center"><img src="snapshots/ecran-chargement-es.png" alt="Pantalla de carga de SEQ-16" width="640"></p>
+
 El programa arranca en el panel **PATRON**. **ESPACIO** toca el patrón de demostración.
 Para salir, mantén **ESC** pulsada un segundo: una pulsación sola no basta, para no perder el trabajo por error.
 

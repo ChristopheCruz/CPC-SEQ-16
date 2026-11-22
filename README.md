@@ -74,6 +74,10 @@ The disk comes with **13 instrument banks (416 sounds), 9 sample banks, 125 fact
 RUN"SEQ16
 ```
 
+The loading screen shows while the program loads (`RUN"SEQ16.BIN` starts it directly, without the screen).
+
+<p align="center"><img src="snapshots/ecran-chargement-en.png" alt="SEQ-16 loading screen" width="640"></p>
+
 The program starts on the **PATTERN** panel. **SPACE** plays the demo pattern.
 To quit, hold **ESC** for one second: a single press is not enough, so you cannot lose your work by mistake.
 
