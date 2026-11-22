@@ -45,6 +45,7 @@ seq_set_pattern:
         ret
 
 seq_start:
+        call clock_reset        ; chronométrage des pas (songpanel.asm)
         xor a
         ld (seq_step),a
         ld hl,SEQ_BEAT          ; le premier pas part tout de suite
@@ -85,6 +86,7 @@ seq_frame:
         sbc hl,de
         jr c,sq_wait            ; pas encore
         ld (seq_acc),hl         ; oui : on garde le reste, pour rester exact
+        call step_clock         ; (l'heure réelle du pas, pour le chronomètre)
         call seq_trigger        ; on joue les notes du pas
         ld a,(seq_step)
         inc a

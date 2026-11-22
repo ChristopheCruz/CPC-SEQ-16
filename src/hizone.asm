@@ -149,6 +149,11 @@ dgp_play:
         ld hl,(smp_v_len)       ; durée en images =
         ld de,(smp_v_period)    ;   octets x 2 x P NOP / 20 000 NOP,
         call dg_mul             ;   arrondie au-dessus
+        push af
+        push hl
+        call clock_skip         ; le chronomètre des pas compte ce temps
+        pop hl
+        pop af
         ld de,10000             ; (A:HL = octets x P)
         ld b,0
 dgp_count:
