@@ -468,7 +468,7 @@ The curves:
 
 - **Low memory.** The bank is loaded at `#0040-#3EFF`. After `RUN"`, this area, the one for BASIC programs, is free and reads as RAM (the lower ROM isn't visible there). If the sounds were replaced by a continuous noise, the lower ROM was visible during playback.
 - **The space for the routine** (`#A000-#A67B`) is taken just below the memory reserved by AMSDOS (above `#A67B` on a 6128). The program checks this at startup. If f4 shows `NOT ENOUGH MEMORY`, that assumption is wrong on your machine: samples, digidrums and the O key on f2 are then disabled, everything else works.
-- **Memory is full.** Only a few bytes are free below `#A000` and a few dozen in the high area. Phase 3 (extra 6128 memory) will have to free some before adding features.
+- **The 32 patterns live in the 6128's extra memory** (block 4, see [`src/bank.asm`](src/bank.asm)); only the pattern on screen stays in main memory. That frees about 7.8 KB for the next features ([PLAN.md](PLAN.md)). SEQ-16 therefore needs a 6128: on a 464, or a 664 without memory expansion, it says so at startup.
 - **Instrument banks are read byte by byte** (AMSDOS `CAS IN CHAR`), since there's no room for a copy of the file in memory. This is tested in the simulator, not yet on the real machine.
 - **Tempo catch-up** is computed from the sample's theoretical length (number of samples × length of one sample). Over 32 bars, a small drift is still possible: to be checked by ear, with a sampled drum loop.
 - **The sample rate** is computed with the CPC's own timing table. It's exact in the simulator, but the kick's pitch needs comparing with the preview WAV.

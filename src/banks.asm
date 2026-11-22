@@ -138,13 +138,12 @@ dli_err:
 
 ; --- f3, M : sauver le motif affiché (NOM.PAT, 260 octets) -------------------
 disk_save_pat:
-        ld a,(cur_pat)
-        call pat_addr
+        ld hl,pat_work          ; le motif affiché
         ld (sf_addr),hl
         ld hl,txt_ext_pat
         ld de,PAT_SIZE
         ld bc,txt_p_saved
-        jp save_block
+        jp save_block_main
 
 ; --- f3, P : charger un motif .PAT à la place du motif affiché ----------------
 ; Le fichier doit faire exactement PAT_SIZE octets ; un mode inconnu devient
@@ -166,8 +165,7 @@ disk_load_pat:
         or a
         sbc hl,bc
         jr nz,dlp_bad
-        ld a,(cur_pat)
-        call pat_addr
+        ld hl,pat_work          ; à la place du motif affiché
         push hl
         call CAS_IN_DIRECT
         pop hl
