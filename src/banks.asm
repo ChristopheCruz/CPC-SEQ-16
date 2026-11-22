@@ -116,6 +116,7 @@ disk_load_ins:
         ld hl,txt_ext_ins       ; on choisit une banque .INS
         call choose_file
         ret nc                  ; annulé ou erreur : message déjà affiché
+disk_load_ins_named:            ; (HL, B : le fichier choisi)
         push hl
         push bc
         ld hl,txt_m_loading     ; « chargement en cours »
@@ -152,6 +153,8 @@ disk_load_pat:
         ld hl,txt_ext_pat       ; on choisit un motif sur la disquette
         call choose_file        ; (coupe aussi le son)
         ret nc
+; HL = nom complet, B = sa longueur, DE = nom sur 8 caractères (panneau DISQUE)
+disk_load_pat_named:
         ld (dlp_name),de        ; son nom (8 caractères)
         push hl
         push bc

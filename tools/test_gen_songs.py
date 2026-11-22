@@ -33,9 +33,12 @@ class SongFilesTest(unittest.TestCase):
     def test_format(self):
         for s in gs.SONGS:
             data = gs.song_file(s)
-            self.assertEqual(len(data), FIXED + 32 * PAT + 16 + gs.V3_LEN, s["name"])
-            self.assertEqual(data[:5], b"SQ16\x03")
-            v3 = data[FIXED + 32 * PAT + 16:]
+            smp = gs.sample_bank(s)
+            self.assertEqual(len(data), gs.IMAGE_LEN + 2 + len(smp), s["name"])
+            self.assertEqual(data[:5], b"SQ16\x04")
+            self.assertEqual(data[gs.IMAGE_LEN:gs.IMAGE_LEN + 2], len(smp).to_bytes(2, "little"))
+            self.assertEqual(data[gs.IMAGE_LEN + 2:], smp)
+            v3 = data[FIXED + 32 * PAT + 16:gs.IMAGE_LEN]
             pos, loop = gs.positions(s)
             self.assertEqual((v3[0], v3[1]), (len(pos), loop))
             for i, (pat, rep, tr) in enumerate(pos):
@@ -92,14 +95,15 @@ class SongsInSimulatorTest(unittest.TestCase):
             with self.subTest(song=s["name"]):
                 self.cpc = test_player.PlayerTest._clone(self.base)
                 cpc = self.cpc
-                self.make_disk({s["name"] + ".SNG": gs.song_file(s)})
+                self.make_disk({s["name"] + ".SNG": gs.song_file(s)},
+                               keep=("SEQ16.BIN",))   # pas de .SMP : il est dans le .SNG
                 self.key(KEY_SONG)
                 cpc.chars = [13]                      # un seul .SNG
                 self.key(KEY_LOAD)
                 self.assertIn("MORCEAU", cpc.row(25))
                 self.assertEqual(cpc.peek(cpc.addr("screen"))[0], 4)   # toujours SONG
                 self.assertTrue(cpc.row(2).startswith("SONG:" + s["name"]))
-                v3 = gs.song_file(s)[-gs.V3_LEN:]
+                v3 = gs.song_file(s)[gs.IMAGE_LEN - gs.V3_LEN:gs.IMAGE_LEN]
                 mem = cpc.addr("smp_blk_src") + 848 + 16
                 self.assertEqual(cpc.peek(mem, gs.V3_LEN), v3)        # l'enchaînement
                 pos, _ = gs.positions(s)

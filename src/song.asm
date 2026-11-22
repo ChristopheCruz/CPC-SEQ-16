@@ -34,7 +34,8 @@ SONG_V1    equ SONG_FIXED+NB_PAT*PAT_SIZE   ; taille d'un morceau version 1
 SONG_SIZE  equ SONG_V1+SONG_EXTRA           ; taille d'un morceau version 2
 SONG_V3_LEN equ 2+64*3+NB_PAT*8             ; bloc v3 : 450 octets
 SONG_SIZE3 equ SONG_SIZE+SONG_V3_LEN        ; taille d'un morceau version 3
-SONG_VER   equ 3                ; version écrite dans l'en-tête
+SONG_VER   equ 4                ; version écrite dans l'en-tête (le fichier
+                                ; garde aussi la banque de samples : sngio.asm)
 
 ; Remet le morceau dans son état d'usine
 init_song:

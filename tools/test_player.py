@@ -329,25 +329,26 @@ class PlayerTest(unittest.TestCase):
         self.cpc.use_disk(path)
 
     def test_f3_choose_bank(self):
-        """f3 + D : liste des .SMP de la disquette, flèches, RETURN."""
+        """f4 puis f9 : liste des .SMP de la disquette, flèches, RETURN."""
         cpc = self.cpc
         two = [wav2smp.Sample("ONE", b"\x11" * 50, 125), wav2smp.Sample("TWO", b"\x22" * 60, 100)]
         self.make_disk({"TEST.SMP": wav2smp.build_bank(two),
                         "MORCEAU1.SNG": bytes(100)})
-        cpc.frames(1, keys={KEY_DISK})
+        cpc.frames(1, keys={KEY_SAMPLE})
         cpc.frames(1)
+        n0 = len(cpc.sector_reads)
         # ordre du répertoire : DRUMS, VOIX, TEST -> bas, bas, haut, bas,
         # bas (déjà au dernier), RETURN : TEST
         cpc.chars = [0xF1, 0xF1, 0xF0, 0xF1, 0xF1, 13]
-        cpc.frames(1, keys={KEY_D})
+        cpc.frames(1, keys={3})                  # f9
         cpc.frames(1)
-        self.assertEqual(cpc.sector_reads[:4], [(0, 0, 0xC1), (0, 0, 0xC2),
-                                                (0, 0, 0xC3), (0, 0, 0xC4)])
+        self.assertEqual(cpc.sector_reads[n0:n0 + 4], [(0, 0, 0xC1), (0, 0, 0xC2),
+                                                      (0, 0, 0xC3), (0, 0, 0xC4)])
         self.assertEqual(cpc.peek(cpc.addr("smp_nfiles"))[0], 3)
         names = cpc.peek(SMP_FILES, 24)
         self.assertEqual(names, b"DRUMS   VOIX    TEST    ")
-        self.assertIn("BANQUE CHARGEE", cpc.row(17))
-        self.assertEqual(cpc.row(19).strip(), "")      # la liste est effacée
+        self.assertIn("BANQUE CHARGEE", cpc.row(25))
+        self.assertNotIn("VOIX", cpc.row(19))          # la liste est effacée
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 2)
         self.assertEqual(cpc.peek(cpc.addr("fname"), 8), b"MORCEAU1")  # NOM intact
         cpc.frames(1, keys={KEY_SAMPLE})
@@ -358,19 +359,26 @@ class PlayerTest(unittest.TestCase):
 
 
     def test_song_save_and_load_still_work(self):
-        """Non-régression : S puis L sur l'écran f3 (fichier .SNG)."""
+        """Non-régression : f8 (DISQUE) puis f9 (SONG), fichier .SNG."""
         cpc = self.cpc
         song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16) + 16 + 2 + 64 * 3 + 32 * 8   # v3
         cpc.frames(1, keys={KEY_DISK})
         cpc.frames(1)
-        cpc.frames(1, keys={60})                 # S
+        cpc.chars = [13]                         # f8 : le nom proposé
+        cpc.frames(1, keys={11})
         cpc.frames(1)
-        self.assertIn("MORCEAU SAUVE", cpc.row(17))
-        self.assertEqual(len(cpc.saved["MORCEAU1.SNG"]), song_size)
-        cpc.files["MORCEAU1.SNG"] = cpc.saved["MORCEAU1.SNG"]
-        cpc.frames(1, keys={36})                 # L
+        self.assertIn("MORCEAU SAUVE", cpc.row(25))
+        data = cpc.saved["MORCEAU1.SNG"]                    # version 4 : + la banque
+        n = cpc.word(cpc.addr("smp_bank_len"))
+        self.assertEqual(len(data), song_size + 2 + n)
+        self.assertEqual(data[song_size + 2:], cpc.peek(BANK, n))
+        self.make_disk({"MORCEAU1.SNG": data})
+        cpc.frames(1, keys={14})                 # f2, puis f9 : le seul .SNG
         cpc.frames(1)
-        self.assertIn("MORCEAU CHARGE", cpc.row(17))
+        cpc.chars = [13]
+        cpc.frames(1, keys={3})
+        cpc.frames(1)
+        self.assertIn("MORCEAU ET BANQUE DE SAMPLES CHARGES", cpc.row(25))
 
 
 @unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")

@@ -17,8 +17,9 @@ sur les 16 pas, basses et lignes syncopées.
 
     python tools/gen_songs.py
 
-Les .SNG sont en version 3 : ils gardent l'enchaînement du panneau SONG
-(positions, répétitions, transposition, boucle) et le nom de chaque motif.
+Les .SNG sont en version 4 : ils gardent l'enchaînement du panneau SONG
+(positions, répétitions, transposition, boucle), le nom de chaque motif, et
+leur banque de samples (ROBOT emporte DRUMS.SMP).
 Dans l'ordre d'un morceau, « NOM/+5 » transpose la position de 5 demi-tons ;
 deux positions identiques qui se suivent deviennent une position x2.
 """
@@ -36,7 +37,7 @@ from gen_patterns import R, L, G, NK, DK, OFF  # noqa: E402,F401
 
 TON, BRUIT, ENV, PORTA = insbank.TON, insbank.BRUIT, insbank.ENV, insbank.PORTA
 NB_PAT = 32
-SONG_VER = 3
+SONG_VER = 4
 POS_MAX = 64
 EMPTY_PAT = bytes([0, 125, 0, 0] + [0xFF, 0, 0xFF, 0] * 64)
 USER_SLOTS = ["USER1", "USER2", "USER3", "USER4"]
@@ -347,11 +348,21 @@ def song_file(s):
     name = (s["bank"] or "").ljust(8).encode("ascii") if s["bank"] else bytes(8)
     v2 = bytes([0]) + name + bytes(7)
     data = head + bank[16:] + b"".join(pats) + v2 + v3_block(s)
-    assert len(data) == 16 + 32 * 16 + 32 * 6 + 8 * 16 + NB_PAT * 260 + 16 + V3_LEN
-    return data
+    assert len(data) == IMAGE_LEN
+    smp = sample_bank(s)                    # version 4 : la banque de samples
+    return data + len(smp).to_bytes(2, "little") + smp
+
+
+def sample_bank(s):
+    """La banque de samples du morceau (samples/NOM.SMP), ou rien."""
+    if not s["bank"]:
+        return b""
+    with open(os.path.join(ROOT, "samples", s["bank"] + ".SMP"), "rb") as fh:
+        return fh.read()
 
 
 V3_LEN = 2 + POS_MAX * 3 + NB_PAT * 8
+IMAGE_LEN = 16 + 32 * 16 + 32 * 6 + 8 * 16 + NB_PAT * 260 + 16 + V3_LEN
 
 
 def positions(s):
@@ -414,8 +425,9 @@ def liste_md():
     for s in SONGS:
         out += ["## %s : %s (%s, %d BPM)" % (s["name"], s["title"], s["style"], s["bpm"]), "",
                 s["desc"] + ".", "",
-                "- Fichiers : `%s.SNG`, `%s.INS`%s" % (s["name"], s["name"],
-                                                       ", banque `%s.SMP`" % s["bank"] if s["bank"] else ""),
+                "- Fichiers : `%s.SNG`%s, `%s.INS`" % (s["name"],
+                                                     " (avec sa banque `%s.SMP`)" % s["bank"] if s["bank"] else "",
+                                                     s["name"]),
                 "- Instruments à lui : " + ", ".join(t[0] for t, _ in s["instruments"]),
                 "- À tester : " + s["tests"],
                 "- Enchaînement (panneau SONG) : " + " ".join(

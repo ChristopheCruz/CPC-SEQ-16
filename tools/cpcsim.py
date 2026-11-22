@@ -61,11 +61,13 @@ FW = {
     0xBC32: "SCR_SET_INK", 0xBC38: "SCR_SET_BORDER", 0xBC77: "CAS_IN_OPEN",
     0xBC7A: "CAS_IN_CLOSE", 0xBC7D: "CAS_IN_ABANDON", 0xBC83: "CAS_IN_DIRECT", 0xBC80: "CAS_IN_CHAR",
     0xBC8C: "CAS_OUT_OPEN", 0xBC8F: "CAS_OUT_CLOSE", 0xBC92: "CAS_OUT_ABANDON",
-    0xBC98: "CAS_OUT_DIRECT", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
+    0xBC98: "CAS_OUT_DIRECT", 0xBC95: "CAS_OUT_CHAR", 0xBC9B: "CAS_CATALOG", 0xBCCE: "KL_INIT_BACK",
     0xBD0D: "KL_TIME_PLEASE", 0xBD19: "MC_WAIT_FLYBACK", 0xBD34: "MC_SOUND_REGISTER",
     0xBCD4: "KL_FIND_COMMAND",
 }
 FAKE_READ_SECTOR = 0xC0F0          # adresse fictive de la commande AMSDOS #84
+FAKE_ERA = 0xC0F2                  # |ERA,"nom"
+FAKE_REN = 0xC0F4                  # |REN,"nouveau","ancien"
 JUNK = 0xA5                       # valeur des registres « corrompus »
 HIMEM_6128 = 0xA67B               # plus haute adresse libre après AMSDOS (6128)
 
@@ -191,6 +193,8 @@ class CPC:
         self.t = 0                            # temps en NOP
         self.files = {}                       # disquette simulée
         self.saved = {}                       # fichiers écrits
+        self.saved_headers = {}               # en-têtes écrits par le programme
+        self.rsx_log = []                     # |ERA et |REN appelés
         self.keys = set()                     # touches enfoncées
         self.frame = 0
         self.strict = []                      # zones à durées vérifiées
@@ -236,8 +240,32 @@ class CPC:
         cpc.use_disk(dsk)
         return cpc
 
+    def _rsx_string(self, k):
+        """Paramètre k d'une commande RSX (IX+0 = le dernier) : une chaîne."""
+        ix = self.m.ix
+        desc = self.mem[ix + 2 * k] | self.mem[ix + 2 * k + 1] << 8
+        n, addr = self.mem[desc], self.mem[desc + 1] | self.mem[desc + 2] << 8
+        return bytes(self.mem[addr:addr + n]).decode("latin-1").upper()
+
+    def _rsx_file(self, routine):
+        """|ERA et |REN, sur l'image de la disquette (comme AMSDOS)."""
+        path = self.disk_path
+        if routine == FAKE_ERA:
+            self.rsx_log.append(("ERA", self._rsx_string(0)))
+            amsdsk.remove_file(path, self._rsx_string(0))
+        else:
+            old, new = self._rsx_string(0), self._rsx_string(1)
+            self.rsx_log.append(("REN", new, old))
+            data = amsdsk.read_file(path, old)
+            amsdsk.remove_file(path, old)
+            amsdsk.add_file(path, new, data)
+        self.use_disk(path)
+        self._corrupt("af", "bc", "de", "hl")
+        self._carry(True)
+
     def use_disk(self, dsk):
         """Met cette image .dsk dans le lecteur A (fichiers et secteurs)."""
+        self.disk_path = dsk
         self.disk = amsdsk.Disk(open(dsk, "rb").read())
         self.files = {n: amsdsk.read_file(dsk, n) for n in amsdsk.list_files(dsk)}
 
@@ -443,8 +471,15 @@ class CPC:
 
     def fw_KL_FIND_COMMAND(self):
         name = self.mem[self.m.hl]
+        hl = self.m.hl
+        word = bytes(self.mem[hl:hl + 3])
+        fake = {b"ER" + bytes([0xC1]): FAKE_ERA, b"RE" + bytes([0xCE]): FAKE_REN}.get(word)
         if name == 0x84:                      # lecture de secteur d'AMSDOS
             self.m.hl = FAKE_READ_SECTOR
+            self.m.c = 7
+            self._carry(True)
+        elif fake:
+            self.m.hl = fake
             self.m.c = 7
             self._carry(True)
         else:
@@ -455,6 +490,10 @@ class CPC:
         """RST #18 suivi de l'adresse d'une adresse lointaine (3 octets)."""
         ptr = self.mem[pc + 1] | self.mem[pc + 2] << 8
         routine = self.mem[ptr] | self.mem[ptr + 1] << 8
+        if routine in (FAKE_ERA, FAKE_REN):
+            self._rsx_file(routine)
+            self.m.pc = (pc + 3) & 0xFFFF
+            return
         if routine != FAKE_READ_SECTOR:
             raise RuntimeError("appel lointain inconnu : #%04X" % routine)
         m = self.m
@@ -600,6 +639,7 @@ class CPC:
 
     def fw_CAS_OUT_OPEN(self):
         self.cas_out = self._name()
+        self.cas_out_chars = None             # octets écrits par CAS_OUT_CHAR
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
@@ -609,7 +649,30 @@ class CPC:
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
+    def fw_CAS_OUT_CHAR(self):
+        """Un octet de plus dans le fichier ouvert (AF corrompu)."""
+        if self.cas_out_chars is None:
+            self.cas_out_chars = bytearray()
+        self.cas_out_chars.append(self.m.a)
+        self._corrupt("af")
+        self._carry(True)
+
     def fw_CAS_OUT_CLOSE(self):
+        """Comme AMSDOS : un fichier écrit octet par octet qui commence par un
+        en-tête valide (somme des octets 0 à 66) est un fichier binaire ; ses
+        données s'arrêtent à la longueur de l'en-tête.  saved = les données,
+        saved_headers = l'en-tête écrit par le programme."""
+        data = getattr(self, "cas_out_chars", None)
+        if data is not None:
+            data = bytes(data)
+            head = data[:128]
+            if len(head) == 128 and sum(head[:67]) == head[0x43] | head[0x44] << 8:
+                n = head[0x40] | head[0x41] << 8 | head[0x42] << 16
+                self.saved_headers[self.cas_out] = head
+                self.saved[self.cas_out] = data[128:128 + n]
+            else:
+                self.saved[self.cas_out] = data
+            self.cas_out_chars = None
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 

@@ -1,7 +1,8 @@
 # Plan de développement : SEQ-16 v1.0
 
 État : **validé le 22 novembre 2026** (section 9). Lots 1 (PR #16),
-2 (PR #17), 3 (PR #18) et 4 (PR #20) faits ; morceaux de test (PR #19).
+2 (PR #17), 3 (PR #18), 4 (PR #20) et 5 (PR #21) faits ; morceaux de
+test (PR #19).
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -256,12 +257,26 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
    Corrigé en passant : le 2e motif de démonstration d'usine était presque
    vide depuis toujours (ses cases tombaient toutes sur la même).
    Reste pour le lot 5 : la banque de samples avec le morceau (décision 8).
-   AMSDOS n'écrit d'un coup qu'un bloc de mémoire contigu, et la banque
-   (jusqu'à 16 Ko) ne tient pas avec le morceau dans un bloc de 16 Ko :
-   proposition, f8 sauve `NOM.SNG` **et** `NOM.SMP`, et charger `NOM.SNG`
-   recharge `NOM.SMP`.
 5. **Sauvegardes par panneau et DISQUE** : `.SNG` v3, chargement des
    anciens `.SNG`, catalogue filtré, effacer, renommer, sauver tout.
+   **5a fait (PR #21)** : `.SNG` version 4, un seul fichier avec la banque
+   de samples (choix du 22 novembre : option 2).  AMSDOS n'écrit d'un coup
+   qu'un bloc contigu ; `src/sngio.asm` écrit donc octet par octet
+   (`CAS OUT CHAR`) un en-tête AMSDOS fait par le programme (type binaire,
+   longueur exacte, somme de contrôle), l'image du morceau par paquets de
+   256 octets copiés du bloc 4, puis la banque ; la relecture fait l'inverse
+   et vérifie les longueurs.  **À vérifier sur une vraie machine** : que
+   AMSDOS relit bien un octet `&1A` au milieu de la banque (la doc ne le dit
+   pas noir sur blanc ; sinon, le chargement s'arrête avec un message, sans
+   rien abîmer).
+   **5b fait (PR #21)** : `src/diskpanel.asm`, le panneau DISQUE : place
+   libre et nombre de fichiers, catalogue par type (SNG, PAT, INS, SMP ;
+   `TAB`), `ENTER` charge dans le bon panneau et l'affiche, `C` relit la
+   disquette, `DEL` deux fois efface (`|ERA` d'AMSDOS), `COPY` renomme
+   (`|REN`), `N` deux fois : nouveau morceau, f8 : le morceau.  L'ancien
+   écran Disque (mixage, nom, touches S L M P I O E D) a disparu : f8 / f9
+   dans chaque panneau les remplacent.  Pas de filtre « TOUT » ni de
+   lecteur B (Gotek : un seul lecteur).
 6. **Motifs d'usine** en vraies doubles croches (charleston sur 16 pas,
    contretemps, syncopes), disquettes de motifs refaites, 2 ou 3 morceaux de
    démonstration.

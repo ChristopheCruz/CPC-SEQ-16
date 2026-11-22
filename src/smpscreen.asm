@@ -535,6 +535,7 @@ disk_load_bank:
         ld hl,txt_ext_smp       ; on choisit parmi les fichiers .SMP
         call choose_file        ; -> Carry si choisi, HL = nom complet,
         ret nc                  ;    B = sa longueur, DE = nom sur 8 caractères
+disk_load_bank_named:           ; (le fichier déjà choisi : panneau DISQUE)
         push de                 ; on garde le nom pour la banque
         push bc                 ; et le nom complet pour le chargement
         push hl
@@ -870,6 +871,12 @@ quit_line:
 smp_scan_dir:
         xor a
         ld (smp_nfiles),a
+        ld (dir_files),a        ; panneau DISQUE : fichiers et blocs utilisés
+        ld hl,0
+        ld (dir_blocks),hl
+        ld a,178                ; format DATA : 178 blocs de 1 Ko
+        ld (dir_cap),a
+        xor a
         ld a,(rsx_found)        ; commande déjà trouvée ?
         or a
         jr nz,ssd_have
@@ -887,7 +894,9 @@ ssd_have:
         ld c,#C1
         call ssd_read4
         jr c,ssd_parse
-        ld d,2                  ; format SYSTEME
+        ld a,169                ; format SYSTEME : 169 blocs
+        ld (dir_cap),a
+        ld d,2
         ld c,#41
         call ssd_read4
         ld a,1
@@ -901,6 +910,7 @@ ssd_entry:
         ld a,(hl)               ; octet 0 = utilisateur (#E5 = effacée)
         cp 16
         jr nc,ssd_next
+        call ssd_count          ; fichiers et blocs (tous les types)
         ld de,12                ; octet 12 = numéro d'extent : 0 seulement
         add hl,de               ; (un gros fichier a plusieurs entrées)
         ld a,(hl)
@@ -955,6 +965,43 @@ ssd_next:
         djnz ssd_entry
         xor a
         ret
+
+; Compte l'entrée HL (gardé) : un fichier de plus si c'est sa 1re entrée,
+; et ses blocs (octets 16 à 31 non nuls)
+ssd_count:
+        push hl
+        ld de,12
+        add hl,de
+        ld a,(hl)
+        or a
+        jr nz,ssc_blocks
+        ld a,(dir_files)
+        inc a
+        ld (dir_files),a
+ssc_blocks:
+        pop hl
+        push hl
+        ld de,16
+        add hl,de
+        ld b,16
+ssc_loop:
+        ld a,(hl)
+        or a
+        jr z,ssc_next
+        push hl
+        ld hl,(dir_blocks)
+        inc hl
+        ld (dir_blocks),hl
+        pop hl
+ssc_next:
+        inc hl
+        djnz ssc_loop
+        pop hl
+        ret
+
+dir_files:  db 0                ; catalogue : nombre de fichiers,
+dir_blocks: dw 0                ;   blocs utilisés,
+dir_cap:    db 178              ;   capacité (blocs de 1 Ko)
 
 ; Lit 4 secteurs consécutifs (piste D, à partir du secteur C) dans io_buffer.
 ; Carry = 1 si tout s'est bien passé.

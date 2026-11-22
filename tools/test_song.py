@@ -231,8 +231,9 @@ class SongPanelTest(unittest.TestCase):
         cpc.chars = typed("SUITE")
         self.key(KEY_SAVE)
         data = cpc.saved["SUITE.SNG"]
-        self.assertEqual(len(data), SONG_SIZE3)
-        self.assertEqual(data[4], 3)
+        n = data[SONG_SIZE3] | data[SONG_SIZE3 + 1] << 8      # version 4 : + la banque
+        self.assertEqual(len(data), SONG_SIZE3 + 2 + n)
+        self.assertEqual(data[4], 4)
         v3 = data[FIXED + 32 * PAT + 16:]
         self.assertEqual(v3[:8], bytes([2, 1, 1, 3, 2, 0, 1, 0xFE]))
         self.make_disk({"SUITE.SNG": data}, keep=("SEQ16.BIN",))

@@ -23,7 +23,7 @@ cpcsim = test_player.cpcsim
 ROOT = gp.ROOT
 DISKS = {"mono": "seq16-motifs-mono.dsk", "poly": "seq16-motifs-poly.dsk"}
 KEY_MOTIF, KEY_DISK, KEY_SAMPLE, KEY_P, KEY_SPACE = 13, 12, 20, 27, 47
-DSK_ROW = 17                              # f3 : ligne des messages
+DSK_ROW = 25                              # f3 : ligne des messages
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 
 
@@ -173,9 +173,9 @@ class SimulatorTest(unittest.TestCase):
         cpc = self.cpc
         data = gp.encode(p)
         self.make_disk({p["name"] + ".PAT": data})
-        self.key(KEY_DISK)
+        self.key(KEY_MOTIF)
         cpc.chars = [13]                   # un seul .PAT : RETURN
-        self.key(KEY_P)
+        self.key(3)                        # f9
         self.assertIn("MOTIF CHARGE", cpc.row(DSK_ROW))
         slot = cpc.word(cpc.addr("seq_pattern"))          # motif 1 (pat_work)
         self.assertEqual(cpc.peek(slot, 260), data)
