@@ -78,7 +78,7 @@ La pantalla de carga aparece mientras se carga el programa (`RUN"SEQ16.BIN` lo l
 
 <p align="center"><img src="snapshots/ecran-chargement-es.png" alt="Pantalla de carga de SEQ-16" width="640"></p>
 
-El programa arranca en el panel **PATRON**. **ESPACIO** toca el patrón de demostración.
+El programa arranca en el panel **PATRON**, con **SYNTH**, el tema synthwave de fábrica (la menor, 108 BPM, Am - F - C - G: bajo en octavas, arpegios, lead con vibrato, acordes con sonido de 4 voces). **ESPACIO** toca el patrón en pantalla; en **f1 TEMA**, **ESPACIO** toca todo el tema. También está en el disco (`SYNTH.SNG`), y **N N** (tema nuevo) lo vuelve a poner.
 Para salir, mantén **ESC** pulsada un segundo: una pulsación sola no basta, para no perder el trabajo por error.
 
 SEQ-16 necesita un **CPC 6128** (guarda los patrones en la memoria adicional): en un 464, o un 664 sin ampliación, lo avisa al arrancar.
@@ -562,7 +562,7 @@ _Codes/
 | [`src/sngio.asm`](src/sngio.asm) | el `.SNG` versión 4 (tema y banco de samples), leído y escrito byte a byte |
 | [`src/song.asm`](src/song.asm) | el tema en memoria, los patrones en el bloque 4 |
 | [`src/bank.asm`](src/bank.asm) | la memoria adicional del 6128 (bloques 4 y 5) |
-| [`src/boot.asm`](src/boot.asm) | lo que solo sirve al arrancar: la construcción del tema de fábrica, guardado en el bloque 5 |
+| [`src/boot.asm`](src/boot.asm) | lo que solo sirve al arrancar: la construcción del tema de fábrica (SYNTH, descomprimido desde [`src/factory_song.asm`](src/factory_song.asm), hecho por `tools/gen_synth.py`), guardado en el bloque 5 |
 | [`src/seq.asm`](src/seq.asm) | el secuenciador: formato del patrón, reproducción a tempo, BUCLE / 1 VEZ |
 | [`src/sound.asm`](src/sound.asm) | el motor de sonido (4 voces, envolventes, arpegio, vibrato, glissando, efectos por paso) |
 | [`src/factory.asm`](src/factory.asm) | instrumentos, sonidos y patrones de fábrica (fichero generado) |

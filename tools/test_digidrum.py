@@ -30,6 +30,7 @@ class DigidrumTest(unittest.TestCase):
     def setUpClass(cls):
         cpc = cpcsim.CPC.from_build()
         cpc.boot()
+        test_player.demo_song(cpc)               # contenu connu (pas SYNTH)
         cpc.frames(2, keys={KEY_SAMPLE})             # f4 : DRUMS.SMP se charge
         cpc.frames(1)
         cpc.frames(1, keys={KEY_MOTIF})             # retour au séquenceur

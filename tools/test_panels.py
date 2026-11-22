@@ -37,6 +37,7 @@ class PanelsTest(unittest.TestCase):
     def setUpClass(cls):
         cpc = cpcsim.CPC.from_build()
         cpc.boot()
+        test_player.demo_song(cpc)               # contenu connu (pas SYNTH)
         cls.base = cpc
 
     def setUp(self):

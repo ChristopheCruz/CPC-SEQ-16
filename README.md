@@ -78,7 +78,7 @@ The loading screen shows while the program loads (`RUN"SEQ16.BIN` starts it dire
 
 <p align="center"><img src="snapshots/ecran-chargement-en.png" alt="SEQ-16 loading screen" width="640"></p>
 
-The program starts on the **PATTERN** panel. **SPACE** plays the demo pattern.
+The program starts on the **PATTERN** panel, with **SYNTH**, the factory synthwave song (A minor, 108 BPM, Am - F - C - G: octave bass, arpeggios, lead with vibrato, layered-sound chords). **SPACE** plays the pattern on screen; on **f1 SONG**, **SPACE** plays the whole song. It is also on the disk (`SYNTH.SNG`), and **N N** (new song) brings it back.
 To quit, hold **ESC** for one second: a single press is not enough, so you cannot lose your work by mistake.
 
 SEQ-16 needs a **CPC 6128** (it keeps the patterns in the extra memory): on a 464, or a 664 without expansion, it says so at startup.
@@ -562,7 +562,7 @@ _Codes/
 | [`src/sngio.asm`](src/sngio.asm) | the version 4 `.SNG` (song and sample bank), read and written byte by byte |
 | [`src/song.asm`](src/song.asm) | the song in memory, the patterns in block 4 |
 | [`src/bank.asm`](src/bank.asm) | the 6128's extra memory (blocks 4 and 5) |
-| [`src/boot.asm`](src/boot.asm) | what is only needed at startup: building the factory song, stored in block 5 |
+| [`src/boot.asm`](src/boot.asm) | what is only needed at startup: building the factory song (SYNTH, unpacked from [`src/factory_song.asm`](src/factory_song.asm), made by `tools/gen_synth.py`), stored in block 5 |
 | [`src/seq.asm`](src/seq.asm) | the sequencer: pattern format, tempo playback, LOOP / ONCE |
 | [`src/sound.asm`](src/sound.asm) | the sound engine (4 voices, envelopes, arpeggio, vibrato, glissando, per-step effects) |
 | [`src/factory.asm`](src/factory.asm) | factory instruments, sounds and patterns (generated file) |

@@ -78,7 +78,7 @@ L'écran de chargement s'affiche pendant que le programme se charge (`RUN"SEQ16.
 
 <p align="center"><img src="snapshots/ecran-chargement.png" alt="Écran de chargement de SEQ-16" width="640"></p>
 
-Le programme démarre sur le panneau **MOTIF**. **ESPACE** joue le motif de démonstration.
+Le programme démarre sur le panneau **MOTIF**, avec **SYNTH**, la song synthwave d'usine (la mineur, 108 BPM, Am - F - C - G : basse en octaves, arpèges, lead avec vibrato, accords en son composé). **ESPACE** joue le motif affiché ; sur **f1 SONG**, **ESPACE** joue toute la song. Elle est aussi sur la disquette (`SYNTH.SNG`), et **N N** (nouveau morceau) la remet.
 Pour quitter, maintiens **ESC** une seconde : un simple appui ne suffit pas, pour ne pas perdre son travail par erreur.
 
 SEQ-16 demande un **CPC 6128** (il range les motifs dans la mémoire supplémentaire) : sur un 464, ou un 664 sans extension, il le dit au démarrage.
@@ -562,7 +562,7 @@ _Codes/
 | [`src/sngio.asm`](src/sngio.asm) | le `.SNG` version 4 (morceau et banque de samples), lu et écrit octet par octet |
 | [`src/song.asm`](src/song.asm) | le morceau en mémoire, les motifs dans le bloc 4 |
 | [`src/bank.asm`](src/bank.asm) | la mémoire supplémentaire du 6128 (blocs 4 et 5) |
-| [`src/boot.asm`](src/boot.asm) | ce qui ne sert qu'au démarrage : la construction du morceau d'usine, rangé dans le bloc 5 |
+| [`src/boot.asm`](src/boot.asm) | ce qui ne sert qu'au démarrage : la construction du morceau d'usine (SYNTH, décompressé depuis [`src/factory_song.asm`](src/factory_song.asm), fait par `tools/gen_synth.py`), rangé dans le bloc 5 |
 | [`src/seq.asm`](src/seq.asm) | le séquenceur : format du motif, lecture au tempo, BOUCLE / 1 FOIS |
 | [`src/sound.asm`](src/sound.asm) | le moteur de son (4 voix, enveloppes, arpège, vibrato, glissando, effets des pas) |
 | [`src/factory.asm`](src/factory.asm) | instruments, sons et motifs d'usine (fichier généré) |
