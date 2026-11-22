@@ -80,7 +80,7 @@ class PlayerTest(unittest.TestCase):
         c.codes = [row[:] for row in src.codes]   # codes bruts (■, ─, flèches…)
         c.ay = list(src.ay)
         c.t = src.t
-        c.window = src.window                 # mémoire supplémentaire du 6128
+        c.ram_block = src.ram_block           # mémoire supplémentaire du 6128
         c.blocks = dict(src.blocks)
         return c
 

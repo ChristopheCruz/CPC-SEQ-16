@@ -203,7 +203,8 @@ class CPC:
         self.ppi_a_input = False
         self.ppi_ctrl = []                    # écritures sur #F7
         self.gate_array = []                  # écritures sur #7F
-        self.window = 1                       # bloc montré en #4000-#7FFF
+        self.ram_block = 1                    # bloc montré en #4000-#7FFF
+                                              # (self.window : fenêtre de texte)
         self.blocks = {b: bytes(0x4000) for b in (4, 5, 6, 7)}   # 64 Ko de plus
         self.ram_configs = []                 # (instant, configuration)
         self.key_reads = 0
@@ -281,21 +282,21 @@ class CPC:
         if cfg not in (0, 4, 5, 6, 7):
             raise NotImplementedError(f"configuration mémoire #C{cfg} non simulée")
         target = 1 if cfg == 0 else cfg       # 1 = bloc normal de #4000
-        if target == self.window:
+        if target == self.ram_block:
             return
-        self.blocks[self.window] = bytes(self.mem[0x4000:0x8000])
+        self.blocks[self.ram_block] = bytes(self.mem[0x4000:0x8000])
         self.m.set_memory_block(0x4000, self.blocks[target])
-        self.window = target
+        self.ram_block = target
         self.ram_configs.append((self.t, cfg))
 
     def bank_peek(self, block, addr, n=1):
         """Lit le bloc supplémentaire 4 à 7, adresse vue en #4000-#7FFF."""
-        if block == self.window:
+        if block == self.ram_block:
             return self.peek(addr, n)
         return bytes(self.blocks[block][addr - 0x4000:addr - 0x4000 + n])
 
     def bank_poke(self, block, addr, data):
-        if block == self.window:
+        if block == self.ram_block:
             return self.poke(addr, data)
         b = bytearray(self.blocks[block])
         b[addr - 0x4000:addr - 0x4000 + len(data)] = bytes(data)
