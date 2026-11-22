@@ -19,6 +19,7 @@ cpcsim = test_player.cpcsim
 wav2smp = test_player.wav2smp
 KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 13, 14, 5, 20, 12
 KEY_MODE, KEY_SAVE, KEY_LOAD, KEY_F7 = 4, 11, 3, 10
+KEY_L, KEY_SPACE, KEY_CTRL, KEY_RIGHT = 36, 47, 23, 1
 ESC = 0xFC                                # code de ESC rendu par KM_WAIT_CHAR
 PAT_SIZE = 260
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
@@ -200,6 +201,63 @@ class PanelsTest(unittest.TestCase):
         self.key(KEY_LOAD)
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 2)
         self.assertEqual(cpc.peek(cpc.addr("smp_name"), 8), b"TEST    ")
+
+    # --- MOTIF : BOUCLE / 1 FOIS ---------------------------------------------------
+    def count_steps(self, frames):
+        cpc = self.cpc
+        trig = cpc.addr("seq_trigger")
+        n = [0]
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == trig:
+                n[0] += 1
+            orig()
+        cpc.step = step
+        cpc.frames(frames)
+        cpc.step = orig
+        return n[0]
+
+    def test_motif_once(self):
+        """L : « 1 FOIS », le motif est joué une fois (16 pas), puis la lecture
+        s'arrête et l'état revient à ARRET ; L de nouveau : BOUCLE."""
+        cpc = self.cpc
+        self.assertIn("L BOUCLE", cpc.row(20))
+        self.key(KEY_L)
+        self.assertIn("L 1 FOIS", cpc.row(20))
+        self.key(KEY_SPACE)
+        steps = 1 + self.count_steps(400)                 # (le pas 0 est déjà joué)
+        self.assertEqual(steps, 16)
+        self.assertEqual(cpc.peek(cpc.addr("seq_playing"))[0], 0)
+        self.assertIn("ARRET", cpc.row(2))
+        self.key(KEY_L)
+        self.assertIn("L BOUCLE", cpc.row(20))
+        self.key(KEY_SPACE)
+        self.assertGreater(self.count_steps(400), 40)     # plus de 2 mesures
+        self.assertEqual(cpc.peek(cpc.addr("seq_playing"))[0], 1)
+
+    def test_instrument_change_draws_values_only(self):
+        """CTRL + droite en INST : l'écran est le même qu'un dessin complet,
+        avec bien moins de caractères écrits (les noms des réglages restent)."""
+        cpc = self.cpc
+        self.key(KEY_INST)
+        txt = next(a for a, n in cpcsim.FW.items() if n == "TXT_OUTPUT")
+        count = [0]
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == txt:
+                count[0] += 1
+            orig()
+        cpc.step = step
+        for _ in range(3):                                # instruments 3, 4, 5
+            self.key(KEY_CTRL, KEY_RIGHT)
+        cpc.step = orig
+        self.assertEqual(cpc.peek(cpc.addr("cur_inst"))[0], 4)
+        after = cpc.screen_text()
+        cpc.call("ins_show_all")                          # le dessin complet
+        self.assertEqual(cpc.screen_text(), after)
+        self.assertLess(count[0], 3 * 200)            # (un dessin complet : 474)
 
 
 if __name__ == "__main__":

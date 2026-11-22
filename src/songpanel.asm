@@ -179,7 +179,9 @@ stb_set:
         ld b,a
         ret
 
-; Boucle principale : la lecture a changé de position
+; Boucle principale : la lecture a changé de position.  SONG : seulement le
+; tempo (celui du nouveau motif) et le repère ► (2 caractères), pas les
+; lignes entières : le pas 0 du nouveau motif n'attend plus le dessin.
 song_follow:
         xor a
         ld (song_changed),a
@@ -188,7 +190,7 @@ song_follow:
         jp z,redraw_all         ; MOTIF suit le motif joué
         cp 4
         ret nz
-        call sp_status
+        call sp_show_bpm
         jp sp_show_pos
 
 ; --- Morceau par défaut ----------------------------------------------------------
@@ -329,10 +331,7 @@ sp_status:
         ld hl,fname
         ld b,NAME_LEN
         call print_n
-        ld hl,256*20+2
-        call TXT_SET_CURSOR
-        ld a,(seq_bpm)
-        call print_dec3
+        call sp_show_bpm
         ld hl,256*25+2
         call TXT_SET_CURSOR
         ld a,(seq_playing)
@@ -341,7 +340,7 @@ sp_status:
         ld a,1
         call TXT_SET_PEN
         ld a,246                ; ►
-        call TXT_OUTPUT
+        call txt_out
         ld a,(song_live)
         or a
         ld hl,txt_sp_song
@@ -352,9 +351,18 @@ sps_stop:
         ld a,2
         call TXT_SET_PEN
         ld a,CH_ON
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_sp_stop
         jp print_str
+
+; Ligne 2 : le tempo
+sp_show_bpm:
+        ld hl,256*20+2
+        call TXT_SET_CURSOR
+        ld bc,3*256+0
+        call colors
+        ld a,(seq_bpm)
+        jp print_dec3
 
 ; Les 14 lignes visibles
 sp_draw_list:
@@ -426,7 +434,7 @@ spr_pos:
         call print_dec2
         call spr_marker
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(spr_i)
         call song_pos_ptr
         ld (spr_ptr),hl
@@ -438,7 +446,7 @@ spr_pos:
         inc a
         call print_dec2
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(spr_pat)
         call pat_name_ptr
         ld b,8
@@ -448,14 +456,14 @@ spr_name:
         jr nc,spr_name_c
         ld a,' '
 spr_name_c:
-        call TXT_OUTPUT
+        call txt_out
         inc hl
         djnz spr_name
         call spr_gap
         ld a,1                  ; champ 1 : répétitions
         call spr_colors
         ld a,'x'
-        call TXT_OUTPUT
+        call txt_out
         ld hl,(spr_ptr)
         inc hl
         ld a,(hl)
@@ -477,7 +485,7 @@ spr_name_c:
 spr_sign:
         ld c,a
         ld a,b
-        call TXT_OUTPUT
+        call txt_out
         ld a,c
         call print_small
         call spr_gap
@@ -492,23 +500,23 @@ spr_marker:
         ld a,3
         call TXT_SET_PEN
         ld a,246
-        jp TXT_OUTPUT
+        jp txt_out
 spm_loop:
         ld hl,song_loop
         cp (hl)
         ld a,' '
-        jp nz,TXT_OUTPUT
+        jp nz,txt_out
         ld a,1
         call TXT_SET_PEN
         ld a,240                ; ↑
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; Un espace sur fond bleu
 spr_gap:
         xor a
         call TXT_SET_PAPER
         ld a,' '
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; Z si la ligne spr_i porte le curseur
 spr_cursor:
@@ -542,9 +550,9 @@ print_small:
         cp 10
         jr nc,ps_two
         add a,'0'
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
-        jp TXT_OUTPUT
+        jp txt_out
 ps_two:
         jp print_dec2
 
@@ -599,7 +607,7 @@ spv_on:
         call TXT_SET_PEN
         ld a,CH_ON
 spv_out:
-        call TXT_OUTPUT
+        call txt_out
         ld hl,(spv_ptr)
         ld de,16
         add hl,de
@@ -627,15 +635,29 @@ ssp_new:
         ret z
         ld b,(hl)
         ld (hl),a
-        push af
         ld a,b
-        cp #FF
-        call nz,sp_draw_row
-        call snd_tick           ; la musique continue entre les deux lignes
-        pop af
+        call spr_mark_only      ; l'ancien repère s'efface
+        ld a,(sp_shown_pos)
+; Seulement le repère (colonne 3) de la ligne de la position A, si elle est
+; visible (#FF : rien)
+spr_mark_only:
         cp #FF
         ret z
-        jp sp_draw_row
+        ld (spr_i),a
+        ld hl,sp_top
+        sub (hl)
+        ret c
+        cp SP_ROWS
+        ret nc
+        add a,SP_ROW0
+        ld l,a
+        ld h,3
+        call TXT_SET_CURSOR
+        xor a
+        call TXT_SET_PAPER
+        ld a,2
+        call TXT_SET_PEN
+        jp spr_marker
 
 ; Ligne 20 : le mixage (volume général de chaque voix)
 sp_draw_mixer:
@@ -668,11 +690,11 @@ sdm_col:
         ld hl,lane_letters
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld bc,3*256+0
         call colors
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(sdm_v)
         ld e,a
         ld d,0
@@ -682,7 +704,7 @@ sdm_col:
         ld (sdm_vol),a
         call print_hex1
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(sdm_vol)          ; barre : (volume x 3 + 7) / 15 blocs
         ld c,a
         add a,a
@@ -706,10 +728,10 @@ sdm_block:
         dec c
         ld a,CH_FULL
 sdm_put:
-        call TXT_OUTPUT
+        call txt_out
         djnz sdm_block
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(sdm_v)
         inc a
         cp 4
@@ -769,13 +791,13 @@ sdd_show:
         ld hl,(dur_bars)
         call print_dec16
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,2
         call TXT_SET_PEN
         ld hl,txt_sp_bars       ; "MESURES"
         call print_str
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,3
         call TXT_SET_PEN
         ld hl,(dur_frames)      ; secondes = images / 50
@@ -788,7 +810,7 @@ sdd_show:
         push af
         call print_dec16
         ld a,':'
-        call TXT_OUTPUT
+        call txt_out
         pop af
         call print_dec2
         ld a,' '
@@ -799,7 +821,7 @@ sdd_show:
         ld a,(song_len)
         call print_dec2
         ld a,'/'
-        call TXT_OUTPUT
+        call txt_out
         ld a,SONG_POS_MAX
         jp print_dec2
 
@@ -964,13 +986,13 @@ stm_pair:
         or c
         jr nz,stm_some
         ld a,'-'                ; aucun écart de ce genre
-        jp TXT_OUTPUT
+        jp txt_out
 stm_some:
         push bc
         ex de,hl
         call stm_ms
         ld a,'-'
-        call TXT_OUTPUT
+        call txt_out
         pop hl
 ; HL en 1/300 s, écrit en millisecondes (x 10 / 3, arrondi)
 stm_ms:
@@ -1044,7 +1066,7 @@ print_dec16:
         call pd16_digit
         ld a,l
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 pd16_digit:
         ld a,'0'-1
 pd16_sub:
@@ -1060,7 +1082,7 @@ pd16_sub:
         ret z                   ; zéro devant : rien
 pd16_out:
         ld b,1
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; --- Touches -------------------------------------------------------------------------
 song_cmd:

@@ -251,7 +251,7 @@ dt_paper:
         ld (dt_state),a         ; le caractère suivant est le chiffre
         ld a,' '
 dt_put:
-        call TXT_OUTPUT
+        call txt_out
         pop hl
         jr dt_loop
 dt_end:
@@ -345,6 +345,8 @@ rc_seq:
         jp z,cmd_toggle         ; ENTER : allume / éteint la case (grid.asm)
         cp 17
         jp z,cmd_pick           ; COPY : la case devient le pinceau
+        cp 13
+        jp z,cmd_loop           ; L : BOUCLE <-> 1 FOIS
         cp 10
         jp z,cmd_mute           ; f7 : muet / son
         ret nc                  ; les autres touches ne servent pas ici
@@ -375,6 +377,30 @@ cmd_table:
         db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I,KEY_E              ; 16 à 21
         db KEY_M,KEY_F8,KEY_F9,KEY_B                           ; 22 à 25
 NB_CMDS equ $-cmd_table         ; nombre de touches de commande
+
+; --- L : le motif boucle, ou n'est joué qu'une fois ---
+cmd_loop:
+        ld hl,pat_once
+        ld a,(hl)
+        xor 1
+        ld (hl),a
+        ; continue dans show_loop
+
+; Ligne 20 : « L BOUCLE » ou « L 1 FOIS » (le mode de lecture du motif)
+show_loop:
+        ld hl,256*25+20
+        call TXT_SET_CURSOR
+        ld bc,1*256+0
+        call colors
+        ld a,(pat_once)
+        or a
+        ld hl,txt_loop
+        jp z,print_str
+        ld hl,txt_once
+        jp print_str
+
+txt_loop: db "BOUCLE",0
+txt_once: db "1 FOIS",0
 
 ; --- ESPACE : lecture / arrêt ---
 cmd_play:
@@ -878,13 +904,13 @@ print_str:
         inc hl
         or a
         ret z
-        call TXT_OUTPUT
+        call txt_out
         jr print_str
 
 ; Affiche B caractères à partir de HL (HL avance)
 print_n:
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         inc hl
         djnz print_n
         ret
@@ -901,10 +927,10 @@ pd_tens:
 pd_out:
         push af
         ld a,c
-        call TXT_OUTPUT
+        call txt_out
         pop af
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; Affiche A (0 à 15) sur 1 chiffre hexadécimal
 print_hex1:
@@ -913,7 +939,7 @@ print_hex1:
         add a,7                 ; de '9' à 'A'
 ph_digit:
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 
 txt_muet: db "MUET ",0
 txt_comp: db "SON COMPOSE  ",0
@@ -953,7 +979,7 @@ pl_char:
         inc hl
         or a
         jr z,print_list
-        call TXT_OUTPUT
+        call txt_out
         jr pl_char
 
 
@@ -1034,14 +1060,59 @@ ins_prev:                       ; CTRL + gauche : instrument précédent
         ret z
         dec a
         ld (cur_inst),a
-        jp ins_show_all
+        ld hl,16                ; l'instrument affiché : 16 octets plus loin
+        jr ins_show_values
 ins_next:                       ; CTRL + droite : instrument suivant
         ld a,(cur_inst)
         inc a
         cp NB_INST
         ret nc
         ld (cur_inst),a
-        jp ins_show_all
+        ld hl,-16               ; l'instrument affiché : 16 octets avant
+; L'instrument voisin (HL = sa distance, en octets) : son numéro, son nom, et
+; seulement les valeurs qui changent ; l'enveloppe si l'ADSR change.  Les
+; noms des réglages restent (sauf PERIODE / SAMPLE, redessiné en entier).
+; Sur le vrai CPC, un caractère coûte environ 3,5 ms : un dessin complet
+; (474 caractères) durait plus d'une seconde et demie.
+ins_show_values:
+        ld (isv_delta),hl
+        call isa_name
+        xor a
+        ld (isv_env),a
+isv_loop:
+        ld (df_i),a
+        cp FLD_NOISE
+        jr z,isv_full
+        call field_ptr
+        call field_value_ptr    ; HL = la valeur du nouvel instrument
+        ld a,(hl)
+        ld de,(isv_delta)
+        add hl,de               ; celle de l'instrument affiché
+        cp (hl)
+        jr z,isv_next           ; la même : rien à écrire
+        ld a,(df_i)
+        cp 4
+        jr nc,isv_value
+        ld a,1                  ; l'ADSR a changé
+        ld (isv_env),a
+isv_value:
+        ld a,(df_i)
+        call ins_draw_value
+        jr isv_next
+isv_full:
+        call ins_draw_field     ; « PERIODE » ou le nom du sample
+isv_next:
+        ld a,(df_i)
+        inc a
+        cp NB_FIELDS
+        jr nz,isv_loop
+        ld a,(isv_env)
+        or a
+        ret z                   ; même ADSR : même courbe
+        jp ins_draw_env
+
+isv_delta: dw 0
+isv_env:   db 0
 
 ; Modifie le réglage en cours.  A = 0 pour diminuer, 1 pour augmenter.
 ; Le pas est de 1, ou de 10 avec SHIFT.
@@ -1135,26 +1206,7 @@ ins_piano:
 
 ; --- Affichage ---------------------------------------------------------------
 ins_show_all:
-        ld hl,#0E02             ; colonne 14, ligne 2 : numéro et nom
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld a,(cur_inst)
-        inc a
-        call print_dec2
-        ld a,' '
-        call TXT_OUTPUT
-        ld a,(cur_inst)         ; 6 caractères par nom
-        ld e,a
-        add a,a
-        add a,e
-        add a,a
-        ld e,a
-        ld d,0
-        ld hl,inst_names
-        add hl,de
-        ld b,6
-        call print_n
+        call isa_name
         call show_octave
         xor a
 isa_loop:
@@ -1165,6 +1217,42 @@ isa_loop:
         cp NB_FIELDS
         jr nz,isa_loop
         jp ins_draw_env
+
+; Ligne 2 : le numéro et le nom de l'instrument
+isa_name:
+        ld hl,#0E02             ; colonne 14, ligne 2 : numéro et nom
+        call TXT_SET_CURSOR
+        ld a,3
+        call TXT_SET_PEN
+        ld a,(cur_inst)
+        inc a
+        call print_dec2
+        ld a,' '
+        call txt_out
+        ld a,(cur_inst)         ; 6 caractères par nom
+        ld e,a
+        add a,a
+        add a,e
+        add a,a
+        ld e,a
+        ld d,0
+        ld hl,inst_names
+        add hl,de
+        ld b,6
+        jp print_n
+
+; Seulement la valeur du réglage A (colonne 17 ; le nom est déjà affiché)
+ins_draw_value:
+        ld (df_i),a
+        call field_ptr          ; lit la fiche du réglage
+        ld a,(df_i)
+        add a,FIELD_ROW
+        ld l,a
+        ld h,17
+        call TXT_SET_CURSOR
+        xor a
+        call TXT_SET_PAPER
+        jr idf_value
 
 ; Dessine la ligne du réglage A : son nom, puis sa valeur
 ins_draw_field:
@@ -1187,7 +1275,8 @@ ins_draw_field:
         ld b,15
         call print_n
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
+idf_value:
         ld a,(df_i)             ; le réglage en cours : valeur en jaune inversé
         ld hl,cur_field
         cp (hl)
@@ -1219,7 +1308,7 @@ df_value:
 df_plus:
         ld a,'+'
 df_sign:
-        call TXT_OUTPUT
+        call txt_out
         ld a,(df_val)
         call print_dec3
         jr df_end
@@ -1238,7 +1327,7 @@ df_byte:
         ld a,(df_val)
         call print_dec3
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
 df_end:
         xor a
         jp TXT_SET_PAPER
@@ -1451,7 +1540,7 @@ ide_char:
         ld e,143                ; caractère 143 = bloc plein
 ide_out:
         ld a,e
-        call TXT_OUTPUT
+        call txt_out
         inc hl
         inc c
         ld a,c
@@ -1551,7 +1640,7 @@ dm_loop:
         inc hl
         push bc
         push hl
-        call TXT_OUTPUT
+        call txt_out
         pop hl
         pop bc
         djnz dm_loop
@@ -1559,7 +1648,7 @@ dm_loop:
 dm_pad:
         ld a,' '                ; on efface la fin de la ligne
         push bc
-        call TXT_OUTPUT
+        call txt_out
         pop bc
         dec b
         ld a,b
@@ -1614,7 +1703,7 @@ en_loop:
         ld hl,(en_buf)
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
 en_wait:
         xor a
         call TXT_SET_PAPER
@@ -2012,6 +2101,7 @@ screen_text:
         db 4,20,2,0, "SAUVER",0
         db 11,20,3,0,"f9",0
         db 14,20,2,0,"CHARGER",0
+        db 23,20,3,0,"L",0
         db 1,21,3,0, 242,243,240,241,0
         db 6,21,2,0, "PAS/VOIX",0
         db 15,21,3,0,"ENTER",0

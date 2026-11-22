@@ -102,7 +102,7 @@ smp_show_bank:
 ssb_used:
         call print_u16
         ld a,'/'
-        call TXT_OUTPUT
+        call txt_out
         ld hl,BANK_MAX
         jp print_u16
 
@@ -135,7 +135,7 @@ smp_draw_row:
         ld b,16                 ; pas de sample ici : ligne vide
 sdr_blank:
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         djnz sdr_blank
         ret
 sdr_used:
@@ -158,7 +158,7 @@ sdr_text:
         inc a
         call print_dec2
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(sdr_i)            ; nom : 6 caractères au début de la fiche
         call smp_entry
         ld b,6
@@ -243,7 +243,7 @@ sdf_decim:
         add hl,de
         ld a,(hl)
         add a,'0'
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_s_pad7
         call print_str
         jr sdf_end
@@ -258,7 +258,7 @@ sdf_bits:
         ld hl,smp_bits_txt
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_bits
         call print_str
 sdf_end:
@@ -1069,7 +1069,7 @@ print_u16:
         call pu_digit
         ld a,l                  ; les unités, toujours écrites
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 pu_digit:                       ; chiffre = combien de fois DE rentre dans HL
         ld a,'0'-1
 pu_sub:
@@ -1090,7 +1090,7 @@ pu_print:
         push hl
         push de
         push bc
-        call TXT_OUTPUT
+        call txt_out
         pop bc
         pop de
         pop hl

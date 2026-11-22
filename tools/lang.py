@@ -44,6 +44,7 @@ TEXTS = {
     "OCTAVE": ("OCTAVE", "OCTAVA"),
     "MOTIF": ("PATT.", "PATR."),
     "SAUVER": ("SAVE", "GRABAR"),
+    "1 FOIS": ("ONCE", "1 VEZ"),
     "SON COMPOSE  ": ("LAYERED SOUND", "SONIDO 4 VOC."),
     "LECTURE": ("PLAY", "TOCAR"),
     "ARRET  ": ("STOP", "PARAR"),

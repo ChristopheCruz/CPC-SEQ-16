@@ -42,18 +42,18 @@ dkt_col:
         pop bc
         push bc
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,b
         call dk_ext             ; HL = ".SNG"...
         inc hl
         ld b,3
         call print_n
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         xor a
         call TXT_SET_PAPER
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         pop bc
         inc b
         ld a,b
@@ -177,7 +177,7 @@ dtn_print:
         ret z
         cp '|'
         ret z
-        call TXT_OUTPUT
+        call txt_out
         inc hl
         jr dtn_print
 
