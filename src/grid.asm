@@ -674,9 +674,9 @@ move_cursor:
         jp preview_cell
 
 ; --- Ligne d'état ------------------------------------------------------------------
-show_pattern:                   ; numéro du motif et mode
-        ld hl,256*7+STATUS_ROW
-        call TXT_SET_CURSOR
+show_pattern:                   ; numéro du motif et son nom (celui de son
+        ld hl,256*7+STATUS_ROW  ; fichier .PAT) ; le type se voit au cadre
+        call TXT_SET_CURSOR     ; (VOIX A... ou SON COMPOSE) et à la grille
         ld bc,3*256+0
         call colors
         ld a,(cur_pat)
@@ -684,11 +684,21 @@ show_pattern:                   ; numéro du motif et mode
         call print_dec2
         ld a,' '
         call TXT_OUTPUT
-        call is_layered
-        ld hl,txt_sep
-        jp z,print_str
-        ld hl,txt_comp
-        jp print_str
+        ld a,(cur_pat)
+        call pat_name_ptr       ; HL = nom (8 caractères)
+        ld b,8
+spn_char:
+        ld a,(hl)
+        cp ' '+1                ; les 0 de fin de nom : des espaces
+        jr nc,spn_put
+        ld a,' '
+spn_put:
+        call TXT_OUTPUT         ; (garde les registres)
+        inc hl
+        djnz spn_char
+        ld a,' '                ; jusqu'à BPM
+        ld b,5
+        jp out_rep
 
 show_speed:
         ld hl,256*29+STATUS_ROW

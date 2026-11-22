@@ -219,7 +219,7 @@ class GridTest(unittest.TestCase):
     def test_layered(self):
         cpc = self.cpc
         self.key(MODE)
-        self.assertIn("SON COMPOSE", cpc.row(2))
+        self.assertIn("SON COMPOSE", cpc.row(4))            # titre du cadre
         self.assertIn("SON", cpc.row(11)[:5])
         self.assertIn("COUCHES DU SON S", cpc.row(13))
         self.assertEqual([cpc.row(r)[3] for r in (15, 16, 17, 18)], list("ABCN"))

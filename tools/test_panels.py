@@ -78,7 +78,7 @@ class PanelsTest(unittest.TestCase):
         mode = cpc.peek(cpc.word(cpc.addr("seq_pattern")))[0]
         self.key(KEY_MODE)                                  # f6 : mode
         self.assertNotEqual(cpc.peek(cpc.word(cpc.addr("seq_pattern")))[0], mode)
-        self.assertIn("SON COMPOSE", cpc.row(2))
+        self.assertIn("SON COMPOSE", cpc.row(4))
         self.key(KEY_DISK)                                  # f5 : panneau DISQUE
         self.assertEqual(self.screen(), 2)
 

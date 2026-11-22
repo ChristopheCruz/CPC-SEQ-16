@@ -99,7 +99,7 @@ class PatternsTest(unittest.TestCase):
         self.assertEqual([self.pattern(i) for i in range(32) if i != 3], others)
         self.assertEqual(cpc.peek(cpc.addr("seq_bpm"))[0], 150)   # son tempo
         self.key(KEY_MOTIF)                          # l'écran f1 montre le motif chargé
-        self.assertIn("SON COMPOSE", cpc.row(2))
+        self.assertIn("SON COMPOSE", cpc.row(4))
         self.assertIn("BPM:150", cpc.row(2))
 
     def test_save_then_load_roundtrip(self):
