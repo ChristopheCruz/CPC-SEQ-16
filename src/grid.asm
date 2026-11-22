@@ -1300,26 +1300,40 @@ df_fx:
         call txt_out
         ld hl,txt_f_fx          ; "FX:"
         call print_str
-        ld a,3
-        call TXT_SET_PEN
         ld hl,(df_cell)
         inc hl
         inc hl
         inc hl
         ld a,(hl)
-        or a
-        jr z,df_fx_none
-        call print_hex2
-        jr dfd_end
-df_fx_none:
-        ld a,'-'
-        call txt_out
-        call txt_out
-dfd_end:
+        ld (df_fxv),a
+        ld a,3                  ; champ 3 : le chiffre de l'effet
+        call df_colors
+        ld a,(df_fxv)
+        rrca
+        rrca
+        rrca
+        rrca
+        call dfx_digit
+        ld a,4                  ; champ 4 : la force
+        call df_colors
+        ld a,(df_fxv)
+        call dfx_digit
+        xor a
+        call TXT_SET_PAPER
         ld a,' '
         jp txt_out
+; Chiffre hexadécimal A (bits 0-3), ou « - » s'il n'y a pas d'effet
+dfx_digit:
+        ld c,a
+        ld a,(df_fxv)
+        and #F0
+        ld a,'-'
+        jp z,txt_out
+        ld a,c
+        and 15
+        jp print_hex1
 
-; Couleurs du champ A (0 NOTE, 1 INS, 2 VOL) : jaune inversé s'il est choisi
+; Couleurs du champ A (0 NOTE, 1 INS, 2 VOL, 3-4 FX) : jaune inversé s'il est choisi
 ; en mode édition, orange sinon
 df_colors:
         ld b,a
@@ -1621,7 +1635,7 @@ edit_left:
         jr edit_field
 edit_right:
         ld a,(grid_field)
-        cp 2
+        cp 4
         ret nc
         inc a
 edit_field:
@@ -1647,7 +1661,7 @@ eu_note:
         cp b
         ret nc
         inc (hl)
-        jr edit_done
+        jp edit_done
 eu_ins:
         dec a
         jr nz,eu_vol
@@ -1659,8 +1673,11 @@ eu_ins:
         cp b
         ret nc
         ld (hl),a
-        jr edit_done
+        jp edit_done
 eu_vol:
+        dec a
+        ld c,1                  ; FX : + 1
+        jr nz,fx_change
         call cursor_ptr
         inc hl
         inc hl
@@ -1696,6 +1713,9 @@ ed_ins:
         dec (hl)
         jr edit_done
 ed_vol:
+        dec a
+        ld c,#FF                ; FX : - 1
+        jr nz,fx_change
         call cursor_ptr
         inc hl
         inc hl
@@ -1704,6 +1724,69 @@ ed_vol:
         ret z
         dec a                   ; 0 -> "-" (#FF)
         ld (hl),a
+        jr edit_done
+
+; FX de la case : A = 1 (l'effet, 0 à 7) ou 2 (sa force, 0 à 15), C = +1 ou
+; -1.  Sans effet, l'octet vaut 0.  Le nom de l'effet va sur la ligne des
+; messages.
+fx_change:
+        ld b,a
+        call cursor_ptr
+        inc hl
+        inc hl
+        inc hl                  ; HL -> l'effet
+        ld a,(hl)
+        djnz fxc_force
+        rrca                    ; l'effet : le chiffre haut
+        rrca
+        rrca
+        rrca
+        and 15
+        add a,c
+        cp 8
+        ret nc
+        or a
+        jr z,fxc_store          ; aucun : l'octet tombe à 0
+        rlca
+        rlca
+        rlca
+        rlca
+        ld b,a
+        ld a,(hl)
+        and 15
+        or b
+        jr fxc_store
+fxc_force:
+        ld b,a
+        and #F0
+        ret z                   ; pas d'effet : pas de force
+        ld a,b
+        and 15
+        add a,c
+        cp 16
+        ret nc
+        ld c,a
+        ld a,b
+        and #F0
+        or c
+fxc_store:
+        ld (hl),a
+        rrca                    ; son nom, ligne des messages
+        rrca
+        rrca
+        rrca
+        and 15
+        ld b,a
+        ld hl,txt_fx_names
+        jr z,fxc_name
+fxc_skip:
+        ld a,(hl)
+        inc hl
+        or a
+        jr nz,fxc_skip
+        djnz fxc_skip
+fxc_name:
+        call dsk_message
 edit_done:
         call draw_cursor_cell
 ; Fait entendre brièvement la case du curseur
@@ -1733,6 +1816,14 @@ txt_f_ins:       db "INS:",0
 txt_f_son:       db "SON:",0
 txt_f_vol:       db "VOL:",0
 txt_f_fx:        db "FX:",0
+txt_fx_names:    db "SANS EFFET",0      ; FX : 0, puis 1x à 7x
+                 db "MONTE",0
+                 db "DESCEND",0
+                 db "ARPEGE",0
+                 db "REPETE",0
+                 db "COUPE",0
+                 db "RETARD",0
+                 db "VIBRATO",0
 txt_f_off:       db "ARRET",0
 txt_f_none:      db "---  ",0
 txt_lock:        db "VERROU",0
@@ -1744,7 +1835,8 @@ txt_layers_head: db "   VOIX INSTRUMENT  DECAL. VOL",0
 brush_note:   db 36             ; pinceau : note (DO 3),
 brush_noise:  db 1              ;   période sur la voix de bruit
 grid_edit:    db 0              ; 1 = TAB : les flèches modifient le panneau
-grid_field:   db 0              ;   champ choisi (0 NOTE, 1 INS, 2 VOL)
+grid_field:   db 0              ;   champ choisi (0 NOTE, 1 INS, 2 VOL, 3-4 FX)
+df_fxv:       db 0              ;   l'effet de la case affichée
 dc_pen:       db 0
 dc_tail:      db 0
 mc_l:         db 0

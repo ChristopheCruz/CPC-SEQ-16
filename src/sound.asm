@@ -43,7 +43,9 @@ CH_PERL    equ 12       ; dernière période envoyée au circuit (octet bas)
 CH_PERH    equ 13       ;   "                                 (octet haut)
 CH_VOL     equ 14       ; volume de la note, de 0 à 15 (par défaut : celui
                         ; de l'instrument)
-CH_SIZE    equ 16       ; (l'octet 15 est en réserve)
+CH_FX      equ 15       ; effet du pas (FX, voir fx_time) : chiffre haut =
+                        ; l'effet (1 à 7), chiffre bas = sa force (0 à 15)
+CH_SIZE    equ 16
 
 ; --- Un instrument : 16 octets (format définitif) -----------------------------
 INS_ATTACK   equ 0      ; vitesse de montée par image (255 = immédiat)
@@ -166,7 +168,15 @@ sno_no_porta:
         ld (ix+CH_NOTE),b
         ld (ix+CH_INSL),l
         ld (ix+CH_INSH),h
-        ld (ix+CH_PHASE),1      ; l'enveloppe repart de l'attaque
+        ld a,(sno_fx)           ; l'effet du pas (0 : aucun)
+        ld (ix+CH_FX),a
+        and #F0
+        cp #60
+        ld a,1                  ; l'enveloppe repart de l'attaque,
+        jr nz,sno_phase
+        ld a,5                  ; ou attend (RETARD)
+sno_phase:
+        ld (ix+CH_PHASE),a
         xor a
         ld (ix+CH_LEVEL),a
         ld (ix+CH_TIME),a
@@ -326,6 +336,9 @@ snv_mix:
 
 ; --- Enveloppe ADSR d'une voie (IX) ------------------------------------------
 sf_envelope:
+        ld a,(ix+CH_PHASE)
+        or a
+        call nz,fx_time         ; l'âge de la note ; COUPE, REPETE, RETARD
         ld l,(ix+CH_INSL)
         ld h,(ix+CH_INSH)       ; HL = instrument (pointe sur INS_ATTACK)
         ld a,(ix+CH_PHASE)
@@ -337,6 +350,8 @@ sf_envelope:
         jr z,se_decay
         dec a
         jr z,se_done            ; tenue : le niveau ne bouge pas
+        dec a
+        jr nz,se_off            ; 5 : la note attend (RETARD), muette
 
         inc hl                  ; --- relâche ---
         inc hl
@@ -431,11 +446,6 @@ sf_pitch:
         ld a,(ix+CH_PHASE)
         or a
         ret z                   ; voie muette : rien à calculer
-        ld a,(ix+CH_TIME)       ; âge de la note, bloqué à 255
-        inc a
-        jr z,sp_time_max
-        ld (ix+CH_TIME),a
-sp_time_max:
         ld l,(ix+CH_INSL)
         ld h,(ix+CH_INSH)
         ld (sp_ins),hl
@@ -481,6 +491,18 @@ sp_arp_step:
 sp_arp_keep:
         ld (ix+CH_ARPCNT),a
 sp_arp_done:
+        ld a,(ix+CH_FX)         ; ARPEGE (3x) : la note, puis la note + x
+        ld b,a                  ; demi-tons, 2 images chacune
+        and #F0
+        cp #30
+        jr nz,sp_fx_arp
+        bit 1,(ix+CH_TIME)
+        jr z,sp_fx_arp
+        ld a,b
+        and 15
+        add a,e
+        ld e,a
+sp_fx_arp:
         ld a,(ix+CH_NOTE)
         add a,e
         cp 96
@@ -500,6 +522,7 @@ sp_note_ok:
         add hl,de               ; + décalage du glissando
         push hl
         call sp_slide           ; fait évoluer le décalage pour la suite
+        call fx_slide           ; (MONTE, DESCEND)
         pop hl
         call sp_vibrato         ; + vibrato
 
@@ -575,6 +598,96 @@ sp_off_store:
         ld (ix+CH_OFFH),h
         ret
 
+; MONTE (1x) / DESCEND (2x) : la période baisse / monte de 4 x force par
+; image, pendant 255 images au plus (le décalage ne déborde pas)
+fx_slide:
+        ld a,(ix+CH_FX)
+        ld b,a
+        and #F0
+        cp #10
+        jr z,fxs_go
+        cp #20
+        ret nz
+fxs_go:
+        ld a,(ix+CH_TIME)
+        inc a
+        ret z                   ; plus de 255 images : on s'arrête
+        ld a,b
+        and 15
+        add a,a
+        add a,a
+        ld e,a
+        ld d,0                  ; DE = 4 x force
+        ld l,(ix+CH_OFFL)
+        ld h,(ix+CH_OFFH)
+        bit 5,b
+        jr nz,fxs_down
+        or a                    ; MONTE : la période diminue
+        sbc hl,de
+        jr sp_off_store
+fxs_down:
+        add hl,de               ; DESCEND : elle augmente
+        jr sp_off_store
+
+; Effets de durée, à chaque image, voie IX en marche (phase non nulle) :
+;   4x REPETE  l'enveloppe repart toutes les x images (roulement)
+;   5x COUPE   la note est relâchée après x images (staccato)
+;   6x RETARD  la note attend x images (phase 5) avant de partir
+; Fait d'abord vieillir la note (CH_TIME, bloqué à 255).
+fx_time:
+        ld a,(ix+CH_TIME)
+        inc a
+        jr z,fxt_age
+        ld (ix+CH_TIME),a
+fxt_age:
+        ld c,(ix+CH_TIME)       ; C = âge
+        ld a,(ix+CH_FX)
+        ld b,a
+        and 15
+        ld e,a                  ; E = force
+        ld a,b
+        and #F0
+        cp #40
+        jr z,fxt_rep
+        cp #50
+        jr z,fxt_cut
+        cp #60
+        ret nz
+        ld a,(ix+CH_PHASE)      ; RETARD : la note part à l'âge x
+        cp 5
+        ret nz
+        ld a,c
+        cp e
+        ret c
+        ld (ix+CH_PHASE),1
+        ret
+fxt_cut:
+        ld a,c                  ; COUPE : relâchée à l'âge x
+        cp e
+        ret c
+        ld a,(ix+CH_PHASE)
+        cp 4
+        ret nc                  ; déjà relâchée
+        ld (ix+CH_PHASE),4
+        ret
+fxt_rep:
+        ld a,e                  ; REPETE : toutes les x images
+        or a
+        ret z
+        ld a,c
+frp_mod:
+        sub e
+        jr z,frp_hit
+        jr nc,frp_mod
+        ret
+frp_hit:
+        ld a,(ix+CH_PHASE)
+        cp 4
+        ret nc                  ; relâchée : on ne la relance pas
+        ld (ix+CH_PHASE),1
+        ld (ix+CH_LEVEL),0
+        ret
+
 ; Vibrato : HL = période, renvoie HL = période modulée
 sp_vibrato:
         push hl
@@ -587,6 +700,20 @@ sp_vibrato:
         inc hl
         ld d,(hl)               ; D = attente
         pop hl
+        ld a,(ix+CH_FX)         ; VIBRATO (7x) : profondeur x, tout de suite,
+        ld e,a                  ; à la vitesse de l'instrument (ou 32)
+        and #F0
+        cp #70
+        jr nz,sp_vib_ins
+        ld a,e
+        and 15
+        ld b,a
+        ld d,0
+        ld a,c
+        or a
+        jr nz,sp_vib_ins
+        ld c,32
+sp_vib_ins:
         ld a,b
         or a
         ret z                   ; pas de vibrato
@@ -775,6 +902,7 @@ channels:  ds 4*CH_SIZE         ; les 4 voix : A, B, C et bruit
 sf_chan:   db 0                 ; voie en cours de calcul
 sp_ins:    dw 0                 ; instrument de la voie en cours de calcul
 sno_chan:  db 0                 ; snd_note_on : voie demandée
+sno_fx:     db 0            ; effet du pas qui démarre la note (seq.asm)
 sno_flags: db 0                 ; snd_note_on : drapeaux de l'instrument
 eg_owner:  db #FF               ; voie qui pilote l'enveloppe matérielle
 eg_trigger: db #FF              ; forme d'enveloppe à envoyer (#FF = aucune)

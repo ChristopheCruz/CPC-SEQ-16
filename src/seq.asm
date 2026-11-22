@@ -12,7 +12,7 @@
 ;                    #FE = arrêt de la note
 ;       instrument   numéro d'instrument ; en mode son composé, numéro du son
 ;       volume       0-15, ou #FF = volume de l'instrument
-;       effet        réserve (0)
+;       effet        FX : 0 = aucun ; #1x à #7x (voir fx_time, sound.asm)
 ;   En mode son composé, seule la première case de chaque pas est utilisée.
 ;
 ; Un son composé occupe 16 octets : 4 voix de 3 octets, puis 4 en réserve.
@@ -91,6 +91,8 @@ seq_frame:
         or a                    ; boucle : on s'arrête à l'heure où le pas
         jr nz,seq_end           ; suivant aurait été joué
         call seq_trigger        ; on joue les notes du pas
+        xor a                   ; (les autres notes : sans effet)
+        ld (sno_fx),a
         ld a,(seq_step)
         inc a
         and 15
@@ -158,7 +160,9 @@ st_lane:
         inc hl
         ld d,(hl)               ; D = volume
         inc hl
-        inc hl                  ; (effet : pas encore utilisé)
+        ld a,(hl)               ; l'effet, pour snd_note_on
+        ld (sno_fx),a
+        inc hl
         push hl
         ld a,b
         cp NOTE_NONE
@@ -192,6 +196,10 @@ st_comp:                        ; --- mode son composé ---
         ld b,(hl)               ; B = note
         inc hl
         ld c,(hl)               ; C = numéro du son composé
+        inc hl
+        inc hl
+        ld a,(hl)               ; l'effet : pour les 4 voix du son
+        ld (sno_fx),a
         ld a,b
         cp NOTE_NONE
         ret z
