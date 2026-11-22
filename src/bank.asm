@@ -36,6 +36,11 @@ BANK_PATS  equ BANK_SONG+SONG_FIXED
 BANK_V2    equ BANK_PATS+NB_PAT*PAT_SIZE
 BANK_V3    equ BANK_V2+SONG_EXTRA
 
+; Bloc 5 : le morceau d'usine (rangé au démarrage, relu par N N) : les 32
+; motifs aux mêmes adresses que dans le bloc 4, puis song_data
+RAM_FACT   equ #C5
+B5_SONG    equ BANK_V3+SONG_V3_LEN
+
 ; Copie BC octets de HL vers DE, le bloc A étant montré en #4000-#7FFF.
 ; Toujours appelée interruptions permises (boucle principale, lecture et
 ; écriture de fichier) : elle les rend permises en sortant.  (Pas de
