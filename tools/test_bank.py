@@ -54,7 +54,7 @@ class BankTest(unittest.TestCase):
     def test_layout(self):
         cpc = self.cpc
         # tout ce qui tourne pendant qu'un bloc est montré est sous #4000
-        for name in ("bank_copy", "bank_cas_in", "bank_cas_out", "bank_normal", "bk_cfg"):
+        for name in ("bank_copy", "bank_cas_in", "bank_cas_out", "bank_normal", "bank_check"):
             self.assertLess(cpc.addr(name), 0x4000, name)
         self.assertEqual(cpc.addr("start"), 0x3F00)           # adresse de chargement
         # le motif affiché et le tampon d'AMSDOS sont hors de la fenêtre

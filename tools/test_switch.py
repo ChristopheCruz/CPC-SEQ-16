@@ -78,5 +78,57 @@ class SwitchTest(unittest.TestCase):
         self.assertIn(steps, (7, 8, 9))
 
 
+
+
+if cpcsim is not None:
+    class SlowTextCPC(RealTimeCPC):
+        """Un CPC où écrire un caractère prend du temps, comme le vrai
+        firmware (environ 400 µs) : les dessins durent plusieurs images."""
+        def fw_TXT_OUTPUT(self):
+            self.t += 400
+            super().fw_TXT_OUTPUT()
+
+
+@unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")
+class SongTempoTest(unittest.TestCase):
+    """Mode morceau : le changement de motif ne retarde plus les pas (le
+    tempo suit le temps réel, et le motif suivant est prêt à l'avance)."""
+
+    def steps(self, screen_key):
+        cpc = SlowTextCPC.from_build()
+        cpc.boot()
+        v3 = cpc.addr("smp_blk_src") + 16 + 32 * 16 + 32 * 6 + 8 * 16 + 16
+        cpc.poke(v3, bytes([2, 0, 0, 1, 0, 1, 1, 0]))      # motifs 1 et 2, en boucle
+        cpc.frames(1, keys={14})                           # SONG
+        cpc.frames(1)
+        cpc.frames(1, keys={KEY_SPACE})
+        cpc.frames(1)
+        cpc.frames(1, keys={screen_key})
+        cpc.frames(1)
+        trig = cpc.addr("seq_trigger")
+        times = []
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == trig:
+                times.append((cpc.t, cpc.peek(cpc.addr("seq_step"))[0]))
+            orig()
+        cpc.step = step
+        t0 = cpc.t
+        while cpc.t - t0 < 6 * 1_000_000:
+            cpc.frames(1)
+        cpc.step = orig
+        return [(b[0] - a[0], b[1] == 0) for a, b in zip(times, times[1:])]
+
+    def test_bar_change_on_time(self):
+        for screen_key in (14, 13):                        # SONG, puis MOTIF
+            gaps = self.steps(screen_key)
+            # 125 BPM : un pas = 6 images (120 ms), à une image près, même
+            # au changement de motif et pendant le dessin qui le suit
+            self.assertTrue([g for g, bar in gaps if bar])
+            for g, _ in gaps:
+                self.assertLessEqual(g, 7 * FRAME, (screen_key, g))
+                self.assertGreaterEqual(g, 5 * FRAME, (screen_key, g))
+
 if __name__ == "__main__":
     unittest.main()

@@ -572,7 +572,12 @@ class CPC:
         self._corrupt("af", "bc")
 
     def fw_KL_TIME_PLEASE(self):              # DEHL = temps en 1/300 s
-        ticks = self.t * 3 // 10_000
+        """Comme sur le CPC, le compteur avance par l'interruption à 300 Hz :
+        le temps passé interruptions coupées (un digidrum) ne compte pas."""
+        off = sum(b - a for a, b in self.di_spans)
+        if self._di_since is not None:
+            off += self.t - self._di_since
+        ticks = (self.t - off) * 3 // 10_000
         self.m.de = (ticks >> 16) & 0xFFFF
         self.m.hl = ticks & 0xFFFF
 

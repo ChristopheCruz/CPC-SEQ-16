@@ -186,8 +186,50 @@ snd_tick:
         ld a,b
         add a,6
         ld (tick_last),a
+        ld a,1
+        ld (sc_ticked),a
         call seq_frame
         jp snd_frame
+
+; Boucle principale : un tour de séquenceur et de son par image écoulée
+; depuis le dernier (jusqu'à 10 ; au-delà, après un accès disque par
+; exemple, on repart de maintenant).  Un long dessin ne ralentit plus le
+; tempo : les images passées sont rattrapées.  Si moins d'une image s'est
+; écoulée, on joue quand même un tour, sauf si snd_tick l'a déjà fait.
+snd_catchup:
+        call KL_TIME_PLEASE     ; L = temps, en 1/300 s
+        ld a,(tick_last)
+        ld b,a
+        ld a,l
+        sub b                   ; A = tops écoulés
+        cp 6
+        jr c,sc_short
+        cp 61
+        jr nc,sc_resync         ; trop : on repart de maintenant
+sc_loop:
+        sub 6
+        ld (sc_left),a
+        ld a,(tick_last)
+        add a,6
+        ld (tick_last),a
+        call seq_frame
+        call snd_frame
+        ld a,(sc_left)
+        cp 6
+        jr nc,sc_loop
+        ret
+sc_short:
+        ld a,(sc_ticked)
+        or a
+        ret nz                  ; snd_tick a déjà joué cette image
+sc_resync:
+        ld a,l
+        ld (tick_last),a
+        call seq_frame
+        jp snd_frame
+
+sc_ticked: db 0                 ; 1 = snd_tick a joué pendant ce tour
+sc_left:   db 0
 
 ; A = note (0-95) -> A = note dans l'octave (0-11), D = octave (0-7)
 split_note:
@@ -499,9 +541,15 @@ dhs_loop:
         call draw_head
         pop af
         inc a
+        cp 8
+        jr nz,dhs_next
+        push af
+        call snd_tick           ; à mi-chemin, un tour de son
+        pop af
+dhs_next:
         cp 16
         jr nz,dhs_loop
-        ret
+        jp snd_tick
 
 ; Numéro du pas A : orange en inverse sur 2 colonnes si c'est le pas joué,
 ; jaune en inverse si c'est le pas du curseur, sinon jaune sur les temps
@@ -588,6 +636,8 @@ dcl_lane:
 ; Redessine la voix du curseur (les traits de durée ont pu changer) et le
 ; panneau, après une modification de la case
 draw_cursor_cell:
+        ld a,1                  ; une case a changé : le motif est à ranger
+        ld (pat_dirty),a
         ld a,(cur_l)
         ld (dg_l),a
         call draw_lane
@@ -830,6 +880,7 @@ draw_panel:
         or a
         ret nz
         call panel_title
+        call snd_tick
         call draw_keys
         call snd_tick
         call draw_fields
@@ -874,6 +925,7 @@ pt_key2:
 pt_border:
         ld l,BOX_TOP
         call box_line
+        call snd_tick
 pt_text:
         ld hl,256*3+BOX_TOP
         call TXT_SET_CURSOR
@@ -1003,6 +1055,7 @@ dk_low_out:
         inc a
         cp 14
         jr nz,dk_low
+        call snd_tick                   ; entre les deux lignes
         ld hl,256*KEYS_COL+KEYS_ROW     ; ligne des noires
         call TXT_SET_CURSOR
         xor a
@@ -1180,6 +1233,7 @@ df_son:
         ld b,7
         call out_rep
 df_vol:
+        call snd_tick           ; au milieu de la ligne, un tour de son
         ld bc,2*256+0
         call colors
         ld a,' '
@@ -1260,6 +1314,7 @@ dly_ok:
         ret z
         ld (hl),a
         ld (dly_n),a
+        call snd_tick
         ld l,LAYER_ROW
         ld b,6
         call blank_rows
@@ -1272,6 +1327,7 @@ dly_ok:
         ld a,(dly_n)
         add a,'1'
         call TXT_OUTPUT
+        call snd_tick
         ld hl,256*1+LAYER_ROW+1
         call TXT_SET_CURSOR
         ld a,2
@@ -1389,10 +1445,13 @@ redraw_all:
         ld (shown_pos),a
         call show_pattern
         call show_state
-        call show_speed
-        call draw_grid
-        call draw_panel
+        call snd_tick           ; la musique continue pendant le dessin : un
+        call show_speed         ; tour au plus toutes les 20 ms environ, pour
+        call draw_grid          ; qu'aucun pas ne soit en retard (mode
+        call draw_panel         ; morceau : ce dessin suit le changement de
+        call snd_tick           ; motif, juste avant le pas 0)
         call show_inst
+        call snd_tick
         jp pickup_inst          ; l'instrument de saisie suit la note du curseur
 
 ; --- Touches propres à la grille ---------------------------------------------------

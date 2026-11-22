@@ -82,11 +82,32 @@ song_goto:
         ld hl,cur_pat
         cp (hl)
         jr z,sg_same
-        push af
-        call pat_store          ; le motif quitté retourne dans le bloc 4
-        pop af
+        ld b,a
+        ld a,(pat_dirty)        ; le motif quitté n'est rangé dans le bloc 4
+        or a                    ; que s'il a été modifié
+        jr z,sg_clean
+        push bc
+        call pat_store
+        pop bc
+sg_clean:
+        ld a,b
         ld (cur_pat),a
-        call pat_fetch          ; HL = pat_work
+        ld hl,next_id           ; déjà préparé dans pat_ahead ?
+        cp (hl)
+        jr nz,sg_fetch
+        ld hl,pat_ahead         ; oui : une simple copie en mémoire principale
+        ld de,pat_work          ; (pas de bloc, interruptions permises)
+        ld bc,PAT_SIZE
+        ldir
+        xor a
+        ld (pat_dirty),a
+        ld hl,pat_work
+        jr sg_set
+sg_fetch:
+        call pat_fetch          ; non : depuis le bloc 4
+sg_set:
+        ld a,#FF
+        ld (next_id),a
         call seq_set_pattern    ; son tempo
         ld hl,(seq_pattern)     ; son composé : une seule voix
         ld a,(hl)
@@ -98,6 +119,38 @@ sg_same:
         ld a,1
         ld (song_changed),a
         ret
+
+; Boucle principale : pendant la dernière répétition d'une position, le
+; motif de la position suivante est copié du bloc 4 dans pat_ahead.  Au
+; changement de mesure, song_goto n'a plus qu'à le recopier dans pat_work.
+song_prefetch:
+        ld a,(song_live)
+        or a
+        ret z
+        ld a,(song_rep)
+        dec a
+        ret nz                  ; pas encore la dernière répétition
+        ld a,(song_pos)         ; position suivante (la boucle à la fin)
+        inc a
+        ld hl,song_len
+        cp (hl)
+        jr c,spf_pos
+        ld a,(song_loop)
+spf_pos:
+        call song_pos_ptr
+        ld a,(hl)               ; son motif
+        ld hl,cur_pat
+        cp (hl)
+        ret z                   ; le même : rien à copier
+        ld hl,next_id
+        cp (hl)
+        ret z                   ; déjà prêt
+        ld (hl),a
+        call pat_addr
+        ld de,pat_ahead
+        ld bc,PAT_SIZE
+        ld a,RAM_SONG
+        jp bank_copy
 
 ; B = note -> B + transposition du morceau (bornée de 0 à 95).  Garde C.
 song_trans_b:
@@ -570,6 +623,7 @@ ssp_new:
         ld a,b
         cp #FF
         call nz,sp_draw_row
+        call snd_tick           ; la musique continue entre les deux lignes
         pop af
         cp #FF
         ret z
@@ -1266,6 +1320,8 @@ song_pos:     db 0              ;   position jouée,
 song_rep:     db 0              ;   répétitions qui restent,
 song_transp:  db 0              ;   transposition (suit song_rep)
 song_changed: db 0              ; 1 = la lecture a changé de position
+next_id:      db #FF            ; motif copié dans pat_ahead (#FF : aucun)
+pat_dirty:    db 0              ; 1 = pat_work modifié depuis sa copie
 sp_cur:       db 0              ; curseur : position (song_len = FIN)
 sp_mix:       db 0              ;   1 = sur la ligne du mixage
 sp_field:     db 0              ;   champ (0 motif, 1 répétitions, 2 transp.)
