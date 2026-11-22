@@ -38,11 +38,15 @@ if errorlevel 1 goto pas_python
 rem Morceaux de test (.SNG, .INS, .PAT) : build\seq16-songs.dsk
 python tools\gen_songs.py
 if errorlevel 1 goto pas_python
+rem Disquette de demonstration (ARCADE, STUDIO) : build\seq16-demo.dsk (+ -en, -es)
+python tools\gen_demo.py
+if errorlevel 1 goto pas_python
 echo.
 echo OK : build\seq16.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
 echo      build\seq16-inst.dsk et seq16-samples.dsk : les banques seules.
 echo      build\seq16-motifs-mono.dsk et seq16-motifs-poly.dsk : les motifs (f9).
 echo      build\seq16-songs.dsk : le programme et 5 morceaux de test.
+echo      build\seq16-demo.dsk : la demonstration (2 morceaux, motifs, instruments, samples).
 echo Sur le CPC : RUN"SEQ16
 exit /b 0
 :pas_python

@@ -193,12 +193,42 @@ DK = {
 ACCENTS = {"x": None, "X": 15, "v": 10, "w": 6}
 
 
+class Ev(tuple):
+    """Un événement (note, instrument, volume) qui porte aussi un effet :
+    ev.fx (l'octet FX de la case, 0 = aucun ; #1x à #7x, voir sound.asm)."""
+    fx = 0
+
+
+def with_fx(ev, fx):
+    """L'événement ev, avec l'effet fx."""
+    out = Ev(ev)
+    out.fx = fx
+    return out
+
+
+def fx(lane, effects):
+    """La voix lane, avec des effets : {pas: octet FX}."""
+    out = list(lane)
+    for s, f in effects.items():
+        if out[s] in (None, OFF):
+            raise ValueError("effet sur le pas %d, sans note" % s)
+        out[s] = with_fx(out[s], f)
+    return out
+
+
 def _event(tok, ins, vol=None):
-    """Un jeton -> événement (note, instrument, volume) ; '.' -> None ; '-' -> OFF."""
+    """Un jeton -> événement (note, instrument, volume) ; '.' -> None ; '-' -> OFF.
+    Un suffixe ~XX ajoute l'effet XX (hexadécimal, par ex. A3@LEAD~37)."""
     if tok == ".":
         return None
     if tok == "-":
         return OFF
+    tok, _, fxs = tok.partition("~")
+    if fxs:
+        ev = _event(tok, ins, vol)
+        if ev in (None, OFF):
+            raise ValueError("effet sans note : %r" % fxs)
+        return with_fx(ev, int(fxs, 16))
     if tok in TK and not NOTE_RE.match(tok):
         n, i, v = TK[tok]
         return (note(n), i, v)
@@ -975,6 +1005,9 @@ def check(p):
             if ev is None or ev == OFF:
                 continue
             n, ins, vol = ev
+            f = getattr(ev, "fx", 0)
+            if f and not 0x10 <= f <= 0x7F:
+                err.append("pas %d : effet %02X" % (s, f))
             if mode == MONO:
                 if v != 0 or not isinstance(ins, int) or not 0 <= ins <= 7:
                     err.append("pas %d : son composé %r" % (s, ins))
@@ -1176,7 +1209,7 @@ def encode(p):
             else:
                 n, ins, vol = ev
                 idx = ins if isinstance(ins, int) else I[ins]
-                data += bytes([n, idx, 0xFF if vol is None else vol, 0])
+                data += bytes([n, idx, 0xFF if vol is None else vol, getattr(ev, "fx", 0)])
     assert len(data) == PAT_SIZE
     return bytes(data)
 
