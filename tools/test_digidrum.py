@@ -193,8 +193,8 @@ class DigidrumTest(unittest.TestCase):
         self.key(KEY_DISK)
         self.key(KEY_S)
         data = cpc.saved["MORCEAU1.SNG"]
-        self.assertEqual(len(data), SONG_V1 + 16)
-        self.assertEqual(data[4], 2)                         # version 2
+        self.assertEqual(len(data), SONG_V1 + 16 + 2 + 64 * 3 + 32 * 8)   # version 3
+        self.assertEqual(data[4], 3)                         # version 3
         self.assertEqual(data[SONG_V1 + 1:SONG_V1 + 9], b"DRUMS   ")
 
     def test_load_song_v1(self):
@@ -213,7 +213,7 @@ class DigidrumTest(unittest.TestCase):
         cpc.files["MORCEAU1.SNG"] = bytes(v1)
         self.key(KEY_L)
         self.assertIn("MORCEAU CHARGE", cpc.row(17))
-        self.assertEqual(cpc.peek(self.song() + 4)[0], 2)
+        self.assertEqual(cpc.peek(self.song() + 4)[0], 3)
         self.assertEqual(cpc.peek(v2_addr, 16), bytes(16))
 
     def test_load_song_v2_loads_its_bank(self):

@@ -12,6 +12,7 @@
 ;   BANK_SONG   en-tête, instruments, noms, sons composés (SONG_FIXED octets)
 ;   BANK_PATS   les 32 motifs (PAT_SIZE octets chacun)
 ;   BANK_V2     bloc v2 (SONG_EXTRA octets)
+;   BANK_V3     bloc v3 : l'enchaînement (SONG_V3_LEN octets)
 ; La mémoire principale garde la copie de travail de l'en-tête, des
 ; instruments, des noms et des sons (le moteur les lit à chaque image), le
 ; bloc v2, et le motif affiché et joué (pat_work).  L'image du bloc 4 n'est
@@ -33,6 +34,7 @@ RAM_SONG   equ #C4              ; #4000-#7FFF : le bloc 4 (le morceau)
 BANK_SONG  equ #4000
 BANK_PATS  equ BANK_SONG+SONG_FIXED
 BANK_V2    equ BANK_PATS+NB_PAT*PAT_SIZE
+BANK_V3    equ BANK_V2+SONG_EXTRA
 
 ; Copie BC octets de HL vers DE, le bloc A étant montré en #4000-#7FFF.
 ; Garde l'état des interruptions.

@@ -33,8 +33,13 @@ class SongFilesTest(unittest.TestCase):
     def test_format(self):
         for s in gs.SONGS:
             data = gs.song_file(s)
-            self.assertEqual(len(data), FIXED + 32 * PAT + 16, s["name"])
-            self.assertEqual(data[:5], b"SQ16\x02")
+            self.assertEqual(len(data), FIXED + 32 * PAT + 16 + gs.V3_LEN, s["name"])
+            self.assertEqual(data[:5], b"SQ16\x03")
+            v3 = data[FIXED + 32 * PAT + 16:]
+            pos, loop = gs.positions(s)
+            self.assertEqual((v3[0], v3[1]), (len(pos), loop))
+            for i, (pat, rep, tr) in enumerate(pos):
+                self.assertEqual(tuple(v3[2 + 3 * i:5 + 3 * i]), (pat, rep, tr & 0xFF))
             self.assertEqual(tuple(data[5:9]), s["volumes"])
             bank = data[FIXED + 32 * PAT + 1:][:8]
             self.assertEqual(bank, (s["bank"] or "").ljust(8).encode() if s["bank"] else bytes(8))
@@ -93,7 +98,12 @@ class SongsInSimulatorTest(unittest.TestCase):
                 self.key(KEY_LOAD)
                 self.assertIn("MORCEAU", cpc.row(25))
                 self.assertEqual(cpc.peek(cpc.addr("screen"))[0], 4)   # toujours SONG
-                self.assertIn("MORCEAU : " + s["name"], cpc.row(4))
+                self.assertTrue(cpc.row(2).startswith("SONG:" + s["name"]))
+                v3 = gs.song_file(s)[-gs.V3_LEN:]
+                mem = cpc.addr("smp_blk_src") + 848 + 16
+                self.assertEqual(cpc.peek(mem, gs.V3_LEN), v3)        # l'enchaînement
+                pos, _ = gs.positions(s)
+                self.assertIn("-- FIN", cpc.row(5 + len(pos)) if len(pos) < 14 else "-- FIN")
                 self.assertEqual(cpc.peek(cpc.addr("fname"), 8), s["name"].ljust(8).encode())
                 if s["bank"]:
                     self.assertEqual(cpc.peek(cpc.addr("smp_name"), 8), s["bank"].ljust(8).encode())

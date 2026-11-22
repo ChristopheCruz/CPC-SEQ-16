@@ -360,7 +360,7 @@ class PlayerTest(unittest.TestCase):
     def test_song_save_and_load_still_work(self):
         """Non-régression : S puis L sur l'écran f3 (fichier .SNG)."""
         cpc = self.cpc
-        song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16) + 16   # v2
+        song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16) + 16 + 2 + 64 * 3 + 32 * 8   # v3
         cpc.frames(1, keys={KEY_DISK})
         cpc.frames(1)
         cpc.frames(1, keys={60})                 # S

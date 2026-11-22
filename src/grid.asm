@@ -63,6 +63,7 @@ blank_rows:
         ld a,' '
         ld b,40
         call out_rep
+        call snd_tick           ; la musique continue pendant le dessin
         pop hl
         pop bc
         inc l
@@ -377,6 +378,10 @@ draw_lane:
 dln_step:
         ld (dg_s),a
         call draw_cell
+        ld a,(dg_s)             ; tous les 4 pas, un tour de son en retard
+        and 3
+        cp 3
+        call z,snd_tick
         ld a,(dg_s)
         inc a
         cp 16
@@ -1367,6 +1372,7 @@ dly_vol_def:
         ld a,'-'
         call TXT_OUTPUT
 dly_next:
+        call snd_tick
         ld hl,(dly_ptr)
         ld de,3
         add hl,de

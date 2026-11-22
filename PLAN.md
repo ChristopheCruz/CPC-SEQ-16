@@ -1,7 +1,7 @@
 # Plan de développement : SEQ-16 v1.0
 
 État : **validé le 22 novembre 2026** (section 9). Lots 1 (PR #16),
-2 (PR #17) et 3 (PR #18) faits.
+2 (PR #17), 3 (PR #18) et 4 (PR #20) faits ; morceaux de test (PR #19).
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -247,6 +247,19 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
    panneau suit le curseur).  Le champ FX s'affiche mais ne se modifie pas
    encore (l'octet d'effet n'est pas utilisé par le lecteur).
 4. **SONG** : enchaînement, lecture du morceau, boucle, mixage déplacé.
+   **Fait (PR #20)** : `src/songpanel.asm`, 64 positions (motif,
+   répétitions, transposition), boucle, aperçu, durée, mixage, lecture du
+   morceau depuis le curseur (MOTIF suit le motif joué), `.SNG` version 3
+   (bloc v3 de 450 octets : enchaînement et noms des motifs), anciens `.SNG`
+   chargés avec une position par motif utilisé.  Les motifs prennent le nom
+   de leur fichier `.PAT` ; f8 dans MOTIF propose ce nom (ou `MOTIF-nn`).
+   Corrigé en passant : le 2e motif de démonstration d'usine était presque
+   vide depuis toujours (ses cases tombaient toutes sur la même).
+   Reste pour le lot 5 : la banque de samples avec le morceau (décision 8).
+   AMSDOS n'écrit d'un coup qu'un bloc de mémoire contigu, et la banque
+   (jusqu'à 16 Ko) ne tient pas avec le morceau dans un bloc de 16 Ko :
+   proposition, f8 sauve `NOM.SNG` **et** `NOM.SMP`, et charger `NOM.SNG`
+   recharge `NOM.SMP`.
 5. **Sauvegardes par panneau et DISQUE** : `.SNG` v3, chargement des
    anciens `.SNG`, catalogue filtré, effacer, renommer, sauver tout.
 6. **Motifs d'usine** en vraies doubles croches (charleston sur 16 pas,

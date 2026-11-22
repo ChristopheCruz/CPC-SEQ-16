@@ -14,9 +14,14 @@
 ;   bloc v2       16 octets : mode de lecture des samples (0 = BLOQUANT),
 ;                 nom de la banque .SMP associée (8 caractères, 0 = aucune),
 ;                 7 octets de réserve
+;   bloc v3       450 octets : l'enchaînement (panneau SONG, songpanel.asm)
+;                 nombre de positions, position de la boucle,
+;                 64 positions x (motif, répétitions, transposition),
+;                 32 noms de motifs de 8 caractères
 ;
-; Version 1 (avant les digidrums) : sans le bloc v2.  On la charge encore :
-; le bloc v2 prend alors ses valeurs par défaut.
+; Version 1 (avant les digidrums) : sans le bloc v2 ; version 2 : sans le
+; bloc v3.  On les charge encore : les blocs absents prennent leurs valeurs
+; par défaut (une position par motif utilisé).
 ; ============================================================================
 
 NB_INST equ 32                  ; nombre d'instruments
@@ -27,7 +32,9 @@ SONG_FIXED equ 16+NB_INST*16+NB_INST*6+NB_SONS*16    ; tout sauf les motifs
 SONG_EXTRA equ 16                ; taille du bloc v2
 SONG_V1    equ SONG_FIXED+NB_PAT*PAT_SIZE   ; taille d'un morceau version 1
 SONG_SIZE  equ SONG_V1+SONG_EXTRA           ; taille d'un morceau version 2
-SONG_VER   equ 2                ; version écrite dans l'en-tête
+SONG_V3_LEN equ 2+64*3+NB_PAT*8             ; bloc v3 : 450 octets
+SONG_SIZE3 equ SONG_SIZE+SONG_V3_LEN        ; taille d'un morceau version 3
+SONG_VER   equ 3                ; version écrite dans l'en-tête
 
 ; Remet le morceau dans son état d'usine
 init_song:
@@ -99,7 +106,9 @@ fc_loop:                        ; par case (voir factory.asm)
         ld a,e                  ; en-tête : motif = numéro - #80
         and #7F
 fc_cell:
-        call stage_addr         ; HL = début du motif (dans io_buffer)
+        push de                 ; (stage_addr écrase DE, et E est le numéro
+        call stage_addr         ; de la case : sans cela, toutes les cases du
+        pop de                  ; 2e motif tombaient sur la même)
         bit 7,e
         jr nz,fc_put            ; en-tête : on écrit au début du motif
         ld a,e                  ; case : 4 + 4 x (numéro modulo 64)
@@ -139,7 +148,7 @@ fc_demo:
         inc a
         cp NB_PAT
         jr nz,fc_bank
-        ret
+        jp song_default         ; une position par motif utilisé
 
 ; HL = motif numéro A (0 à 2) préparé dans io_buffer par init_song
 stage_addr:
@@ -182,6 +191,8 @@ pat_store:
 ; Met à jour l'image du morceau dans le bloc 4, avant une sauvegarde : le
 ; motif affiché, l'en-tête, les instruments, les noms, les sons et le bloc v2
 song_to_bank:
+        ld a,SONG_VER           ; l'en-tête annonce la version écrite
+        ld (song_data+4),a
         call pat_store
         ld hl,song_data
         ld de,BANK_SONG
@@ -190,6 +201,10 @@ song_to_bank:
         ld hl,song_v2
         ld de,BANK_V2
         ld bc,SONG_EXTRA
+        call bank_put
+        ld hl,song_v3           ; l'enchaînement
+        ld de,BANK_V3
+        ld bc,SONG_V3_LEN
         jp bank_put
 
 ; song_data et song_v2 sont en #4000-#7FFF, que cache le bloc 4 : on ne peut

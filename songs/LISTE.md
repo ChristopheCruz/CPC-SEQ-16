@@ -2,7 +2,7 @@
 
 Fabriqués par `tools/gen_songs.py` ; tous sur `build/seq16-songs.dsk`.
 
-Charger un morceau : panneau SONG (f2), puis f9.  Passer d'un motif à l'autre : panneau MOTIF (f1), CTRL + flèches.  Le panneau SONG du lot 4 jouera l'ordre indiqué.
+Charger un morceau : panneau SONG (f2), puis f9 ; ESPACE le joue depuis la position du curseur.  ↑ marque le départ de la boucle.
 
 ## NUIT : Nuit (synthwave, 112 BPM)
 
@@ -11,7 +11,7 @@ Am - F - C - G, basse en doubles croches, lead tenu avec vibrato.
 - Fichiers : `NUIT.SNG`, `NUIT.INS`
 - Instruments à lui : NUITLD, NUITBS, NUITPD, NUITPM
 - À tester : notes tenues jusqu'à leur arrêt (traits ■──X), vibrato du lead, accords tenus (arpège rapide), 16 pas de charleston
-- Ordre prévu : NUINTRO NUINTRO NUCOUPL NUCOUP2 NUCOUPL NUCOUP2 NUREFR NUREFR2 NUREFR NUREFR2 NUBREAK NUREFR NUREFR2 NUFIN
+- Enchaînement (panneau SONG) : NUINTRO x2 ↑NUCOUPL NUCOUP2 NUCOUPL NUCOUP2 NUREFR NUREFR2 NUREFR NUREFR2 NUBREAK NUREFR NUREFR2 NUFIN
 
 | Motif | N° | Contenu |
 |---|---|---|
@@ -30,7 +30,7 @@ grosse caisse et caisse claire samplées, basse buzzer, zaps.
 - Fichiers : `ROBOT.SNG`, `ROBOT.INS`, banque `DRUMS.SMP`
 - Instruments à lui : ROBOBS, ROBOPL, ROBOLD, ROBOZP
 - À tester : digidrums (la banque DRUMS se recharge avec le morceau), mode BLOQUANT et rattrapage du tempo, basse à enveloppe matérielle
-- Ordre prévu : RBINTRO RBINTRO RBGROOV RBGROOV RBBASS RBBASS RBTHEME RBTHEME RBBREAK RBTHEME RBFIN
+- Enchaînement (panneau SONG) : RBINTRO x2 ↑RBGROOV x2 RBBASS x2 RBTHEME x2 RBBREAK RBTHEME RBFIN
 
 | Motif | N° | Contenu |
 |---|---|---|
@@ -48,7 +48,7 @@ thème de jeu en do majeur, arpèges en doubles croches.
 - Fichiers : `PIXEL.SNG`, `PIXEL.INS`
 - Instruments à lui : PIXLD, PIXAR, PIXARM, PIXBS
 - À tester : tempo rapide, arpèges d'instrument (accords en une voix), notes sur tous les pas
-- Ordre prévu : PXINTRO PXTHEME PXTHEM2 PXTHEME PXTHEM2 PXPONT PXPONT PXTHEME PXFIN
+- Enchaînement (panneau SONG) : PXINTRO ↑PXTHEME PXTHEM2 PXTHEME PXTHEM2 PXPONT x2 PXTHEME PXFIN
 
 | Motif | N° | Contenu |
 |---|---|---|
@@ -65,7 +65,7 @@ basse funk en doubles croches, accords piqués, lead glissé.
 - Fichiers : `FUNKY.SNG`, `FUNKY.INS`
 - Instruments à lui : FKBASS, FKSTAB, FKSLID, FKCLAV
 - À tester : basse sur les doubles croches, notes fantômes (volumes), glissando (PORTA), accords mineurs 7 en une voix
-- Ordre prévu : FKINTRO FKGROOV FKGROOV FKRIFF FKRIFF FKBREAK FKGROOV FKRIFF FKFIN
+- Enchaînement (panneau SONG) : FKINTRO ↑FKGROOV x2 FKRIFF x2 FKBREAK FKGROOV +5 FKRIFF +5 FKGROOV FKFIN
 
 | Motif | N° | Contenu |
 |---|---|---|
@@ -82,7 +82,7 @@ accords des sons composés : mineur, majeur, sus4, mineur 7, batterie.
 - Fichiers : `NAPPE.SNG`, `NAPPE.INS`
 - Instruments à lui : DOUX, SIFFLE, CHORUS, HEROS
 - À tester : mode son composé : une seule voix SON et les 4 couches du son affichées sous la grille ; sons 0, 1, 5, 6, 7
-- Ordre prévu : NPINTRO NPACCO NPACCO2 NPACCO NPACCO2 NPRYTHM NPRYTHM NPFIN
+- Enchaînement (panneau SONG) : NPINTRO ↑NPACCO NPACCO2 NPACCO NPACCO2 NPRYTHM x2 NPFIN
 
 | Motif | N° | Contenu |
 |---|---|---|

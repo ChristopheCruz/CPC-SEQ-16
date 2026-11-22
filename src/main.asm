@@ -33,6 +33,7 @@ KEY_F7    equ 10
 KEY_F6    equ 4                 ; pavé numérique (matrice du clavier CPC)
 KEY_F8    equ 11
 KEY_F9    equ 3
+KEY_B     equ 54                ; panneau SONG : la boucle part d'ici
 KEY_RETURN equ 18
 KEY_S     equ 60
 KEY_L     equ 36
@@ -106,6 +107,9 @@ main_loop:
         ld a,(dg_pending)       ; un digidrum attend ?
         or a
         call nz,dg_play         ; il joue, puis le tempo est rattrapé
+        ld a,(song_changed)     ; le morceau a changé de position ?
+        or a
+        call nz,song_follow     ; l'écran suit (songpanel.asm)
         ld a,(screen)
         or a
         call z,show_playhead    ; repère du pas en cours (écran séquenceur)
@@ -375,7 +379,7 @@ cmd_table:
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
         db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I,KEY_E              ; 16 à 21
-        db KEY_M,KEY_F8,KEY_F9                                 ; 22 à 24
+        db KEY_M,KEY_F8,KEY_F9,KEY_B                           ; 22 à 25
 NB_CMDS equ $-cmd_table         ; nombre de touches de commande
 
 ; --- ESPACE : lecture / arrêt ---
@@ -693,6 +697,8 @@ read_piano:
         ld a,(screen)
         cp 2
         ret z                   ; écran Disque : les lettres servent aux commandes
+        cp 4
+        ret z                   ; panneau SONG aussi (B : la boucle)
         ld hl,piano_keys
         xor a
 rp_loop:
@@ -1956,7 +1962,7 @@ dsv_go:
         ld a,1
         ld (sf_bank),a
         ld hl,txt_ext           ; NOM.SNG : tout le morceau
-        ld de,SONG_SIZE
+        ld de,SONG_SIZE3
         ld bc,txt_m_saved
         jr save_block
 ; Sauve le début du morceau.  HL = extension, DE = nombre d'octets depuis
@@ -2023,8 +2029,12 @@ disk_load:
         ld de,io_buffer
         call CAS_IN_OPEN
         jp nc,disk_error
-        ld hl,SONG_SIZE         ; la taille doit être exactement la bonne :
-        or a                    ; version 2...
+        ld hl,SONG_SIZE3        ; la taille doit être exactement la bonne :
+        or a                    ; version 3...
+        sbc hl,bc
+        jr z,dl_size
+        ld hl,SONG_SIZE         ; ... version 2 (sans l'enchaînement)...
+        or a
         sbc hl,bc
         jr z,dl_size
         ld hl,SONG_V1           ; ... ou version 1 (sans le bloc v2)
@@ -2051,13 +2061,13 @@ dl_sig:
         inc de
         djnz dl_sig
         ld a,(song_data+4)      ; version 1 : bloc v2 par défaut
-        cp SONG_VER
+        cp 2
         jr c,dl_v1
-        ld hl,BANK_V2           ; version 2 : le bloc v2 du fichier
+        ld hl,BANK_V2           ; version 2 ou 3 : le bloc v2 du fichier
         ld de,song_v2
         ld bc,SONG_EXTRA
         call bank_get
-        jr dl_v2
+        jr dl_v3
 dl_v1:
         ld hl,song_v2
         ld b,SONG_EXTRA
@@ -2065,6 +2075,19 @@ dl_clear:
         ld (hl),0
         inc hl
         djnz dl_clear
+dl_v3:
+        ld a,(song_data+4)      ; version 3 : l'enchaînement du fichier
+        cp 3
+        jr c,dl_old
+        ld hl,BANK_V3
+        ld de,song_v3
+        ld bc,SONG_V3_LEN
+        call bank_get
+        call song_sanitize
+        jr dl_ver
+dl_old:
+        call song_default       ; avant : une position par motif utilisé
+dl_ver:
         ld a,SONG_VER
         ld (song_data+4),a
 dl_v2:
@@ -2096,6 +2119,9 @@ song_sig: db "SQ16"
 ; Le morceau vient de changer : on repart du motif 1 et on met tout à jour
 song_loaded:
         xor a
+        ld (sp_cur),a           ; panneau SONG : au début
+        ld (sp_top),a
+        ld (sp_mix),a
         ld (cur_pat),a
         ld (cur_l),a
         ld (cur_s),a
@@ -2158,7 +2184,7 @@ build_filename:
         ld hl,txt_ext
 build_filename_ext:
         ld (bf_ext_ptr),hl
-        ld hl,fname
+        ld hl,(bf_name)         ; fname, ou le nom d'un motif (panels.asm)
         ld de,fname_full
         ld b,NAME_LEN
         ld c,0                  ; C = longueur
@@ -2291,6 +2317,7 @@ screen_text:
         include 'banks.asm'
         include 'panels.asm'
         include 'grid.asm'
+        include 'songpanel.asm'
         include 'smptables.asm'
 
 ; ----------------------------------------------------------------------------
@@ -2385,6 +2412,7 @@ sf_size:    dw 0                ; save_file : nombre d'octets,
 sf_msg:     dw 0                ;   message de réussite
 sf_addr:    dw 0                ;   et adresse du premier octet (save_block)
 sf_bank:    db 0                ;   1 = cette adresse est dans le bloc 4
+bf_name:    dw fname            ; nom utilisé par build_filename
 txt_need_6128: db "SEQ-16 : IL FAUT UN CPC 6128",0
 clip:       ds 22               ; presse-papiers : réglages (16) et nom (6)
 clip_ok:    db 0                ;   1 = il contient un instrument
@@ -2419,7 +2447,12 @@ sons        equ inst_names+NB_INST*6
 song_v2     equ sons+NB_SONS*16 ; bloc v2 (voir song.asm)
 song_mode   equ song_v2      ; mode de lecture des samples
 song_bank   equ song_v2+1    ; nom de la banque .SMP (8 caractères)
-song_end    equ song_v2+SONG_EXTRA
+song_v3     equ song_v2+SONG_EXTRA  ; bloc v3 : l'enchaînement (songpanel.asm)
+song_len    equ song_v3             ;   nombre de positions
+song_loop   equ song_v3+1           ;   position de la boucle
+song_list   equ song_v3+2           ;   64 x (motif, répétitions, transposition)
+pat_names   equ song_list+64*3      ;   32 noms de motifs de 8 caractères
+song_end    equ song_v3+SONG_V3_LEN
 
 ; En haut de la mémoire principale, hors de #4000-#7FFF (bank_copy y copie
 ; pendant que le bloc 4 est montré) :
