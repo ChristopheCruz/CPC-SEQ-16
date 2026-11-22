@@ -37,6 +37,9 @@ if errorlevel 1 (
 )
 python tools\gen_screen.py --disks
 if errorlevel 1 goto pas_python
+rem SYNTH, la song synthwave d'usine, en fichier sur les 3 disquettes
+python tools\gen_synth.py --disks
+if errorlevel 1 goto pas_python
 rem Disquettes de banques seules : build\seq16-inst.dsk, build\seq16-samples.dsk
 python tools\bank_disks.py
 if errorlevel 1 goto pas_python

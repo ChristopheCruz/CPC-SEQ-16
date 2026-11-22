@@ -99,6 +99,7 @@ class SongTempoTest(unittest.TestCase):
     def steps(self, screen_key):
         cpc = SlowTextCPC.from_build()
         cpc.boot()
+        test_player.demo_song(cpc)                         # 2 motifs à 125 BPM
         v3 = cpc.addr("smp_blk_src") + 16 + 32 * 16 + 32 * 6 + 8 * 16 + 16
         cpc.poke(v3, bytes([2, 0, 0, 1, 0, 1, 1, 0]))      # motifs 1 et 2, en boucle
         cpc.frames(1, keys={13})                           # f1 : SONG

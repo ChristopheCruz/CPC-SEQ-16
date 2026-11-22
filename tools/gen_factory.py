@@ -125,21 +125,6 @@ out += ["", "factory_rle:"]
 for i in range(0, len(rle), 16):
     out.append("        db " + ",".join("#%02X" % v for v in rle[i:i + 16]))
 
-bass = {0: ("C2", "BASS"), 1: OFF, 3: ("C2", "BASS"), 4: OFF, 6: ("D#2", "BASS"), 7: OFF,
-        8: ("C2", "BASS"), 9: OFF, 11: ("F2", "BASS"), 12: OFF, 14: ("G2", "BASS"), 15: OFF}
-lead = {0: ("C4", "LEAD"), 2: ("D#4", "LEAD"), 3: ("G4", "LEAD"), 6: ("A#4", "LEAD"),
-        8: ("G4", "LEAD"), 11: ("F4", "LEAD"), 12: ("D#4", "LEAD"), 14: ("D4", "LEAD")}
-pluck = {2: ("G3", "PLUCK"), 6: ("G3", "PLUCK"), 10: ("G#3", "PLUCK"), 14: ("G3", "PLUCK")}
-drums = {0: (31, "SNARE"), 2: (1, "HAT"), 4: (12, "SNARE"), 6: (1, "HAT"),
-         8: (31, "SNARE"), 10: (1, "HAT"), 12: (12, "SNARE"), 14: (1, "HAT")}
-comp = {0: ("C3", 0), 3: OFF, 4: ("C3", 2), 6: ("D#3", 1), 7: OFF, 8: ("F3", 0),
-        11: OFF, 12: ("G3", 1), 14: ("G3", 2), 15: OFF}
-out += ["", "; Les 2 motifs de démonstration, case par case : numéro de case",
-        "; (motif x 64 + pas x 4 + voix), note, instrument ; volume #FF, effet 0.",
-        "; #80 + motif : en-tête (mode, tempo).  #FF : fin.",
-        "factory_cells:"]
-out += pattern(0, 0, 125, [bass, lead, pluck, drums], "Motif 1 : voix séparées")
-out += pattern(1, 1, 125, [comp], "Motif 2 : son composé")
-out += ["        db #FF", ""]
+out += [""]   # (les motifs du morceau d'usine : tools/gen_synth.py)
 open("src/factory.asm", "w", encoding="utf-8").write("\n".join(out))
 print("src/factory.asm écrit :", len(INSTRUMENTS), "instruments,", len(SONS), "sons composés")

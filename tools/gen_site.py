@@ -371,9 +371,9 @@ def manual(p, home_url):
             tr("Insère <code>seq16-fr.dsk</code> dans le lecteur (ou dans un émulateur réglé en <strong>CPC 6128</strong>).",
                "Put <code>seq16-en.dsk</code> in the drive (or in an emulator set to <strong>CPC 6128</strong>).",
                "Mete <code>seq16-es.dsk</code> en la disquetera (o en un emulador configurado como <strong>CPC 6128</strong>)."),
-            tr("Tape <code>RUN\"SEQ16</code> puis <kbd>RETURN</kbd>. Le programme démarre sur le panneau MOTIF.",
-               "Type <code>RUN\"SEQ16</code> then <kbd>RETURN</kbd>. The program starts on the PATTERN panel.",
-               "Escribe <code>RUN\"SEQ16</code> y <kbd>RETURN</kbd>. El programa arranca en el panel PATRON."),
+            tr("Tape <code>RUN\"SEQ16</code> puis <kbd>RETURN</kbd>. L'écran de chargement s'affiche, puis le programme démarre sur le panneau MOTIF avec SYNTH, la song synthwave d'usine (aussi en fichier SYNTH.SNG sur la disquette).",
+               "Type <code>RUN\"SEQ16</code> then <kbd>RETURN</kbd>. The loading screen shows, then the program starts on the PATTERN panel with SYNTH, the factory synthwave song (also on the disk as SYNTH.SNG).",
+               "Escribe <code>RUN\"SEQ16</code> y <kbd>RETURN</kbd>. Aparece la pantalla de carga y el programa arranca en el panel PATRON con SYNTH, el tema synthwave de fábrica (también en el disco como SYNTH.SNG)."),
             tr("Choisis un panneau avec les touches de fonction du pavé numérique : %s. Dans chaque panneau, %s sauve et %s charge.",
                "Pick a panel with the function keys on the numeric keypad: %s. In every panel, %s saves and %s loads.",
                "Elige un panel con las teclas de función del teclado numérico: %s. En cada panel, %s graba y %s carga.")

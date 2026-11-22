@@ -249,6 +249,7 @@ class TestDsk(unittest.TestCase):
         self.tmp = tempfile.mkdtemp()
         self.dsk = os.path.join(self.tmp, "t.dsk")
         shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), self.dsk)
+        amsdsk.remove_file(self.dsk, "MOTS.SMP")       # de la place pour 20 Ko
 
     def tearDown(self):
         shutil.rmtree(self.tmp)

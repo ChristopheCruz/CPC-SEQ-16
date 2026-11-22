@@ -80,10 +80,10 @@ boot_6128:
                                 ; routine de lecture des samples
         ld a,#FF                ; AMSDOS : pas de message d'erreur disque à
         ld (#BE78),a            ; l'écran, c'est le programme qui les affiche
-        ld hl,boot_src          ; le code du démarrage, en haut du tampon
-        ld de,BOOT_RUN          ; d'AMSDOS (boot.asm)
-        ld bc,boot_len
-        ldir
+        ld hl,boot_src+boot_len-1   ; le code du démarrage, dans le tampon
+        ld de,BOOT_RUN+boot_len-1   ; d'AMSDOS (boot.asm) ; copié à reculons :
+        ld bc,boot_len              ; la destination est plus haut que la
+        lddr                        ; source, elles peuvent se chevaucher
         call factory_build      ; morceau d'usine
         call factory_save       ; gardé dans le bloc 5 (pour N N)
         call snd_init
@@ -2551,7 +2551,7 @@ dg_debt:    db 0                ; images de séquenceur à rattraper
 
 ; Puis le code et les données du démarrage (boot.asm), assemblés pour
 ; BOOT_RUN : recopiés là au démarrage, avant d'être recouverts par le morceau
-BOOT_RUN equ #A000-2048+3*PAT_SIZE      ; io_buffer + les 3 motifs préparés
+BOOT_RUN equ #A000-2048                 ; io_buffer
 boot_src:
         org BOOT_RUN,boot_src
         include 'boot.asm'
@@ -2559,7 +2559,7 @@ boot_end:
 boot_len equ boot_end-BOOT_RUN
         assert boot_end <= #A000
         org boot_src+boot_len
-        assert boot_src+boot_len <= BOOT_RUN    ; (copie sans chevauchement)
+        assert BOOT_RUN >= boot_src             ; (copie à reculons, voir boot_6128)
 
 end_of_program:
 

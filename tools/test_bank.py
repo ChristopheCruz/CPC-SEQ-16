@@ -64,15 +64,16 @@ class BankTest(unittest.TestCase):
 
     # --- morceau d'usine ---------------------------------------------------------
     def test_factory_patterns_in_bank(self):
+        """Le morceau d'usine (SYNTH, tools/gen_synth.py) : ses 32 motifs dans
+        le bloc 4, le motif 1 dans pat_work."""
+        import gen_synth
         cpc = self.cpc
+        pats, _ = gen_synth.parts()
         self.assertEqual(self.cur_pat(), 0)
-        demo0 = cpc.peek(self.pat_work(), PAT_SIZE)
-        self.assertNotEqual(demo0, EMPTY)                     # motif de démonstration
-        self.assertEqual(self.bank_pattern(0), demo0)
-        self.assertNotEqual(self.bank_pattern(1), EMPTY)
-        self.assertNotEqual(self.bank_pattern(1), demo0)
-        for n in range(2, 32):
-            self.assertEqual(self.bank_pattern(n), EMPTY, n)
+        self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), pats[:PAT_SIZE])
+        for n in range(32):
+            self.assertEqual(self.bank_pattern(n), pats[n * PAT_SIZE:(n + 1) * PAT_SIZE], n)
+        self.assertEqual(self.bank_pattern(31), EMPTY)
 
     # --- changer de motif ----------------------------------------------------------
     def test_switch_keeps_edits(self):

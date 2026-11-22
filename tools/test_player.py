@@ -51,6 +51,43 @@ def expected_codes(data, decim=1, bits=4, curve=wav2smp.CURVE_LOG):
     return [t[codes[(i // decim) * decim] & m] for i in range(len(codes))]
 
 
+def demo_song(cpc):
+    """Remet le morceau de démonstration d'avant SYNTH : 2 motifs à 125 BPM
+    (voix séparées, puis son composé), positions 1 et 2, noms vides.  Les
+    tests de l'interface partent de ce contenu connu et fixe, pas du morceau
+    d'usine (SYNTH a ses propres tests : tools/test_synth.py)."""
+    import gen_patterns as gp
+    OFF = gp.OFF
+
+    def ev(n, ins):
+        return (gp.note(n) if isinstance(n, str) else n, ins, None)
+
+    def lane(d):
+        return [d.get(s) for s in range(16)]
+    bass = {0: ev("C2", "BASS"), 1: OFF, 3: ev("C2", "BASS"), 4: OFF, 6: ev("D#2", "BASS"), 7: OFF,
+            8: ev("C2", "BASS"), 9: OFF, 11: ev("F2", "BASS"), 12: OFF, 14: ev("G2", "BASS"), 15: OFF}
+    lead = {s: ev(n, "LEAD") for s, n in {0: "C4", 2: "D#4", 3: "G4", 6: "A#4", 8: "G4",
+                                          11: "F4", 12: "D#4", 14: "D4"}.items()}
+    pluck = {s: ev(n, "PLUCK") for s, n in {2: "G3", 6: "G3", 10: "G#3", 14: "G3"}.items()}
+    drums = {s: ev(n, i) for s, (n, i) in {0: (31, "SNARE"), 2: (1, "HAT"), 4: (12, "SNARE"),
+                                           6: (1, "HAT"), 8: (31, "SNARE"), 10: (1, "HAT"),
+                                           12: (12, "SNARE"), 14: (1, "HAT")}.items()}
+    comp = {0: ev("C3", 0), 3: OFF, 4: ev("C3", 2), 6: ev("D#3", 1), 7: OFF, 8: ev("F3", 0),
+            11: OFF, 12: ev("G3", 1), 14: ev("G3", 2), 15: OFF}
+    p0 = gp.encode(dict(mode=gp.POLY, bpm=125, lanes=[lane(bass), lane(lead), lane(pluck), lane(drums)]))
+    p1 = gp.encode(dict(mode=gp.MONO, bpm=125, lanes=[lane(comp), None, None, None]))
+    empty = bytes([0, 125, 0, 0] + [0xFF, 0, 0xFF, 0] * 64)
+    fixed = 16 + 32 * 16 + 32 * 6 + 8 * 16
+    cpc.bank_poke(4, 0x4000 + fixed, p0 + p1 + empty * 30)          # BANK_PATS
+    v3 = bytes([2, 0, 0, 1, 0, 1, 1, 0]) + bytes(3 * 62) + b" " * (32 * 8)
+    cpc.poke(cpc.addr("smp_blk_src") + fixed + 16, v3)              # song_v3
+    cpc.poke(cpc.word(cpc.addr("seq_pattern")), p0)                  # pat_work
+    cpc.poke(cpc.addr("seq_bpm"), [125])
+    for k in (cpcsim.KEY_SONG, cpcsim.KEY_MOTIF):                    # l'écran redessiné
+        cpc.frames(1, keys={k})
+        cpc.frames(1)
+
+
 @unittest.skipIf(cpcsim is None, "paquet z80 absent (pip install z80)")
 class PlayerTest(unittest.TestCase):
     @classmethod
@@ -80,6 +117,8 @@ class PlayerTest(unittest.TestCase):
         c.codes = [row[:] for row in src.codes]   # codes bruts (■, ─, flèches…)
         c.ay = list(src.ay)
         c.t = src.t
+        c.di_spans = list(src.di_spans)       # l'horloge (KL_TIME_PLEASE) ne compte
+        c._di_since = src._di_since           # pas le temps interruptions coupées
         c.ram_block = src.ram_block           # mémoire supplémentaire du 6128
         c.blocks = dict(src.blocks)
         return c
