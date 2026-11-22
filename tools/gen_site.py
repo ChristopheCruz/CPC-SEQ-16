@@ -133,7 +133,7 @@ T["fr"] = dict(
     disks=[("seq16-fr.dsk", REL + "/download/seq16-fr.dsk", "SEQ-16 en français, avec les 13 banques d'instruments et les 9 banques de samples"),
            ("seq16-en.dsk", REL + "/download/seq16-en.dsk", "SEQ-16 en anglais (English version), mêmes banques"),
            ("seq16-es.dsk", REL + "/download/seq16-es.dsk", "SEQ-16 en espagnol (versión en español), mêmes banques"),
-           ("seq16-demo.dsk", RAW + "seq16-demo.dsk", "<strong>démonstration</strong> : SEQ-16 en français et deux morceaux, ARCADE (son composé, les 7 effets) et STUDIO (samples, voix) ; aussi <a href='%sseq16-demo-en.dsk'>-en</a> et <a href='%sseq16-demo-es.dsk'>-es</a>" % (RAW, RAW)),
+           ("seq16-demo-fr.dsk", RAW + "seq16-demo-fr.dsk", "<strong>démonstration</strong> : SEQ-16 en français et deux morceaux, ARCADE (son composé, les 7 effets) et STUDIO (samples, voix) ; aussi <a href='%sseq16-demo-en.dsk'>-en</a> et <a href='%sseq16-demo-es.dsk'>-es</a>" % (RAW, RAW)),
            ("seq16-inst.dsk", REL + "/download/seq16-inst.dsk", "banques seules : les 13 banques d'instruments <code>.INS</code> (sans le programme)"),
            ("seq16-samples.dsk", REL + "/download/seq16-samples.dsk", "banques seules : les 9 banques de samples <code>.SMP</code> (sans le programme)"),
            ("seq16-motifs-mono.dsk", REL + "/download/seq16-motifs-mono.dsk", "62 motifs d'usine <strong>mono</strong> (son composé) — panneau MOTIF, f9"),
@@ -145,7 +145,7 @@ T["fr"] = dict(
     gotek_h="Sur un vrai CPC avec un Gotek",
     gotek="Copie <code>seq16-fr.dsk</code> sur la clé USB d'un lecteur Gotek (firmware FlashFloppy ou HxC), puis tape <code>RUN\"SEQ16</code> sur le CPC. L'outil compagnon <a href=\"#pc\">CPC DISK</a> prépare la clé USB du Gotek.",
     read_manual="Lire le manuel",
-    dev_build="Lance <code>build.bat</code> (il faut Python 3) : il assemble <code>src/main.asm</code> et fabrique les disquettes des trois langues avec toutes les banques, les disquettes de motifs, les morceaux de test et la démonstration (<code>build\\seq16-demo.dsk</code>). <code>tools/snapshots.py</code> refait les captures, <code>tools/gen_site.py</code> ce site.",
+    dev_build="Lance <code>build.bat</code> (il faut Python 3) : il assemble <code>src/main.asm</code> et fabrique les disquettes des trois langues avec toutes les banques, les disquettes de motifs, les morceaux de test et la démonstration (<code>build\\seq16-demo-fr.dsk</code>). <code>tools/snapshots.py</code> refait les captures, <code>tools/gen_site.py</code> ce site.",
 )
 
 T["en"] = dict(
@@ -191,7 +191,7 @@ T["en"] = dict(
     disks=[("seq16-en.dsk", REL + "/download/seq16-en.dsk", "SEQ-16 in English, with the 13 instrument banks and the 9 sample banks"),
            ("seq16-fr.dsk", REL + "/download/seq16-fr.dsk", "SEQ-16 in French (version française), same banks"),
            ("seq16-es.dsk", REL + "/download/seq16-es.dsk", "SEQ-16 in Spanish (versión en español), same banks"),
-           ("seq16-demo-en.dsk", RAW + "seq16-demo-en.dsk", "<strong>demo</strong>: SEQ-16 in English and two songs, ARCADE (layered sound, all 7 effects) and STUDIO (samples, voice); also <a href='%sseq16-demo.dsk'>French</a> and <a href='%sseq16-demo-es.dsk'>-es</a>" % (RAW, RAW)),
+           ("seq16-demo-en.dsk", RAW + "seq16-demo-en.dsk", "<strong>demo</strong>: SEQ-16 in English and two songs, ARCADE (layered sound, all 7 effects) and STUDIO (samples, voice); also <a href='%sseq16-demo-fr.dsk'>French</a> and <a href='%sseq16-demo-es.dsk'>-es</a>" % (RAW, RAW)),
            ("seq16-inst.dsk", REL + "/download/seq16-inst.dsk", "banks only: the 13 <code>.INS</code> instrument banks (without the program)"),
            ("seq16-samples.dsk", REL + "/download/seq16-samples.dsk", "banks only: the 9 <code>.SMP</code> sample banks (without the program)"),
            ("seq16-motifs-mono.dsk", REL + "/download/seq16-motifs-mono.dsk", "62 <strong>mono</strong> factory patterns (layered sound) — PATTERN panel, f9"),
@@ -203,7 +203,7 @@ T["en"] = dict(
     gotek_h="On a real CPC with a Gotek",
     gotek="Copy <code>seq16-en.dsk</code> to the USB stick of a Gotek drive (FlashFloppy or HxC firmware), then type <code>RUN\"SEQ16</code> on the CPC. The companion tool <a href=\"#pc\">CPC DISK</a> prepares the Gotek's USB stick.",
     read_manual="Read the manual",
-    dev_build="Run <code>build.bat</code> (Python 3 is needed): it assembles <code>src/main.asm</code> and builds the disks in all three languages with every bank, the pattern disks, the test songs and the demo (<code>build\\seq16-demo.dsk</code>). <code>tools/snapshots.py</code> redoes the screenshots, <code>tools/gen_site.py</code> this website.",
+    dev_build="Run <code>build.bat</code> (Python 3 is needed): it assembles <code>src/main.asm</code> and builds the disks in all three languages with every bank, the pattern disks, the test songs and the demo (<code>build\\seq16-demo-fr.dsk</code>). <code>tools/snapshots.py</code> redoes the screenshots, <code>tools/gen_site.py</code> this website.",
 )
 
 T["es"] = dict(
@@ -249,7 +249,7 @@ T["es"] = dict(
     disks=[("seq16-es.dsk", REL + "/download/seq16-es.dsk", "SEQ-16 en español, con los 13 bancos de instrumentos y los 9 bancos de samples"),
            ("seq16-fr.dsk", REL + "/download/seq16-fr.dsk", "SEQ-16 en francés (version française), mismos bancos"),
            ("seq16-en.dsk", REL + "/download/seq16-en.dsk", "SEQ-16 en inglés (English version), mismos bancos"),
-           ("seq16-demo-es.dsk", RAW + "seq16-demo-es.dsk", "<strong>demostración</strong>: SEQ-16 en español y dos temas, ARCADE (sonido de 4 voces, los 7 efectos) y STUDIO (samples, voz); también en <a href='%sseq16-demo.dsk'>francés</a> y <a href='%sseq16-demo-en.dsk'>-en</a>" % (RAW, RAW)),
+           ("seq16-demo-es.dsk", RAW + "seq16-demo-es.dsk", "<strong>demostración</strong>: SEQ-16 en español y dos temas, ARCADE (sonido de 4 voces, los 7 efectos) y STUDIO (samples, voz); también en <a href='%sseq16-demo-fr.dsk'>francés</a> y <a href='%sseq16-demo-en.dsk'>-en</a>" % (RAW, RAW)),
            ("seq16-inst.dsk", REL + "/download/seq16-inst.dsk", "solo bancos: los 13 bancos de instrumentos <code>.INS</code> (sin el programa)"),
            ("seq16-samples.dsk", REL + "/download/seq16-samples.dsk", "solo bancos: los 9 bancos de samples <code>.SMP</code> (sin el programa)"),
            ("seq16-motifs-mono.dsk", REL + "/download/seq16-motifs-mono.dsk", "62 patrones de fábrica <strong>mono</strong> (sonido de 4 voces) — panel PATRON, f9"),
@@ -261,7 +261,7 @@ T["es"] = dict(
     gotek_h="En un CPC de verdad con un Gotek",
     gotek="Copia <code>seq16-es.dsk</code> en la memoria USB de una disquetera Gotek (firmware FlashFloppy o HxC) y escribe <code>RUN\"SEQ16</code> en el CPC. La herramienta compañera <a href=\"#pc\">CPC DISK</a> prepara la memoria USB del Gotek.",
     read_manual="Leer el manual",
-    dev_build="Lanza <code>build.bat</code> (hace falta Python 3): ensambla <code>src/main.asm</code> y fabrica los discos de los tres idiomas con todos los bancos, los discos de patrones, los temas de prueba y la demostración (<code>build\\seq16-demo.dsk</code>). <code>tools/snapshots.py</code> rehace las capturas, <code>tools/gen_site.py</code> esta web.",
+    dev_build="Lanza <code>build.bat</code> (hace falta Python 3): ensambla <code>src/main.asm</code> y fabrica los discos de los tres idiomas con todos los bancos, los discos de patrones, los temas de prueba y la demostración (<code>build\\seq16-demo-fr.dsk</code>). <code>tools/snapshots.py</code> rehace las capturas, <code>tools/gen_site.py</code> esta web.",
 )
 
 

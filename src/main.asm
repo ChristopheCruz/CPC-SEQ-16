@@ -2597,4 +2597,4 @@ mem_free    equ pat_ahead-song_end      ; place libre pour la suite
         print "fin du programme=",{hex}end_of_program," fin du morceau=",{hex}song_end," libre=",mem_free," banque=",BANK_MAX," zone haute=",{hex}smp_blk_end
         assert BANK_MAX >= 2048         ; la banque d'usine DRUMS.SMP doit tenir
 
-        save 'SEQ16.BIN',start,end_of_program-start,DSK,'build/seq16.dsk'
+        save 'SEQ16.BIN',start,end_of_program-start,DSK,'build/seq16-fr.dsk'

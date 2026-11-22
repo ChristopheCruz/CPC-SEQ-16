@@ -15,7 +15,7 @@ Deux morceaux, avec leurs motifs, leurs instruments et leurs samples :
     demo/NOM.SNG, NOM.INS     les morceaux et leurs instruments
     demo/pat/*.PAT            tous leurs motifs
     demo/LISTE.md             ce que contient la disquette
-    build/seq16-demo.dsk      SEQ16.BIN (français) et tout ce qui précède
+    build/seq16-demo-fr.dsk   SEQ16.BIN (français) et tout ce qui précède
     build/seq16-demo-en.dsk   pareil, programme en anglais
     build/seq16-demo-es.dsk   pareil, programme en espagnol
 
@@ -154,7 +154,7 @@ def check():
 
 def liste_md():
     out = ["# Disquette de démonstration", "",
-           "Fabriquée par `tools/gen_demo.py` : `build/seq16-demo.dsk` (et `-en`, `-es`).", ""]
+           "Fabriquée par `tools/gen_demo.py` : `build/seq16-demo-fr.dsk` (et `-en`, `-es`).", ""]
     for s in DEMO:
         pos, loop = gs.positions(s)
         out += ["## %s (%s, %d BPM, %s)" % (s["name"], s["style"], s["bpm"], s["key"]), "",
@@ -198,7 +198,7 @@ def write_all():
         drums = fh.read()
     files += [("STUDIO.SMP", smp), ("DRUMS.SMP", drums)]
     disks = []
-    for suffix in ("", "-en", "-es"):
+    for suffix in ("-fr", "-en", "-es"):
         src = os.path.join(ROOT, "build", "seq16%s.dsk" % suffix)
         dsk = os.path.join(ROOT, "build", "seq16-demo%s.dsk" % suffix)
         shutil.copy(src, dsk)

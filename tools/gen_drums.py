@@ -131,9 +131,9 @@ def main():
               (s.name, len(s.data), 1000 * s.seconds, s.rate))
     if "--dsk" in sys.argv:
         import amsdsk
-        dsk = os.path.join(ROOT, "..", "build", "seq16.dsk")
+        dsk = os.path.join(ROOT, "..", "build", "seq16-fr.dsk")
         amsdsk.add_file(dsk, "DRUMS.SMP", raw)
-        print("DRUMS.SMP ajouté à build/seq16.dsk")
+        print("DRUMS.SMP ajouté à build/seq16-fr.dsk")
 
 
 if __name__ == "__main__":

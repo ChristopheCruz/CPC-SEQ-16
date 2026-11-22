@@ -1,6 +1,6 @@
 # Disquette de démonstration
 
-Fabriquée par `tools/gen_demo.py` : `build/seq16-demo.dsk` (et `-en`, `-es`).
+Fabriquée par `tools/gen_demo.py` : `build/seq16-demo-fr.dsk` (et `-en`, `-es`).
 
 ## ARCADE (chiptune (son composé, effets), 132 BPM, A:min)
 

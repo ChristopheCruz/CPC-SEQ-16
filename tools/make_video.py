@@ -168,7 +168,7 @@ def disk_names(path, ext):
 
 def scenario(film, lang):
     cpc, T = film.cpc, TEXT[lang]
-    prog = os.path.join(ROOT, "build", "seq16.dsk" if lang == "fr" else f"seq16-{lang}.dsk")
+    prog = os.path.join(ROOT, "build", f"seq16-{lang}.dsk")
     poly = os.path.join(ROOT, "build", "seq16-motifs-poly.dsk")
     mono = os.path.join(ROOT, "build", "seq16-motifs-mono.dsk")
 
@@ -285,7 +285,7 @@ def main():
     if cpcsim is None:
         raise SystemExit("paquet z80 absent (pip install z80)")
     font = snapshots.load_font(snapshots.find_rom())
-    prog = os.path.join(ROOT, "build", "seq16.dsk" if lang == "fr" else f"seq16-{lang}.dsk")
+    prog = os.path.join(ROOT, "build", f"seq16-{lang}.dsk")
     cpc = VideoCPC.from_build(prog)
     cpc.use_disk(prog)
     film = Film(cpc)

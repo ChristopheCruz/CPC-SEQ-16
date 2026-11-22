@@ -21,7 +21,7 @@ Faire tourner le vrai binaire SEQ16.BIN sur PC pour le tester sans émulateur :
 
 Mode d'emploi (voir tools/test_player.py)
 -----------------------------------------
-    cpc = CPC.from_build()             # build/seq16.dsk + build/seq16.sym
+    cpc = CPC.from_build()             # build/seq16-fr.dsk + build/seq16.sym
     cpc.files["DRUMS.SMP"] = open(...).read()
     cpc.boot()                         # jusqu'à la boucle principale
     cpc.frames(3, keys={KEY_SAMPLE})   # 3 images avec f4 enfoncée
@@ -236,7 +236,7 @@ class CPC:
 
     @classmethod
     def from_build(cls, dsk=None):
-        dsk = dsk or os.path.join(ROOT, "build", "seq16.dsk")
+        dsk = dsk or os.path.join(ROOT, "build", "seq16-fr.dsk")
         binary = amsdsk.read_file(dsk, "SEQ16.BIN")
         syms = read_symbols(os.path.join(ROOT, "build", "seq16.sym"))
         cpc = cls(binary, syms)

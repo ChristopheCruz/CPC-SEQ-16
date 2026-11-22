@@ -467,7 +467,7 @@ def write_all():
     with open(os.path.join(out, "LISTE.md"), "w", encoding="utf-8", newline="\n") as fh:
         fh.write(liste_md())
     dsk = os.path.join(ROOT, "build", "seq16-songs.dsk")   # programme + DRUMS + tout
-    shutil.copy(os.path.join(ROOT, "build", "seq16.dsk"), dsk)
+    shutil.copy(os.path.join(ROOT, "build", "seq16-fr.dsk"), dsk)
     for name in amsdsk.list_files(dsk):
         if name not in ("SEQ16.BIN", "DRUMS.SMP"):
             amsdsk.remove_file(dsk, name)

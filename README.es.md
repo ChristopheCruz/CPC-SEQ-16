@@ -63,8 +63,8 @@ El disco trae **13 bancos de instrumentos (416 sonidos), 9 bancos de samples, 12
 ## 💾 Probarlo ya
 
 1. Descarga **[`seq16-es.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** de la última release (también hay una copia en [`build/`](build/)).
-   - **Version française :** `seq16-fr.dsk` (`build/seq16.dsk`). **English version:** `seq16-en.dsk`. Mismo programa, mismos ficheros, mismas teclas: solo cambian los textos de la pantalla.
-   - **Demostración:** `build/seq16-demo-es.dsk` (y `seq16-demo.dsk` en francés, `-en`): el programa y dos temas completos, ver [El disco de demostración](#-el-disco-de-demostración).
+   - **Version française :** `seq16-fr.dsk` (`build/seq16-fr.dsk`). **English version:** `seq16-en.dsk`. Mismo programa, mismos ficheros, mismas teclas: solo cambian los textos de la pantalla.
+   - **Demostración:** `build/seq16-demo-es.dsk` (y `seq16-demo-fr.dsk` en francés, `-en`): el programa y dos temas completos, ver [El disco de demostración](#-el-disco-de-demostración).
    - **Solo bancos:** `seq16-inst.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), discos de datos sin el programa.
    - **Patrones de fábrica:** `seq16-motifs-mono.dsk` (62 patrones con sonido de 4 voces) y `seq16-motifs-poly.dsk` (63 patrones con voces sueltas). Ver [Los patrones de fábrica](#-los-patrones-de-fábrica).
 2. Mete el disco en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como **CPC 6128**.
@@ -470,7 +470,7 @@ python tools\wav2smp.py loop.wav --slice 8 --rate 6000 -o samples\LOOP.SMP
 rem muy sucio: saturado, 2 bits, una muestra de cada 3
 python tools\wav2smp.py voz.wav --drive 4 --bits 2 --decim 3 -o samples\SUCIO.SMP
 
-rem añadir el banco al disco build\seq16.dsk
+rem añadir el banco al disco build\seq16-fr.dsk
 python tools\wav2smp.py sonido.wav -o samples\SONIDO.SMP --dsk
 
 rem ver el contenido de un banco
@@ -487,7 +487,7 @@ python tools\wav2smp.py --info samples\DRUMS.SMP
 | `--decim` | 1, 2, 3, 4, 6 u 8: una muestra de cada N se mantiene N veces. Se guarda como ajuste, no destruye nada |
 | `--slice N` | corta cada WAV en N trozos iguales |
 | `--names` | nombres de los samples (6 caracteres), separados por comas |
-| `--dsk` | añade el banco a `build/seq16.dsk` (o al disco indicado) |
+| `--dsk` | añade el banco a `build/seq16-fr.dsk` (o al disco indicado) |
 | `--trim` | quita los silencios al principio y al final de cada sonido |
 | `-v` | muestra el tamaño y la duración, y avisa por encima de 16 KB |
 
@@ -531,7 +531,7 @@ En Windows:
 2. Si cambias los instrumentos y patrones de fábrica en `tools/gen_factory.py`, lanza antes `python tools\gen_factory.py`.
 3. Si cambias los sonidos de batería (`tools/gen_drums.py`) o las curvas (`tools/wav2smp.py`), lanza `python tools\gen_drums.py` o `python tools\gen_smp_tables.py`.
 4. Si cambias los bancos: `python tools\gen_instruments.py` (bancos `.INS`) y `python tools\gen_samples.py` (bancos `.SMP`; hace falta espeak para las voces).
-5. Lanza `build.bat`. Ensambla `src/main.asm`, fabrica `build\seq16.dsk` con todos los bancos, y luego las versiones inglesa y española, los discos de bancos y de patrones, los temas de prueba (`build\seq16-songs.dsk`) y la demostración (`build\seq16-demo.dsk`).
+5. Lanza `build.bat`. Ensambla `src/main.asm`, fabrica `build\seq16-fr.dsk` con todos los bancos, y luego las versiones inglesa y española, los discos de bancos y de patrones, los temas de prueba (`build\seq16-songs.dsk`) y la demostración (`build\seq16-demo-fr.dsk`).
 6. Para rehacer las capturas de pantalla (README y web): `python tools\snapshots.py`; para el vídeo: `python tools\make_video.py es` (hacen falta ffmpeg y numpy).
 
 **Las traducciones** están en [`tools/lang.py`](tools/lang.py): el código fuente sigue en francés, y el script hace una copia por idioma en la que cada texto mostrado se sustituye. Una traducción nunca es más larga que el francés (se completa con espacios): los tres programas tienen el mismo tamaño y las mismas direcciones. Si añades un texto al código, añade su traducción; `python tools/lang.py --check` avisa de los textos olvidados o demasiado largos.
