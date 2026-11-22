@@ -119,6 +119,52 @@ class SngV4Test(unittest.TestCase):
         self.assertNotIn("CHARGE", cpc.row(MSG))
         self.assertEqual(cpc.ram_block, 1)
 
+    def test_read_error_shows_code_and_position(self):
+        """Lecture interrompue (fin de fichier d'AMSDOS au 1000e octet) : le
+        message donne le code d'erreur et le nombre d'octets lus."""
+        cpc = self.cpc
+        cpc.poke(cpc.addr("smp_count"), [0])
+        data = self.save("CASSE")
+        self.make_disk({"CASSE.SNG": data}, keep=("SEQ16.BIN",))
+        orig = cpc.fw_CAS_IN_CHAR
+
+        def broken():
+            if cpc.cas_pos >= 1000:
+                cpc.m.a = 0x0F                    # fin de fichier « dure »
+                cpc.m.f = 0
+                return
+            orig()
+        cpc.handlers = dict(cpc.handlers, CAS_IN_CHAR=broken)
+        cpc.chars = [13]
+        self.key(KEY_LOAD)
+        self.assertIn("ERREUR DISQUE (DISQUETTE ? NOM ?) 0F03E8", cpc.row(MSG))
+        self.assertIsNone(cpc.cas_in)             # fichier abandonné
+        self.assertEqual(cpc.file_errors, [])
+
+    def test_open_error_shows_code(self):
+        cpc = self.cpc
+        cpc.poke(cpc.addr("smp_count"), [0])
+        cpc.poke(cpc.addr("fname"), b"ABSENT  ")
+        load = cpc.addr("disk_load")
+        cpc.m.pc = load                           # f9 sur un nom absent
+        cpc.m.sp -= 2
+        cpc.poke(cpc.m.sp, (cpc.addr("main_loop")).to_bytes(2, "little"))
+        cpc.frames(2)
+        self.assertRegex(cpc.row(MSG), r"ERREUR DISQUE \(DISQUETTE \? NOM \?\) ..FFFF")
+
+    def test_loads_respect_amsdos_rules(self):
+        """Sauver puis recharger : jamais deux fichiers ouverts, jamais
+        CAS_IN_CHAR mélangé à CAS_IN_DIRECT (le simulateur le note)."""
+        cpc = self.cpc
+        self.with_drums()
+        data = self.save("REGLES")
+        self.make_disk({"REGLES.SNG": data}, keep=("SEQ16.BIN", "DRUMS.SMP"))
+        for _ in range(2):
+            cpc.chars = [13]
+            self.key(KEY_LOAD)
+            self.assertIn("CHARGES", cpc.row(MSG))
+        self.assertEqual(cpc.file_errors, [])
+
     def test_old_v3_file_still_loads(self):
         cpc = self.cpc
         self.with_drums()
