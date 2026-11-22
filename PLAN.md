@@ -1,7 +1,8 @@
 # Plan de développement : SEQ-16 v1.0
 
 État : **validé le 22 novembre 2026** (section 9), sauf le nom des onglets
-(proposition en section 2). Lot 1 en cours.
+(proposition en section 2). Lot 1 fait (PR #16), à essayer sur une vraie
+machine.
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -226,6 +227,10 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
 
 1. **Mémoire 128 Ko** : découpage dans `cpcsim.py`, données en banque, copie
    des motifs, tests de non-régression (lecture, chargement, digidrums).
+   **Fait (PR #16)** : les 32 motifs dans le bloc 4, 7 790 octets libres au
+   lieu de 57, message au démarrage sur un CPC sans mémoire supplémentaire,
+   127 tests verts. `song_data` étant lui-même en `#4000`-`#7FFF`, ses
+   copies vers le bloc passent par `io_buffer` (`bank_put`, `bank_get`).
 2. **Cinq panneaux** : barre d'onglets, f6 à f9, dialogue commun de
    sauvegarde et de chargement.
 3. **MOTIF** : nouvelle grille, panneau de la note, pinceau, `TAB`.
