@@ -116,18 +116,53 @@ INSTR = {1: 'LEAD', 2: 'BASS', 3: 'SNARE', 4: 'PAD', 5: 'HIHAT', 6: 'KICK'}
 TABS = ['MOTIF', 'SONG', 'INST', 'SAMPLE', 'DISQUE']
 
 
-def tabs(s, active=0):
+def tabs(s, active=0, row=0, names=None, logo=True):
     """Barre des 5 panneaux : SEQ16 1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE (40 col.)."""
-    s.put(0, 0, 'SEQ16', BLUE, YELLOW)
-    c = 6
-    for k, name in enumerate(TABS):
+    names = names or TABS
+    c = 0
+    if logo:
+        s.put(row, 0, 'SEQ16', BLUE, YELLOW)
+        c = 6
+    for k, name in enumerate(names):
         if k == active:
-            s.put(0, c - 1 if k else c, ' ' if k else '', BLUE, ORANGE)
-            s.put(0, c, str(k + 1) + name, BLUE, ORANGE)
+            if c:
+                s.put(row, c - 1, ' ', BLUE, ORANGE)
+            s.put(row, c, str(k + 1) + name, BLUE, ORANGE)
         else:
-            s.put(0, c, str(k + 1), ORANGE)
-            s.put(0, c + 1, name, CYAN)
+            s.put(row, c, str(k + 1), ORANGE)
+            s.put(row, c + 1, name, CYAN)
         c += len(name) + 2
+    assert c - 1 <= 40, names
+
+
+# Noms des onglets proposés (point 5 du plan) : avec le logo, 25 caractères
+# pour les 5 noms ; sans le logo, 31.
+TAB_OPTIONS = {
+    'A': (True, {'FR': ['MOTIF', 'SONG', 'INST', 'SAMPLE', 'DISQUE'],
+                 'EN': ['PATTERN', 'SONG', 'INST', 'SAMPLE', 'DISK'],
+                 'ES': ['PATRON', 'TEMA', 'INST', 'SAMPLE', 'DISCO']}),
+    'B': (False, {'FR': ['MOTIF', 'MORCEAU', 'INSTRU', 'SAMPLE', 'DISQUE'],
+                  'EN': ['PATTERN', 'SONG', 'INSTRU', 'SAMPLE', 'DISK'],
+                  'ES': ['PATRON', 'TEMA', 'INSTRU', 'SAMPLE', 'DISCO']}),
+}
+
+
+def screen_tab_names(path):
+    s = Screen()
+    r = 0
+    for opt, (logo, langs) in TAB_OPTIONS.items():
+        s.put(r, 0, 'OPTION ' + opt, YELLOW)
+        s.put(r, 9, 'AVEC LE LOGO SEQ16' if logo else 'SANS LE LOGO', CYAN)
+        r += 2
+        for lang, names in langs.items():
+            s.put(r, 0, lang, ORANGE)
+            r += 1
+            for active in (0, 1):
+                tabs(s, active, row=r, names=names, logo=logo)
+                r += 1
+        r += 1
+    s.put(r, 0, 'ACTIF : PANNEAU 1, PUIS PANNEAU 2', CYAN)
+    s.png(path)
 
 
 def status(s, mode='VOIX SEPAREES', playing=False):
@@ -447,7 +482,7 @@ def screen_disk(path):
     # actions
     s.put(21, 0, 'ENTER', ORANGE); s.put(21, 6, 'CHARGER', CYAN); s.put(21, 15, 'DEL', ORANGE)
     s.put(21, 19, 'EFFACER', CYAN); s.put(21, 28, 'A/B', ORANGE); s.put(21, 32, 'LECTEUR', CYAN)
-    s.put(22, 0, 'f8', ORANGE); s.put(22, 3, 'SAUVER TOUT : NOM.SNG + NOM.SMP', CYAN)
+    s.put(22, 0, 'f8', ORANGE); s.put(22, 3, 'SAUVER LE MORCEAU COMPLET (.SNG)', CYAN)
     s.put(23, 0, 'COPY', ORANGE); s.put(23, 5, 'RENOMMER', CYAN)
     s.png(path)
 
@@ -487,6 +522,7 @@ def main():
     screen_edit(OUT + '/3_edition_note.png', cur=(1, 3), edit_panel=True)
     screen_layered(OUT + '/4_son_compose.png')
     screen_variant_b(OUT + '/5_variante_b.png')
+    screen_tab_names(OUT + '/9_onglets.png')
     print('maquettes :', OUT)
 
 

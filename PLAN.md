@@ -1,6 +1,7 @@
 # Plan de développement : SEQ-16 v1.0
 
-État : **propositions à valider** (22 novembre 2026). Rien n'est encore codé.
+État : **validé le 22 novembre 2026** (section 9), sauf le nom des onglets
+(proposition en section 2). Lot 1 en cours.
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -45,8 +46,20 @@ Les autres touches de fonction du pavé numérique :
 | f9 | **charger** dans le panneau | (L, O, P, D dans l'écran Disque) |
 
 f8 et f9 sont sur le pavé numérique : ils ne gênent pas les 24 touches du piano.
-En anglais et en espagnol, les noms d'onglets doivent tenir dans les mêmes
-40 colonnes (`tools/lang.py` vérifie déjà les longueurs).
+**Noms des onglets** (à choisir). Avec le logo `SEQ16`, il reste 25 caractères
+pour les 5 noms ; sans le logo, 31. `MORCEAU` ne tient que sans le logo.
+
+![Noms des onglets](plan/img/9_onglets.png)
+
+| | Option A, avec le logo (recommandée) | Option B, sans le logo |
+|---|---|---|
+| FR | `SEQ16 1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE` | `1MOTIF 2MORCEAU 3INSTRU 4SAMPLE 5DISQUE` |
+| EN | `SEQ16 1PATTERN 2SONG 3INST 4SAMPLE 5DISK` | `1PATTERN 2SONG 3INSTRU 4SAMPLE 5DISK` |
+| ES | `SEQ16 1PATRON 2TEMA 3INST 4SAMPLE 5DISCO` | `1PATRON 2TEMA 3INSTRU 4SAMPLE 5DISCO` |
+
+L'option A garde le nom du programme à l'écran ; SONG se comprend chez tous
+les musiciens (l'espagnol a déjà TEMA). `tools/lang.py` vérifie que chaque
+traduction tient dans la place du français.
 
 ## 3. Panneau MOTIF : une case par pas
 
@@ -74,7 +87,7 @@ blocs jaunes. Redessiner une case ne coûte que 2 caractères.
 | flèches | pas et voix | pareil |
 | `ENTER` | allume ou éteint le pas ; allumer pose le pinceau | — |
 | `COPY` | prend la note de la case comme pinceau | — |
-| piano | pose la note et l'allume ; elle devient le pinceau | pose la note |
+| piano | pose la note, l'allume, et le curseur avance d'un pas ; la note devient le pinceau | pose la note |
 | `TAB` | grille ↔ panneau de la note (`←→` champ, `↑↓` valeur) | arrêt de note |
 | `CLR` | arrêt de note | pareil |
 | `DEL` | vide la case | pareil |
@@ -140,14 +153,16 @@ remplace. f9 ouvre la liste des fichiers du bon type (le sélecteur actuel,
 | Panneau | f8 sauve | f9 charge | Contenu |
 |---|---|---|---|
 | MOTIF | `NOM.PAT` | `.PAT` dans le motif affiché | 1 motif, 260 octets (format actuel) |
-| SONG | `NOM.SNG` | un morceau | enchaînement, mixage, BPM, 32 motifs et leurs noms, instruments, nom de la banque de samples |
+| SONG | `NOM.SNG` | un morceau | **tout ce qu'il faut pour le rejouer** : enchaînement, boucle, mixage, BPM, 32 motifs et leurs noms, instruments et sons composés, banque de samples |
 | INST | `NOM.INS` | une banque `.INS` (`SHIFT f9` : un seul son pris dans une banque) | 32 instruments, 8 sons composés, 848 octets (format actuel) |
 | SAMPLE | `NOM.SMP` | une banque `.SMP` | la banque de samples (format actuel) |
-| DISQUE | f8 « sauver tout » : `NOM.SNG` + `NOM.SMP` | `ENTER` charge le fichier choisi dans son panneau | — |
+| DISQUE | f8 : le morceau complet (`.SNG`) | `ENTER` charge le fichier choisi dans son panneau | — |
 
-- Le `.SNG` garde les instruments : un morceau rechargé sonne pareil même si
-  la banque `.INS` a changé depuis. Les samples restent à part (16 Ko), liés
-  par leur nom, comme en v0.9 : charger un morceau recharge sa banque `.SMP`.
+- Un `.SNG` suffit pour rejouer le morceau : il garde les instruments et la
+  banque de samples, donc il sonne pareil même si les `.INS` et `.SMP` ont
+  changé ou disparu depuis. Il fait de 9 à 25 Ko selon la taille de la banque
+  (une disquette DATA en contient au moins 7).
+- Les `.INS` et `.SMP` restent utiles pour échanger des sons entre morceaux.
 - Les `.PAT`, `.INS` et `.SMP` gardent leur format : les disquettes de
   motifs, d'instruments et de samples actuelles servent telles quelles.
 - Les `.SNG` v1 et v2 se chargent encore (sans enchaînement : une position
@@ -163,7 +178,7 @@ remplace. f9 ouvre la liste des fichiers du bon type (le sélecteur actuel,
 - `ENTER` charge le fichier dans son panneau (un `.PAT` va dans MOTIF, au
   motif affiché), `DEL` l'efface (après confirmation), `COPY` le renomme,
   `A`/`B` change de lecteur.
-- f8 « sauver tout » : le morceau et sa banque de samples sous le même nom.
+- f8 sauve le morceau complet (`.SNG`), comme f8 dans le panneau SONG.
 
 ## 7. Mémoire : utiliser les 128 Ko du 6128
 
@@ -224,17 +239,17 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
 8. **Documentation** : mode d'emploi, site, captures, vidéos, README, puis
    la release v1.0 en anglais, français et espagnol.
 
-## 9. À valider
+## 9. Décisions (22 novembre 2026)
 
-1. Panneau MOTIF : l'écran principal (clavier en haut) plutôt que la variante B ?
-2. `ENTER` pour allumer un pas ?
-3. Après une note jouée au piano, le curseur avance-t-il d'un pas ?
-4. Le nom SEQ-16 reste-t-il ?
-5. Onglets `1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE` (SONG plutôt que MORCEAU,
-   qui ne tient pas) ?
-6. f6 mode, f7 muet, f8 sauver, f9 charger, dans tous les panneaux ?
-7. SONG : 64 positions ; motif, répétitions, transposition ; une boucle ?
-8. Le `.SNG` garde les motifs et les instruments, les samples restent liés
-   par leur nom ?
-9. Le mixage passe dans SONG ?
-10. Utiliser la seconde banque de 64 Ko du 6128 ?
+| # | Question | Décision |
+|---|---|---|
+| 1 | Panneau MOTIF : clavier en haut ou variante B | clavier en haut |
+| 2 | `ENTER` allume un pas | oui |
+| 3 | Le curseur avance d'un pas après une note jouée au piano | oui |
+| 4 | Le nom SEQ-16 reste | oui |
+| 5 | Noms des onglets | **à choisir** : option A ou B (section 2) |
+| 6 | f6 mode, f7 muet, f8 sauver, f9 charger, partout | oui |
+| 7 | SONG : 64 positions, motif, répétitions, transposition, une boucle | oui |
+| 8 | Contenu du `.SNG` | tout ce qu'il faut pour rejouer le morceau, samples compris |
+| 9 | Le mixage passe dans SONG | oui |
+| 10 | Seconde banque de 64 Ko du 6128 | oui |
