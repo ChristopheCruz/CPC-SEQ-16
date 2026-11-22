@@ -133,51 +133,12 @@ class SongTempoTest(unittest.TestCase):
                 self.assertLessEqual(g, 7 * FRAME + 3500, (screen_key, g))
                 self.assertGreaterEqual(g, 5 * FRAME - 3500, (screen_key, g))
 
-    def test_stopwatch_on_stop(self):
-        """ESPACE arrête la lecture : la ligne 25 donne le plus court et le
-        plus long écart entre deux pas, à part pour les débuts de mesure, en
-        millisecondes - les mêmes que ceux mesurés par le simulateur."""
-        import re
-        cpc = SlowTextCPC.from_build()
-        cpc.boot()
-        v3 = cpc.addr("smp_blk_src") + 16 + 32 * 16 + 32 * 6 + 8 * 16 + 16
-        cpc.poke(v3, bytes([2, 0, 0, 1, 0, 1, 1, 0]))      # motifs 1 et 2, en boucle
-        cpc.frames(1, keys={14})                           # SONG
-        cpc.frames(1)
-        cpc.frames(1, keys={KEY_SPACE})
-        cpc.frames(1)
-        trig = cpc.addr("seq_trigger")
-        times = []
-        orig = cpc.step
-
-        def step():
-            if cpc.m.pc == trig:
-                times.append((cpc.t, cpc.peek(cpc.addr("seq_step"))[0]))
-            orig()
-        cpc.step = step
-        t0 = cpc.t
-        while cpc.t - t0 < 5 * 1_000_000:
-            cpc.frames(1)
-        cpc.step = orig
-        cpc.frames(1, keys={KEY_SPACE})                    # arrêt
-        cpc.frames(1)
-        row = cpc.row(25)
-        m = re.match(r"PAS (\d+)-(\d+)  MESURE (\d+)-(\d+) MS", row)
-        self.assertTrue(m, row)
-        lo, hi, blo, bhi = map(int, m.groups())
-        gaps = [((b[0] - a[0]) / 1000, b[1] == 0) for a, b in zip(times, times[1:])]
-        steps = [g for g, bar in gaps if not bar]
-        bars = [g for g, bar in gaps if bar]
-        for shown, real in ((lo, min(steps)), (hi, max(steps)),
-                            (blo, min(bars)), (bhi, max(bars))):
-            self.assertLessEqual(abs(shown - real), 4, (row, shown, real))
-
     def test_real_song_bar_change(self):
         """PIXEL (150 BPM, un pas = 100 ms) de la disquette des morceaux,
-        panneau SONG, au rythme réel du firmware : sur le CPC, le chronomètre
-        donnait « PAS 100-100  MESURE 460-460 MS » (le dessin de la position
-        retardait le pas 0).  Il faut des pas réguliers, mesures comprises."""
-        import re
+        panneau SONG, au rythme réel du firmware.  Sur le CPC, le chronomètre
+        des pas (retiré depuis) donnait « PAS 100-100  MESURE 460-460 MS » : le
+        dessin de la position retardait le pas 0.  Il faut des pas réguliers,
+        débuts de mesure compris."""
         disk = os.path.join(HERE, "..", "build", "seq16-songs.dsk")
         cpc = SlowTextCPC.from_build(disk)
         cpc.boot()
@@ -189,16 +150,24 @@ class SongTempoTest(unittest.TestCase):
         cpc.frames(1)
         self.assertIn("SONG:PIXEL", cpc.row(2))
         cpc.frames(1, keys={KEY_SPACE})
-        cpc.frames(1)
+        cpc.frames(3)
+        trig = cpc.addr("seq_trigger")
+        times = []
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == trig:
+                times.append(cpc.t)
+            orig()
+        cpc.step = step
         t0 = cpc.t
         while cpc.t - t0 < 12 * 1_000_000:                 # 7 mesures
             cpc.frames(1)
-        cpc.frames(1, keys={KEY_SPACE})
-        cpc.frames(1)
-        m = re.match(r"PAS (\d+)-(\d+)  MESURE (\d+)-(\d+) MS", cpc.row(25))
-        self.assertTrue(m, cpc.row(25))
-        for v in map(int, m.groups()):
-            self.assertLessEqual(abs(v - 100), 24, cpc.row(25))
+        cpc.step = orig
+        gaps = [(b - a) / 1000 for a, b in zip(times, times[1:])]
+        self.assertGreater(len(gaps), 100)
+        for g in gaps:
+            self.assertLessEqual(abs(g - 100), 24, g)
 
 
 if __name__ == "__main__":

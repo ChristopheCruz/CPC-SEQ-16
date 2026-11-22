@@ -80,6 +80,7 @@ TEXTS = {
     "COPIER": ("COPY", "COPIAR"),
     "COLLER": ("PASTE", "PEGAR"),
     "SON BANQUE": ("BANK SOUND", "SON. BANCO"),
+    "SON": ("SND", "SON"),
     "INSTRUMENT COPIE (P : COLLER)": ("INSTRUMENT COPIED (P: PASTE)", "INSTRUMENTO COPIADO (P:PEGAR)"),
     "INSTRUMENT COLLE": ("INSTR. PASTED", "INSTR. PEGADO"),
     "RIEN A COLLER : COPY D'ABORD": ("NOTHING TO PASTE: COPY FIRST", "NADA QUE PEGAR: COPY ANTES"),
@@ -138,8 +139,6 @@ TEXTS = {
     # panneau MOTIF (lot 3) : grille de 16 pas, panneau de la note, pinceau
     "SON": ("LAY", "SON"),
     " PAS ": (" STP ", " PAS "),
-    "PAS ": ("STEP", "PASO"),
-    "  MESURE ": ("  BAR", "  COMPAS "),
     "VOIX ": ("LANE ", "VOZ  "),
     " EDITION ": (" EDITING ", " EDICION "),
     "NOTE:": ("NOTE:", "NOTA:"),
@@ -185,6 +184,7 @@ TEXTS = {
     "LECTURE MOTIF": ("PLAY PATTERN", "TOCA PATRON"),
     "ARRET        ": ("STOP", "PARADO"),
     "-- FIN : RETOUR EN ": ("-- END: BACK TO", "-- FIN: VUELTA A"),
+    "-- FIN : ARRET --       ": ("-- END: STOP --", "-- FIN: PARAR --"),
     "MESURES": ("BARS", "COMPAS."),
     "64 POSITIONS AU PLUS": ("64 POSITIONS AT MOST", "MAXIMO 64 POSICIONES"),
     "ECOUTE... (ESPACE : ARRET)": ("PLAYING... (SPACE: STOP)", "SONANDO (ESPACIO: PARAR)"),
@@ -213,7 +213,7 @@ KEEP = {
     "  SAMPLE ", "  SAMPLE       ", "GLISSANDO      ", "PORTAMENTO     ",
     "DIGIDRUM       ", "-       ",
     "CDEFGAB", "OCT", "INS:", "VOL:", "FX:", "ENTER", "ON/OFF", "CLR", "SHIFT", "CTRL",
-    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC", " MS",
+    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC",
 }
 
 _QUOTED = re.compile(r'"([^"]*)"')

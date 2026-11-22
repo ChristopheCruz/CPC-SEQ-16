@@ -45,7 +45,6 @@ seq_set_pattern:
         ret
 
 seq_start:
-        call clock_reset        ; chronométrage des pas (songpanel.asm)
         xor a
         ld (sq_end),a
         ld (seq_step),a
@@ -88,10 +87,9 @@ seq_frame:
         sbc hl,de
         jr c,sq_wait            ; pas encore
         ld (seq_acc),hl         ; oui : on garde le reste, pour rester exact
-        ld a,(sq_end)           ; « 1 FOIS » : le motif est fini, on s'arrête
-        or a                    ; à l'heure où son pas 0 aurait été rejoué
-        jp nz,seq_stop
-        call step_clock         ; (l'heure réelle du pas, pour le chronomètre)
+        ld a,(sq_end)           ; « 1 FOIS », ou fin d'un morceau sans
+        or a                    ; boucle : on s'arrête à l'heure où le pas
+        jr nz,seq_end           ; suivant aurait été joué
         call seq_trigger        ; on joue les notes du pas
         ld a,(seq_step)
         inc a
@@ -120,7 +118,16 @@ bar_end:
         ld (sq_end),a
         ret
 
-sq_end:   db 0                  ; 1 = « 1 FOIS » : le motif a été joué
+seq_end:
+        call seq_stop
+        ld a,(screen)           ; le panneau SONG montre l'arrêt (MOTIF :
+        cp 4                    ; hide_playhead s'en charge)
+        ret nz
+        ld a,1
+        ld (song_changed),a
+        ret
+
+sq_end:   db 0                  ; 1 = la lecture s'arrête au prochain pas
 pat_once: db 0                  ; panneau MOTIF : 0 = BOUCLE, 1 = 1 FOIS
 
 ; Joue les notes du pas courant

@@ -1353,12 +1353,25 @@ dly_ok:
         cp (hl)
         ret z
         ld (hl),a
+        ld hl,256*#FF+LAYER_ROW ; MOTIF : lignes 13 à 18, pas d'édition
+        ld (dly_base),hl        ; (dly_base, puis dly_sel)
+; Le tableau des couches du son A à partir de la ligne dly_base : titre,
+; en-tête, les 4 voix.  dly_sel : le champ en jaune inversé (édition, panneau
+; INST : 3 x voix + 0 instrument, 1 décalage, 2 volume) ; #FF : aucun, et les
+; 6 lignes sont d'abord effacées (en édition, tout a une largeur fixe).
+dly_draw:
         ld (dly_n),a
-        call snd_tick
-        ld l,LAYER_ROW
+        ld a,(dly_sel)
+        inc a
+        jr nz,dly_fixed
+        ld a,(dly_base)
+        ld l,a
         ld b,6
         call blank_rows
-        ld hl,256*1+LAYER_ROW
+dly_fixed:
+        ld a,(dly_base)
+        ld l,a
+        ld h,1
         call TXT_SET_CURSOR
         ld bc,1*256+0
         call colors
@@ -1367,8 +1380,10 @@ dly_ok:
         ld a,(dly_n)
         add a,'1'
         call txt_out
-        call snd_tick
-        ld hl,256*1+LAYER_ROW+1
+        ld a,(dly_base)
+        inc a
+        ld l,a
+        ld h,1
         call TXT_SET_CURSOR
         ld a,2
         call TXT_SET_PEN
@@ -1387,7 +1402,9 @@ dly_ok:
         xor a
 dly_voice:
         ld (dly_v),a
-        add a,LAYER_ROW+2
+        ld hl,dly_base
+        add a,(hl)
+        add a,2
         ld (dly_row),a
         ld l,a
         ld h,4
@@ -1405,8 +1422,8 @@ dly_voice:
         ld l,a
         ld h,9
         call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
+        ld c,0
+        call dly_hl
         ld hl,(dly_ptr)
         inc hl
         ld a,(hl)               ; instrument
@@ -1415,13 +1432,22 @@ dly_voice:
         ld a,'-'                ; voix non utilisée par ce son
         call txt_out
         call txt_out
-        jr dly_next
+        ld a,(dly_sel)          ; MOTIF : rien d'autre
+        inc a
+        jr z,dly_next
+        ld a,' '                ; édition : la largeur d'un instrument, puis
+        ld b,7                  ; le décalage et le volume
+        call out_rep
+        jr dly_offs
 dly_used:
         call print_inst
+dly_offs:
         ld a,(dly_row)
         ld l,a
         ld h,21
         call TXT_SET_CURSOR
+        ld c,1
+        call dly_hl
         ld hl,(dly_ptr)
         ld a,(hl)               ; décalage (ou période du bruit)
         ld c,a
@@ -1456,6 +1482,8 @@ dly_vol:
         ld l,a
         ld h,29
         call TXT_SET_CURSOR
+        ld c,2
+        call dly_hl
         ld hl,(dly_ptr)
         inc hl
         inc hl
@@ -1468,7 +1496,11 @@ dly_vol_def:
         ld a,'-'
         call txt_out
 dly_next:
-        call snd_tick
+        xor a
+        call TXT_SET_PAPER
+        ld a,(dly_once)         ; une seule voix (édition) ?
+        or a
+        ret nz
         ld hl,(dly_ptr)
         ld de,3
         add hl,de
@@ -1478,6 +1510,26 @@ dly_next:
         cp 4
         jp nz,dly_voice
         ret
+
+; Couleurs du champ C (0 instrument, 1 décalage, 2 volume) de la voix dly_v :
+; bleu sur jaune si c'est le champ choisi (dly_sel), sinon orange sur bleu
+dly_hl:
+        ld a,(dly_v)
+        ld b,a
+        add a,a
+        add a,b
+        add a,c
+        ld hl,dly_sel
+        cp (hl)
+        ld bc,3*256+0
+        jr nz,dhl_set
+        ld bc,0*256+1
+dhl_set:
+        jp colors
+
+dly_base: db LAYER_ROW          ; ligne du titre du tableau
+dly_sel:  db #FF                ; champ choisi (#FF : aucun)
+dly_once: db 0                  ; 1 = une seule voix
 
 ; --- Ecran entier ------------------------------------------------------------------
 redraw_all:

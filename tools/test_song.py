@@ -257,6 +257,28 @@ class SongPanelTest(unittest.TestCase):
         self.play_until_pos(1)
         self.assertEqual(self.var("cur_pat"), 1)
 
+    def test_loop_toggle_and_stop_at_end(self):
+        """B sur la position de la boucle la retire : FIN « ARRET », et la
+        lecture s'arrête à la fin du morceau.  B de nouveau : la boucle."""
+        cpc = self.cpc
+        self.set_song([(0, 1, 0), (1, 1, 0)], loop=0)
+        self.key(KEY_SONG)
+        self.key(KEY_B)                                       # curseur sur 00
+        self.assertEqual(self.song()[1], 0xFF)
+        self.assertIn("FIN : ARRET", cpc.screen_text())
+        self.key(SPACE)
+        self.play_until_pos(1)
+        for _ in range(400):
+            cpc.frames(1)
+            if not self.var("seq_playing"):
+                break
+        self.assertEqual(self.var("seq_playing"), 0)
+        cpc.frames(2)
+        self.assertIn("ARRET", cpc.row(2))
+        self.key(KEY_B)
+        self.assertEqual(self.song()[1], 0)
+        self.assertIn("RETOUR EN 00", cpc.screen_text())
+
     def test_motif_name_in_status(self):
         """Ligne d'état : le numéro et le nom du motif (celui de son .PAT)."""
         cpc = self.cpc

@@ -259,6 +259,98 @@ class PanelsTest(unittest.TestCase):
         self.assertEqual(cpc.screen_text(), after)
         self.assertLess(count[0], 3 * 200)            # (un dessin complet : 474)
 
+    # --- INST, f6 : les sons composés ------------------------------------------------
+    def son_bytes(self, n):
+        return self.cpc.peek(self.sons() + 16 * n, 16)
+
+    def sons(self):
+        """Adresse des sons composés : après les instruments et leurs noms
+        (equ, absente du .sym) - lue dans le code de son_setup (ld hl,sons)."""
+        cpc = self.cpc
+        code = cpc.addr("son_setup")
+        for i in range(40):
+            if cpc.peek(code + i)[0] == 0x21:             # ld hl,nn
+                return cpc.word(code + i + 1)
+        self.fail("ld hl,sons introuvable")
+
+    def test_composite_sound_editor(self):
+        cpc = self.cpc
+        KEY_UP, KEY_DOWN, KEY_SHIFT, KEY_LEFT = 0, 2, 21, 8
+        self.key(KEY_INST)
+        self.key(KEY_MODE)                                # f6 : sons composés
+        self.assertIn("SON COMPOSE", cpc.row(2))
+        self.assertIn("COUCHES DU SON S1", cpc.row(4))
+        self.assertIn("f6 MODE", cpc.row(21))
+        self.assertIn("CTRL", cpc.row(16))
+        self.assertIn("SON", cpc.row(16)[30:])
+        before = self.son_bytes(0)
+        s2 = self.son_bytes(1)
+        self.assertIn("01 LEAD", cpc.row(6))              # voix A
+        self.assertEqual(cpc.attr[5][8], (0, 1))          # champ choisi : inversé
+        for _ in range(3):
+            self.key(KEY_DOWN)                            # voix B, instrument
+        self.key(KEY_RIGHT)                               # instrument + 1
+        self.assertEqual(self.son_bytes(0)[4], before[4] + 1)
+        self.assertIn("02 BASS", cpc.row(7))
+        self.assertEqual(cpc.attr[6][8], (0, 1))
+        self.assertNotEqual(cpc.attr[5][8], (0, 1))       # voix A : normale
+        self.key(KEY_DOWN)                                # B décalage (+3)
+        self.key(KEY_SHIFT, KEY_RIGHT)                    # + 10
+        self.assertEqual(self.son_bytes(0)[3], 13)
+        for _ in range(3):
+            self.key(KEY_SHIFT, KEY_RIGHT)
+        self.assertEqual(self.son_bytes(0)[3], 24)        # au plus +24
+        self.assertIn("+24", cpc.row(7))
+        for _ in range(6):
+            self.key(KEY_SHIFT, KEY_LEFT)
+        self.assertEqual(self.son_bytes(0)[3], 256 - 24)  # au moins -24
+        self.key(KEY_DOWN)                                # B volume : -
+        self.key(KEY_RIGHT)
+        self.assertEqual(self.son_bytes(0)[5], 0)
+        self.key(KEY_LEFT)
+        self.assertEqual(self.son_bytes(0)[5], 0xFF)      # « - » : celui de l'instrument
+        for _ in range(5):
+            self.key(KEY_DOWN)                            # voix N, période
+        self.assertEqual(cpc.peek(cpc.addr("cur_sfld"))[0], 10)
+        self.key(KEY_SHIFT, KEY_RIGHT)
+        self.key(KEY_SHIFT, KEY_RIGHT)
+        self.key(KEY_SHIFT, KEY_RIGHT)
+        self.key(KEY_SHIFT, KEY_RIGHT)
+        self.assertEqual(self.son_bytes(0)[9], 31)        # période : au plus 31
+        self.assertIn("BR1F", cpc.row(9))
+        self.key(KEY_UP)                                  # N instrument : --
+        self.key(KEY_RIGHT)
+        self.assertEqual(self.son_bytes(0)[10], 0)
+        self.key(KEY_LEFT)
+        self.assertEqual(self.son_bytes(0)[10], 0xFF)
+        self.key(KEY_CTRL, KEY_RIGHT)                     # S2
+        self.assertIn("COUCHES DU SON S2", cpc.row(4))
+        self.assertEqual(self.son_bytes(1), s2)            # S2 n'a pas bougé
+        self.assertIn("+04", cpc.row(7))                  # (son d'usine S2)
+        self.key(KEY_MODE)                                # retour aux instruments
+        self.assertIn("INSTRUMENT :", cpc.row(2))
+        self.assertIn("ENVELOPPE", cpc.row(4))
+
+    def test_composite_sound_piano(self):
+        """Le piano, en mode sons composés, joue le son affiché sur ses voix."""
+        cpc = self.cpc
+        self.key(KEY_INST)
+        self.key(KEY_MODE)
+        target = cpc.addr("seq_play_son")
+        calls = []
+        orig = cpc.step
+
+        def step():
+            if cpc.m.pc == target:
+                calls.append((cpc.m.b, cpc.m.c))
+            orig()
+        cpc.step = step
+        cpc.frames(1, keys={71})                          # touche du piano (DO)
+        cpc.step = orig
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][1], 0)                  # le son S1
+        self.assertEqual(cpc.peek(cpc.addr("aud_voice"))[0], 0x80)
+
 
 if __name__ == "__main__":
     unittest.main()

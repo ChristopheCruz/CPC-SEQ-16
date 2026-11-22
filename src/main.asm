@@ -181,11 +181,22 @@ ds_sequencer:
         call draw_box           ; cadre du panneau de la note (grid.asm)
         jp redraw_all
 ds_instrument:
-        ld hl,ins_text
+        ld a,(ins_son)
+        or a
+        ld hl,ins_text          ; instruments
+        jr z,dsi_text
+        ld hl,son_text          ; sons composés
+dsi_text:
+        call print_list
+        ld hl,ins_common
         call print_list
         xor a
         call TXT_SET_PAPER
-        jp ins_show_all
+        ld a,(ins_son)
+        or a
+        jp z,ins_show_all
+        call show_octave
+        jp son_show_all
 
 ; Bandeau du haut : SEQ16 et les 5 onglets.  L'onglet du panneau en cours
 ; est en bleu sur orange ; les autres ont leur chiffre en orange et leur
@@ -411,7 +422,6 @@ cmd_play:
         jp show_state
 cp_stop:
         call seq_stop
-        call show_timing        ; le chronomètre des pas, ligne 25
         jp show_state
 
 ; --- f5 : voix séparées <-> son composé ---
@@ -999,6 +1009,14 @@ ins_cmd:
         ld a,(rc_index)
         or a
         jp z,cmd_play           ; ESPACE : lecture / arrêt du motif
+        dec a
+        jr z,ins_mode           ; f6 : instruments <-> sons composés
+        inc a
+        ld b,a
+        ld a,(ins_son)
+        or a
+        ld a,b
+        jp nz,son_cmd
         cp 6
         jr z,ins_left
         cp 7
@@ -1014,6 +1032,13 @@ ins_cmd:
         cp 19
         jp z,ins_take           ; O : prendre un son dans une banque
         ret
+
+ins_mode:
+        ld hl,ins_son
+        ld a,(hl)
+        xor 1
+        ld (hl),a
+        jp draw_screen
 
 ins_up:
         ld a,(mod_shift)
@@ -1191,18 +1216,266 @@ ic_done:
         ret nc
         jp ins_draw_env         ; l'ADSR a changé : on redessine la courbe
 
-; --- Piano : essai de l'instrument sur la voie A -------------------------------
+; --- Piano : essai de l'instrument sur la voie A (ou du son composé) -----------
 ins_piano:
         call calc_note
-        ld (en_note),a
         ld b,a
+        xor a
+        ld (aud_timer),a
+        ld a,(ins_son)
+        or a
+        jr nz,ip_son
+        ld a,b
+        ld (en_note),a
         ld a,(cur_inst)
         ld (en_ins),a
         ld c,a
         xor a
-        ld (aud_timer),a
         ld (aud_voice),a
         jp snd_note_on          ; A = 0 : voie A
+ip_son:
+        ld a,#80                ; les 4 voix, relâchées ensemble
+        ld (aud_voice),a
+        ld a,(cur_sedit)
+        ld c,a
+        jp seq_play_son
+
+; --- Sons composés (f6) : le tableau des 4 voix, comme en MOTIF -------------------
+; Champ = 3 x voix + 0 instrument, 1 décalage (voix N : période du bruit),
+; 2 volume.  Flèches haut / bas : champ ; gauche / droite : valeur (SHIFT :
+; par 10) ; CTRL + gauche / droite : son S1 à S8.
+SON_ROW equ 4                   ; titre du tableau ; les voix : lignes 6 à 9
+
+son_cmd:
+        cp 6
+        jr z,son_left
+        cp 7
+        jr z,son_right
+        cp 8
+        jr z,son_up
+        cp 9
+        ret nz
+        ld a,(mod_shift)        ; bas
+        or a
+        jp nz,oct_down
+        ld a,(cur_sfld)
+        cp 11
+        ret nc
+        inc a
+        jr son_field
+son_up:
+        ld a,(mod_shift)
+        or a
+        jp nz,oct_up
+        ld a,(cur_sfld)
+        or a
+        ret z
+        dec a
+son_field:                      ; le champ A : les lignes de l'ancien et du
+        ld hl,cur_sfld          ; nouveau (une seule si même voix)
+        ld b,(hl)
+        ld (hl),a
+        call fld_voice
+        ld c,a                  ; C = voix du nouveau champ
+        ld a,b
+        call fld_voice
+        cp c
+        push bc
+        call nz,son_draw_row
+        pop bc
+        ld a,c
+        jr son_draw_row
+
+son_left:
+        ld a,(mod_ctrl)
+        or a
+        jr nz,son_prev
+        xor a                   ; diminuer
+        jr son_change
+son_right:
+        ld a,(mod_ctrl)
+        or a
+        jr nz,son_next
+        ld a,1                  ; augmenter
+        jr son_change
+son_prev:
+        ld a,(cur_sedit)
+        or a
+        ret z
+        dec a
+        jr son_set
+son_next:
+        ld a,(cur_sedit)
+        inc a
+        cp NB_SONS
+        ret nc
+son_set:
+        ld (cur_sedit),a
+; Le tableau entier (le son cur_sedit)
+son_show_all:
+        xor a
+        call son_setup
+        ld a,(cur_sedit)
+        jp dly_draw
+
+; A = champ -> A = sa voix (0 à 3)
+fld_voice:
+        ld d,#FF
+fv_loop:
+        inc d
+        sub 3
+        jr nc,fv_loop
+        ld a,d
+        ret
+
+; La ligne de la voix A
+son_draw_row:
+        push af
+        call son_setup
+        ld a,1
+        ld (dly_once),a
+        pop af
+        call dly_voice
+        xor a
+        ld (dly_once),a
+        ret
+
+; Prépare draw_layers pour la voix A du son cur_sedit : dly_ptr, dly_n,
+; dly_base (SON_ROW) et dly_sel (cur_sfld)
+son_setup:
+        ld b,a
+        add a,a
+        add a,b
+        ld c,a                  ; C = 3 x voix
+        ld a,(cur_sedit)
+        ld (dly_n),a
+        add a,a
+        add a,a
+        add a,a
+        add a,a
+        add a,c
+        ld e,a
+        ld d,0
+        ld hl,sons
+        add hl,de
+        ld (dly_ptr),hl
+        ld a,(cur_sfld)
+        ld h,a
+        ld l,SON_ROW
+        ld (dly_base),hl
+        ret
+
+; Change la valeur du champ cur_sfld.  A = 0 pour diminuer, 1 pour
+; augmenter ; le pas est de 1, ou de 10 avec SHIFT.  Chaque genre de champ a
+; un décalage dans la voix, un biais (la valeur + biais va de min à max) :
+;   instrument  #FF (--), 0 à 31  -> 0 à 32
+;   décalage    -24 à +24         -> 104 à 152
+;   volume      #FF (-), 0 à 15   -> 0 à 16
+;   période     0 à 31 (voix N)
+son_change:
+        ld (ic_dir),a
+        ld a,(mod_shift)
+        or a
+        ld a,1
+        jr z,snc_step
+        ld a,10
+snc_step:
+        ld (ic_step),a
+        ld a,(cur_sfld)
+        call fld_voice
+        ld (snc_v),a
+        ld b,a
+        add a,a
+        add a,b
+        ld b,a                  ; B = 3 x voix
+        ld a,(cur_sfld)
+        sub b                   ; A = champ dans la voix
+        cp 1
+        jr nz,snc_kind
+        ld a,(snc_v)
+        cp 3
+        ld a,1
+        jr nz,snc_kind
+        ld a,3                  ; décalage de la voix N : sa période
+snc_kind:
+        add a,a
+        add a,a
+        ld e,a
+        ld d,0
+        ld hl,snc_tab
+        add hl,de
+        ld de,snc_off
+        ld bc,4
+        ldir                    ; snc_off, snc_bias, snc_min, snc_max
+        ld a,(snc_v)            ; HL = sons + 16 x son + 3 x voix + décalage
+        ld b,a
+        add a,a
+        add a,b
+        ld hl,snc_off
+        add a,(hl)
+        ld e,a
+        ld a,(cur_sedit)
+        add a,a
+        add a,a
+        add a,a
+        add a,a
+        add a,e
+        ld e,a
+        ld d,0
+        ld hl,sons
+        add hl,de
+        ld a,(snc_bias)
+        ld c,a
+        ld a,(hl)
+        add a,c
+        ld b,a                  ; B = valeur + biais
+        ld a,(ic_step)
+        ld e,a
+        ld a,(ic_dir)
+        or a
+        ld a,b
+        jr z,snc_dec
+        add a,e                 ; augmenter, sans dépasser le maximum
+        jr c,snc_top
+        ld b,a
+        ld a,(snc_max)
+        cp b
+        jr c,snc_store
+        ld a,b
+        jr snc_store
+snc_top:
+        ld a,(snc_max)
+        jr snc_store
+snc_dec:
+        sub e                   ; diminuer, sans passer sous le minimum
+        jr c,snc_bot
+        ld b,a
+        ld a,(snc_min)
+        cp b
+        jr nc,snc_store
+        ld a,b
+        jr snc_store
+snc_bot:
+        ld a,(snc_min)
+snc_store:
+        sub c                   ; on retire le biais
+        ld (hl),a
+        ld a,(snc_v)
+        jp son_draw_row
+
+;              décalage, biais, min, max
+snc_tab:  db 1,1,0,32           ; instrument
+          db 0,128,104,152      ; décalage (-24 à +24)
+          db 2,1,0,16           ; volume
+          db 0,0,0,31           ; période du bruit (voix N)
+snc_off:  db 0
+snc_bias: db 0
+snc_min:  db 0
+snc_max:  db 0
+snc_v:    db 0
+ins_son:  db 0                  ; panneau INST : 0 instruments, 1 sons composés
+cur_sedit: db 0                 ; son composé affiché (0 à 7)
+cur_sfld: db 0                  ; son champ choisi (0 à 11)
 
 ; --- Affichage ---------------------------------------------------------------
 ins_show_all:
@@ -1577,12 +1850,25 @@ er_clear:
         ld (env_tmp+CH_VOL),a
         ret
 
-ins_text:
+ins_text:                       ; instruments seulement
         db 1,2,2,0,   "INSTRUMENT :",0
-        db 33,2,2,0,  "OCT:",0
         db ENV_COL,4,1,0, "ENVELOPPE",0
         db ENV_COL,10,2,0,"TOUCHE TENUE",0
         db ENV_COL,11,3,0,"PUIS LACHEE",0
+        db ENV_COL+9,16,2,0,"INSTR.",0
+        db ENV_COL,22,3,0,"COPY",0
+        db ENV_COL+5,22,2,0,"COPIER",0
+        db ENV_COL,23,3,0,"P",0
+        db ENV_COL+5,23,2,0,"COLLER",0
+        db ENV_COL,24,3,0,"O",0
+        db ENV_COL+5,24,2,0,"SON BANQUE",0
+        db #FF
+son_text:                       ; sons composés seulement
+        db 1,2,2,0,   "SON COMPOSE  ",0
+        db ENV_COL+9,16,2,0,"SON",0
+        db #FF
+ins_common:                     ; les deux
+        db 33,2,2,0,  "OCT:",0
         db ENV_COL,13,3,0,240,241,0
         db ENV_COL+3,13,2,0,"REGLAGE",0
         db ENV_COL,14,3,0,242,243,0
@@ -1590,19 +1876,14 @@ ins_text:
         db ENV_COL,15,3,0,"SHIFT ",242,243,0
         db ENV_COL+9,15,2,0,"PAR 10",0
         db ENV_COL,16,3,0,"CTRL  ",242,243,0
-        db ENV_COL+9,16,2,0,"INSTR.",0
         db ENV_COL,17,3,0,"SHIFT ",240,241,0
         db ENV_COL+9,17,2,0,"OCTAVE",0
         db ENV_COL,19,3,0,"PIANO",0
         db ENV_COL+6,19,2,0,"ESSAI",0
         db ENV_COL,20,3,0,"ESPACE",0
         db ENV_COL+7,20,2,0,"LECTURE",0
-        db ENV_COL,22,3,0,"COPY",0
-        db ENV_COL+5,22,2,0,"COPIER",0
-        db ENV_COL,23,3,0,"P",0
-        db ENV_COL+5,23,2,0,"COLLER",0
-        db ENV_COL,24,3,0,"O",0
-        db ENV_COL+5,24,2,0,"SON BANQUE",0
+        db ENV_COL,21,3,0,"f6",0
+        db ENV_COL+3,21,2,0,"MODE",0
         db #FF
 
 

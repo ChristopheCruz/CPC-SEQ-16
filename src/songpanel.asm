@@ -70,6 +70,13 @@ song_bar:
         cp (hl)
         jr c,song_goto
         ld a,(song_loop)        ; fin du morceau : retour à la boucle
+        inc a
+        jr nz,sb_loop
+        inc a                   ; pas de boucle (#FF) : la lecture s'arrête
+        ld (sq_end),a           ; à l'heure du prochain pas (seq_frame)
+        ret
+sb_loop:
+        dec a
         ; continue dans song_goto
 
 ; La lecture passe à la position A : son motif (celui qu'on quitte retourne
@@ -144,6 +151,8 @@ song_prefetch:
         cp (hl)
         jr c,spf_pos
         ld a,(song_loop)
+        cp #FF
+        ret z                   ; pas de boucle : rien après la fin
 spf_pos:
         call song_pos_ptr
         ld a,(hl)               ; son motif
@@ -190,6 +199,9 @@ song_follow:
         jp z,redraw_all         ; MOTIF suit le motif joué
         cp 4
         ret nz
+        ld a,(seq_playing)      ; fin sans boucle : l'état (ARRET)
+        or a
+        call z,sp_status
         call sp_show_bpm
         jp sp_show_pos
 
@@ -278,6 +290,8 @@ ss_len:
         ld a,(song_loop)
         cp b
         jr c,ss_loop
+        inc a                   ; #FF : pas de boucle
+        jr z,ss_loop
         xor a
         ld (song_loop),a
 ss_loop:
@@ -415,11 +429,16 @@ spr_fin:
         ld bc,0*256+1
 spr_fin_c:
         call colors
+        ld a,(song_loop)
+        inc a
+        ld hl,txt_sp_nol        ; "-- FIN : ARRET --"
+        jr z,spr_fin_t
         ld hl,txt_sp_end        ; "-- FIN : RETOUR EN "
         call print_str
         ld a,(song_loop)
         call print_dec2
         ld hl,txt_sp_end2       ; " --"
+spr_fin_t:
         call print_str
         xor a
         call TXT_SET_PAPER
@@ -845,179 +864,6 @@ pb_check:
         ld a,40
         ret
 
-; --- Chronomètre des pas -----------------------------------------------------------
-; Pendant la lecture, l'écart réel entre deux pas joués (horloge du
-; firmware, 1/300 s) : le plus court et le plus long, à part pour le pas 0
-; (début de mesure, changement de motif en mode morceau).  À l'arrêt
-; (ESPACE), la ligne 25 les donne en millisecondes :
-;   PAS 130-137  MESURE 130-175 MS
-; Ce que l'on entend vraiment sur la machine, pour régler la fluidité.
-clock_reset:
-        xor a
-        ld (sk_valid),a
-        ld hl,sk_step
-        call skr_pair
-        ld hl,sk_bar
-skr_pair:
-        ld (hl),#FF             ; le plus court : #FFFF
-        inc hl
-        ld (hl),#FF
-        inc hl
-        ld (hl),a               ; le plus long : 0
-        inc hl
-        ld (hl),a
-        ret
-
-; Un pas va être joué (seq_frame) : on note l'écart depuis le précédent
-step_clock:
-        call KL_TIME_PLEASE     ; HL = heure, en 1/300 s
-        ld de,(sk_last)
-        ld (sk_last),hl
-        ld a,(sk_valid)         ; les deux premiers pas : pas d'écart (le
-        cp 2                    ; premier part au milieu d'une image, l'écart
-        jr nc,skc_gap           ; suivant est plus court : on l'ignore)
-        inc a
-        ld (sk_valid),a
-        ret
-skc_gap:
-        or a
-        sbc hl,de               ; HL = écart
-        ex de,hl                ; DE = écart
-        ld a,(seq_step)
-        or a
-        ld hl,sk_bar            ; pas 0 : début de mesure
-        jr z,skc_min
-        ld hl,sk_step
-skc_min:
-        ld c,(hl)               ; BC = le plus court
-        inc hl
-        ld b,(hl)
-        ld a,e                  ; écart - le plus court
-        sub c
-        ld a,d
-        sbc a,b
-        jr nc,skc_max
-        ld (hl),d               ; plus court
-        dec hl
-        ld (hl),e
-        inc hl
-skc_max:
-        inc hl
-        ld c,(hl)               ; BC = le plus long
-        inc hl
-        ld b,(hl)
-        ld a,c                  ; le plus long - écart
-        sub e
-        ld a,b
-        sbc a,d
-        ret nc
-        ld (hl),d               ; plus long
-        dec hl
-        ld (hl),e
-        ret
-
-; Un digidrum va jouer, interruptions coupées : l'horloge du firmware
-; s'arrêtera pendant sa durée, A:HL = octets x période (en NOP, x 2 par
-; octet).  Le chronomètre la compte quand même : sk_last recule d'autant de
-; 1/300 s (3 333 NOP, soit octets x période / 1 667, arrondi au-dessus).
-clock_skip:
-        ld de,1667
-        ld c,0
-csk_loop:
-        inc c
-        jr z,csk_cap            ; plus de 255 : on s'arrête là
-        or a
-        sbc hl,de
-        sbc a,0
-        jr c,csk_done
-        ld b,a
-        or h
-        or l
-        ld a,b
-        jr nz,csk_loop
-        jr csk_done
-csk_cap:
-        dec c
-csk_done:
-        ld hl,(sk_last)
-        ld b,0
-        or a
-        sbc hl,bc
-        ld (sk_last),hl
-        ret
-
-; À l'arrêt : la ligne 25 donne le chronomètre (rien si aucun écart mesuré)
-show_timing:
-        ld a,(sk_valid)
-        cp 2
-        ret c                   ; aucun écart mesuré
-        ld hl,256*1+INS_MSG_ROW
-        call TXT_SET_CURSOR
-        xor a
-        call TXT_SET_PAPER
-        ld a,' '
-        ld b,40
-        call out_rep            ; ligne effacée
-        ld hl,256*1+INS_MSG_ROW
-        call TXT_SET_CURSOR
-        ld a,3
-        call TXT_SET_PEN
-        ld hl,txt_tm_step       ; "PAS "
-        call print_str
-        ld hl,sk_step
-        call stm_pair
-        ld hl,txt_tm_bar        ; "  MESURE "
-        call print_str
-        ld hl,sk_bar
-        call stm_pair
-        ld hl,txt_tm_ms         ; " MS"
-        jp print_str
-
-; HL -> le plus court, le plus long (en 1/300 s) : « 130-175 », ou « - »
-stm_pair:
-        ld e,(hl)
-        inc hl
-        ld d,(hl)
-        inc hl
-        ld c,(hl)
-        inc hl
-        ld b,(hl)
-        ld a,b
-        or c
-        jr nz,stm_some
-        ld a,'-'                ; aucun écart de ce genre
-        jp txt_out
-stm_some:
-        push bc
-        ex de,hl
-        call stm_ms
-        ld a,'-'
-        call txt_out
-        pop hl
-; HL en 1/300 s, écrit en millisecondes (x 10 / 3, arrondi)
-stm_ms:
-        add hl,hl               ; x 2
-        ld d,h
-        ld e,l
-        add hl,hl
-        add hl,hl               ; x 8
-        add hl,de               ; x 10
-        ld c,3
-        call div16_8            ; / 3, A = reste
-        cp 2
-        jr c,stm_print
-        inc hl                  ; arrondi
-stm_print:
-        jp print_dec16
-
-sk_last:  dw 0                  ; heure du dernier pas joué
-sk_valid: db 0                  ; 2 = sk_last est valable, écarts mesurés
-sk_step:  dw #FFFF,0            ; pas 1 à 15 : écart le plus court, le plus long
-sk_bar:   dw #FFFF,0            ; pas 0 : pareil
-txt_tm_step: db "PAS ",0
-txt_tm_bar:  db "  MESURE ",0
-txt_tm_ms:   db " MS",0
-
 ; HL = HL / C, A = reste
 div16_8:
         xor a
@@ -1113,7 +959,6 @@ song_play:
         or a
         jr z,spl_start
         call seq_stop
-        call show_timing        ; le chronomètre des pas, ligne 25
         jr spl_show
 spl_start:
         ld a,(song_len)
@@ -1378,6 +1223,8 @@ sia_room:
         ld a,(song_loop)        ; la boucle garde sa position
         cp c
         jr c,sia_loop
+        inc a
+        jr z,sia_loop           ; (pas de boucle)
         ld a,b
         or a
         jr z,sia_loop           ; (morceau vide : la boucle reste à 0)
@@ -1451,6 +1298,9 @@ sdl_loopfix:
         ld c,a                  ; était après, et jamais au-delà de la fin
         ld hl,song_loop
         ld a,(hl)
+        inc a
+        jr z,song_redraw        ; pas de boucle
+        dec a
         cp c
         jr c,sdl_lf2
         jr z,sdl_lf2
@@ -1477,7 +1327,12 @@ song_set_loop:
         ld hl,song_len
         cp (hl)
         ret nc
-        ld (song_loop),a
+        ld hl,song_loop
+        cp (hl)
+        jr nz,ssl_set
+        ld a,#FF                ; déjà là : plus de boucle
+ssl_set:
+        ld (hl),a
         call sp_draw_list
         ld a,(song_len)         ; et la ligne FIN (« retour en »)
         jp sp_draw_row
@@ -1515,6 +1370,7 @@ txt_sp_pat:   db "LECTURE MOTIF",0
 txt_sp_stop:  db "ARRET        ",0
 txt_sp_end:   db "-- FIN : RETOUR EN ",0
 txt_sp_end2:  db " --",0
+txt_sp_nol:   db "-- FIN : ARRET --       ",0
 txt_sp_bars:  db "MESURES",0
 txt_sp_full:  db "64 POSITIONS AU PLUS",0
 
