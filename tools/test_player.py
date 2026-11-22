@@ -20,7 +20,7 @@ import gen_smp_tables  # noqa: E402
 
 try:
     import cpcsim
-    from cpcsim import CPC, KEY_F3, KEY_F4, KEY_SPACE, KEY_D, KEY_RIGHT, \
+    from cpcsim import CPC, KEY_DISK, KEY_SAMPLE, KEY_SPACE, KEY_D, KEY_RIGHT, \
         KEY_DOWN, KEY_CTRL, PIANO_KEYS
 except ImportError:                      # paquet z80 absent
     cpcsim = None
@@ -58,7 +58,7 @@ class PlayerTest(unittest.TestCase):
         # Démarrage puis passage sur f4 : la banque d'usine se charge seule.
         cpc = CPC.from_build()
         cpc.boot()
-        cpc.frames(2, keys={KEY_F4})
+        cpc.frames(2, keys={KEY_SAMPLE})
         cpc.frames(1)
         cls.base = cpc
 
@@ -124,7 +124,7 @@ class PlayerTest(unittest.TestCase):
 
     def test_screen_f4(self):
         txt = self.cpc.screen_text()
-        self.assertIn("f4 SAMPLE", self.cpc.row(1))
+        self.assertIn("4SAMPLE", self.cpc.row(1))
         self.assertEqual(len(self.cpc.row(1).rstrip()), 40)
         self.assertIn("BANQUE : DRUMS", txt)
         self.assertIn("2037/16064", txt)
@@ -333,7 +333,7 @@ class PlayerTest(unittest.TestCase):
         two = [wav2smp.Sample("ONE", b"\x11" * 50, 125), wav2smp.Sample("TWO", b"\x22" * 60, 100)]
         self.make_disk({"TEST.SMP": wav2smp.build_bank(two),
                         "MORCEAU1.SNG": bytes(100)})
-        cpc.frames(1, keys={KEY_F3})
+        cpc.frames(1, keys={KEY_DISK})
         cpc.frames(1)
         # ordre du répertoire : DRUMS, VOIX, TEST -> bas, bas, haut, bas,
         # bas (déjà au dernier), RETURN : TEST
@@ -349,7 +349,7 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(cpc.row(19).strip(), "")      # la liste est effacée
         self.assertEqual(cpc.peek(cpc.addr("smp_count"))[0], 2)
         self.assertEqual(cpc.peek(cpc.addr("fname"), 8), b"MORCEAU1")  # NOM intact
-        cpc.frames(1, keys={KEY_F4})
+        cpc.frames(1, keys={KEY_SAMPLE})
         cpc.frames(1)
         self.assertIn("BANQUE : TEST", cpc.screen_text())
         self.assertIn("01 ONE", cpc.row(5))
@@ -360,7 +360,7 @@ class PlayerTest(unittest.TestCase):
         """Non-régression : S puis L sur l'écran f3 (fichier .SNG)."""
         cpc = self.cpc
         song_size = 16 + 32 * 16 + 32 * 6 + 8 * 16 + 32 * (4 + 16 * 16) + 16   # v2
-        cpc.frames(1, keys={KEY_F3})
+        cpc.frames(1, keys={KEY_DISK})
         cpc.frames(1)
         cpc.frames(1, keys={60})                 # S
         cpc.frames(1)

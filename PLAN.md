@@ -1,8 +1,7 @@
 # Plan de développement : SEQ-16 v1.0
 
-État : **validé le 22 novembre 2026** (section 9), sauf le nom des onglets
-(proposition en section 2). Lot 1 fait (PR #16), à essayer sur une vraie
-machine.
+État : **validé le 22 novembre 2026** (section 9). Lot 1 fait (PR #16),
+lot 2 fait (PR #17).
 Les écrans ci-dessous sont des maquettes, dessinées par `tools/mockups.py` avec
 la police de la ROM du CPC et les quatre couleurs du mode 1 :
 `python tools/mockups.py` les refait dans `plan/img/`.
@@ -47,7 +46,7 @@ Les autres touches de fonction du pavé numérique :
 | f9 | **charger** dans le panneau | (L, O, P, D dans l'écran Disque) |
 
 f8 et f9 sont sur le pavé numérique : ils ne gênent pas les 24 touches du piano.
-**Noms des onglets** (à choisir). Avec le logo `SEQ16`, il reste 25 caractères
+**Noms des onglets** : option A retenue. Avec le logo `SEQ16`, il reste 25 caractères
 pour les 5 noms ; sans le logo, 31. `MORCEAU` ne tient que sans le logo.
 
 ![Noms des onglets](plan/img/9_onglets.png)
@@ -233,6 +232,12 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
    copies vers le bloc passent par `io_buffer` (`bank_put`, `bank_get`).
 2. **Cinq panneaux** : barre d'onglets, f6 à f9, dialogue commun de
    sauvegarde et de chargement.
+   **Fait (PR #17)** : barre `SEQ16 1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE` (un
+   seul texte par langue), f6 mode, f8 / f9 dans les 5 panneaux (nom
+   proposé, RETURN / ESC, confirmation si le fichier existe, liste des
+   fichiers du bon type), panneau SONG provisoire (nom du morceau, f8, f9).
+   L'écran DISQUE garde ses anciennes touches jusqu'au lot 5 ; le mode
+   d'emploi, le site et les README seront mis à jour au lot 8.
 3. **MOTIF** : nouvelle grille, panneau de la note, pinceau, `TAB`.
 4. **SONG** : enchaînement, lecture du morceau, boucle, mixage déplacé.
 5. **Sauvegardes par panneau et DISQUE** : `.SNG` v3, chargement des
@@ -252,7 +257,7 @@ Chaque lot se termine par ses tests dans le CPC simulé et une PR.
 | 2 | `ENTER` allume un pas | oui |
 | 3 | Le curseur avance d'un pas après une note jouée au piano | oui |
 | 4 | Le nom SEQ-16 reste | oui |
-| 5 | Noms des onglets | **à choisir** : option A ou B (section 2) |
+| 5 | Noms des onglets | option A, avec le logo (section 2) |
 | 6 | f6 mode, f7 muet, f8 sauver, f9 charger, partout | oui |
 | 7 | SONG : 64 positions, motif, répétitions, transposition, une boucle | oui |
 | 8 | Contenu du `.SNG` | tout ce qu'il faut pour rejouer le morceau, samples compris |

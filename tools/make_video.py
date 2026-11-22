@@ -30,7 +30,7 @@ from cpcsim import CPC  # noqa: E402
 
 FRAME_US = 20_000                       # une image du CPC : 50 Hz
 SPF = ay_render.RATE // 50              # 882 échantillons de son par image
-KEY = dict(SPACE=47, F1=13, F2=14, F3=5, F4=20, F5=12, CTRL=23, RIGHT=1, LEFT=8,
+KEY = dict(SPACE=47, F1=13, F2=14, F4=20, INST=5, DISK=12, MODE=4, CTRL=23, RIGHT=1, LEFT=8,
            UP=0, DOWN=2, P=27, D=61)
 UP_, DOWN_, LEFT_, RIGHT_, RET = 0xF0, 0xF1, 0xF2, 0xF3, 13
 
@@ -180,7 +180,7 @@ def scenario(film, lang):
     film.press(KEY["SPACE"])                    # le motif de démonstration
     film.run(7.5)
     film.card(T["inst"], 1.8)
-    film.press(KEY["F2"])                       # la musique continue
+    film.press(KEY["INST"])                       # la musique continue
     for _ in range(8):                          # on parcourt les réglages
         film.press(KEY["DOWN"], wait=0.45)
     film.run(1.5)
@@ -195,7 +195,7 @@ def scenario(film, lang):
 
     film.card(T["patterns"])
     cpc.use_disk(poly)                          # disquette des motifs poly
-    film.press(KEY["F3"], wait=0.8)
+    film.press(KEY["DISK"], wait=0.8)
     names = disk_names(poly, ".PAT")
     cpc.chars = film.chooser([RIGHT_] * 4 + [LEFT_] * 4 + pick(names, "TECHNO01")[:-1] + [RET])
     film.press(KEY["P"], wait=0.8)
@@ -205,7 +205,7 @@ def scenario(film, lang):
     film.press(KEY["SPACE"], wait=0.3)
 
     film.card(T["digi"])
-    film.press(KEY["F3"], wait=0.6)
+    film.press(KEY["DISK"], wait=0.6)
     cpc.chars = film.chooser(pick(names, "DIGIHOP1"), pause=0.08)
     film.press(KEY["P"], wait=0.8)
     film.press(KEY["F1"], wait=0.5)
@@ -217,7 +217,7 @@ def scenario(film, lang):
     cpc.use_disk(mono)                          # disquette des motifs mono
     names = disk_names(mono, ".PAT")
     for name, secs in (("POPCHRD1", 7.0), ("CHIPLD1", 7.0)):
-        film.press(KEY["F3"], wait=0.6)
+        film.press(KEY["DISK"], wait=0.6)
         cpc.chars = film.chooser(pick(names, name), pause=0.12)
         film.press(KEY["P"], wait=0.8)
         film.press(KEY["F1"], wait=0.5)
@@ -227,7 +227,7 @@ def scenario(film, lang):
 
     film.card(T["words"], 1.6)
     cpc.use_disk(prog)                          # la banque de mots
-    film.press(KEY["F3"], wait=0.6)
+    film.press(KEY["DISK"], wait=0.6)
     banks = disk_names(prog, ".SMP")
     cpc.chars = film.chooser(pick(banks, "MOTS"), pause=0.2)
     film.press(KEY["D"], wait=1.0)

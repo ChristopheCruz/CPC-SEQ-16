@@ -22,7 +22,7 @@ import test_player  # noqa: E402
 cpcsim = test_player.cpcsim
 ROOT = gp.ROOT
 DISKS = {"mono": "seq16-motifs-mono.dsk", "poly": "seq16-motifs-poly.dsk"}
-KEY_F1, KEY_F3, KEY_F4, KEY_P, KEY_SPACE = 13, 5, 20, 27, 47
+KEY_MOTIF, KEY_DISK, KEY_SAMPLE, KEY_P, KEY_SPACE = 13, 12, 20, 27, 47
 DSK_ROW = 17                              # f3 : ligne des messages
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
 
@@ -156,7 +156,7 @@ class SimulatorTest(unittest.TestCase):
     def setUpClass(cls):
         cpc = cpcsim.CPC.from_build()
         cpc.boot()
-        cpc.frames(2, keys={KEY_F4})       # f4 : la banque DRUMS.SMP se charge
+        cpc.frames(2, keys={KEY_SAMPLE})       # f4 : la banque DRUMS.SMP se charge
         cpc.frames(1)                      # (pour les motifs à digidrums)
         cls.base = cpc
 
@@ -173,14 +173,14 @@ class SimulatorTest(unittest.TestCase):
         cpc = self.cpc
         data = gp.encode(p)
         self.make_disk({p["name"] + ".PAT": data})
-        self.key(KEY_F3)
+        self.key(KEY_DISK)
         cpc.chars = [13]                   # un seul .PAT : RETURN
         self.key(KEY_P)
         self.assertIn("MOTIF CHARGE", cpc.row(DSK_ROW))
         slot = cpc.word(cpc.addr("seq_pattern"))          # motif 1 (pat_work)
         self.assertEqual(cpc.peek(slot, 260), data)
         self.assertEqual(cpc.peek(cpc.addr("seq_bpm"))[0], p["bpm"])
-        self.key(KEY_F1)
+        self.key(KEY_MOTIF)
         self.assertIn("BPM:%03d" % p["bpm"], cpc.row(3))
         n0 = len(cpc.ay_writes)
         self.key(KEY_SPACE)
