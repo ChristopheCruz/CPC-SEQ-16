@@ -236,6 +236,22 @@ class PanelsTest(unittest.TestCase):
         self.assertGreater(self.count_steps(400), 40)     # plus de 2 mesures
         self.assertEqual(cpc.peek(cpc.addr("seq_playing"))[0], 1)
 
+    def test_signed_value_aligned(self):
+        """GLISSANDO (valeur signée) : le signe en colonne 16, les trois
+        chiffres alignés sur ceux des autres réglages (colonnes 17 à 19),
+        au premier dessin comme après CTRL + droite."""
+        cpc = self.cpc
+        self.key(KEY_INST)
+        for _ in range(2):
+            att, gli = cpc.row(4), cpc.row(21)
+            self.assertTrue(gli.startswith("GLISSANDO"), gli)
+            self.assertIn(gli[15], "+-")
+            self.assertTrue(gli[16:19].isdigit() and att[16:19].isdigit(), (att, gli))
+            self.assertEqual(att[15], " ")
+            while cpc.peek(cpc.addr("cur_inst"))[0] < 10:     # PORTA : +8
+                self.key(KEY_CTRL, KEY_RIGHT)
+        self.assertEqual(cpc.row(21)[15:19], "+008")
+
     def test_instrument_change_draws_values_only(self):
         """CTRL + droite en INST : l'écran est le même qu'un dessin complet,
         avec bien moins de caractères écrits (les noms des réglages restent)."""

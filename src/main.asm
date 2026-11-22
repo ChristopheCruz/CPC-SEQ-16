@@ -1526,7 +1526,12 @@ ins_draw_value:
         ld a,(df_i)
         add a,FIELD_ROW
         ld l,a
+        ld a,(f_type)           ; valeur signée : son signe en colonne 16,
+        cp 2                    ; les chiffres alignés sur les autres
         ld h,17
+        jr nz,idv_col
+        dec h
+idv_col:
         call TXT_SET_CURSOR
         xor a
         call TXT_SET_PAPER
@@ -1552,8 +1557,10 @@ ins_draw_field:
         ld hl,(df_text)
         ld b,15
         call print_n
+        ld a,(f_type)           ; (valeur signée : le signe prend la place
+        cp 2                    ; de l'espace, colonne 16)
         ld a,' '
-        call txt_out
+        call nz,txt_out
 idf_value:
         ld a,(df_i)             ; le réglage en cours : valeur en jaune inversé
         ld hl,cur_field
