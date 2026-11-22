@@ -89,6 +89,19 @@ class FormatTest(unittest.TestCase):
         for p in gp.PATTERNS:
             self.assertEqual(gp.check(p), [], p["name"])
 
+    def test_sixteenths(self):
+        """De vraies doubles croches (lot 6) : un tiers des notes sur les pas
+        impairs, et chaque motif en a, sauf les berceuses."""
+        for disk in ("mono", "poly"):
+            pats = [p for p in gp.PATTERNS if p["disk"] == disk]
+            self.assertGreaterEqual(gp.odd_ratio(pats), 0.30, disk)
+        for p in gp.PATTERNS:
+            if p["style"] in gp.CALM:
+                continue
+            odd = any(s % 2 and ev not in (None, gp.OFF)
+                      for lane in p["lanes"] for s, ev in enumerate(lane or []))
+            self.assertTrue(odd, p["name"])
+
     def test_checker_catches_problems(self):
         good = next(p for p in gp.PATTERNS if p["name"] == "POPCHRD1")
         wrong = dict(good, lanes=[gp.R("x.x-x.x-x.x-x.x-", "C4@1 C#4@1"), None, None, None])
