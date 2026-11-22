@@ -1062,7 +1062,7 @@ txt_s_loading:  db "CHARGEMENT DE DRUMS.SMP...",0
 txt_s_loaded:   db "BANQUE CHARGEE",0
 txt_s_big:      db "BANQUE TROP GRANDE POUR LA MEMOIRE",0
 txt_s_bad:      db "CE FICHIER N'EST PAS UNE BANQUE .SMP",0
-txt_s_nobank:   db "AUCUNE BANQUE : f3 PUIS D",0
+txt_s_nobank:   db "AUCUNE BANQUE : f9 POUR EN CHARGER",0
 txt_s_playing:  db "ECOUTE... (ESPACE : ARRET)",0
 txt_s_nomem:    db "PAS ASSEZ DE MEMOIRE POUR LES SAMPLES",0
 txt_s_reading:  db "LECTURE DU CATALOGUE...",0
@@ -1092,6 +1092,6 @@ smp_text:
         db SMP_FLD_COL+9,16,2,0,"PAR 10",0
         db SMP_FLD_COL,17,3,0,"CTRL  ",242,243,0
         db SMP_FLD_COL+9,17,2,0,"SAMPLE",0
-        db 1,24,2,0, "f3 D/E : BANQUE   O : PRENDRE 1 SAMPLE",0
+        db 1,24,2,0, "f8 SAUVER f9 CHARGER O PRENDRE 1 SAMPLE",0
         db 1,25,3,0, "ESC MAINTENUE 1 SECONDE : QUITTER",0
         db #FF

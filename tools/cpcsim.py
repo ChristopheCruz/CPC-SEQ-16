@@ -24,7 +24,7 @@ Mode d'emploi (voir tools/test_player.py)
     cpc = CPC.from_build()             # build/seq16.dsk + build/seq16.sym
     cpc.files["DRUMS.SMP"] = open(...).read()
     cpc.boot()                         # jusqu'à la boucle principale
-    cpc.frames(3, keys={KEY_F4})       # 3 images avec f4 enfoncée
+    cpc.frames(3, keys={KEY_SAMPLE})   # 3 images avec f4 enfoncée
     cpc.screen_text()                  # ce qu'il y a à l'écran
     cpc.ay_writes                      # [(instant NOP, registre, valeur), ...]
 
@@ -43,7 +43,10 @@ import amsdsk  # noqa: E402
 
 # Numéros de touches du CPC (positions)
 KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT = 0, 1, 2, 8
-KEY_F1, KEY_F2, KEY_F3, KEY_F4 = 13, 14, 5, 20
+# Panneaux de la v1.0 : f1 MOTIF, f2 SONG, f3 INST, f4 SAMPLE, f5 DISQUE ;
+# f6 mode, f8 sauver, f9 charger (matrice du clavier CPC)
+KEY_MOTIF, KEY_SONG, KEY_INST, KEY_SAMPLE, KEY_DISK = 13, 14, 5, 20, 12
+KEY_MODE, KEY_SAVE, KEY_LOAD = 4, 11, 3
 KEY_SPACE, KEY_SHIFT, KEY_CTRL, KEY_ESC = 47, 21, 23, 66
 KEY_D, KEY_RETURN = 61, 18
 PIANO_KEYS = [71, 60, 63, 61, 62, 55, 52, 54, 44, 46, 45, 38,

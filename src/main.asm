@@ -30,6 +30,9 @@ KEY_F2    equ 14
 KEY_F3    equ 5
 KEY_F4    equ 20
 KEY_F7    equ 10
+KEY_F6    equ 4                 ; pavé numérique (matrice du clavier CPC)
+KEY_F8    equ 11
+KEY_F9    equ 3
 KEY_RETURN equ 18
 KEY_S     equ 60
 KEY_L     equ 36
@@ -122,25 +125,28 @@ ml_esc:
         rst 0
 
 ; ----------------------------------------------------------------------------
-; Ecrans : f1 = séquenceur, f2 = instrument, f3 = disque, f4 = samples
+; Cinq panneaux : f1 MOTIF, f2 SONG, f3 INST, f4 SAMPLE, f5 DISQUE.
+; Numéro interne de l'écran (screen) : 0 = motif, 1 = instrument,
+; 2 = disque, 3 = samples, 4 = song (les numéros d'avant la v1.0 restent).
 ; ----------------------------------------------------------------------------
 read_screen_keys:
-        ld a,KEY_F1
+        ld hl,tab_keys
+        ld b,5
+rsk_loop:
+        ld a,(hl)
+        push hl
+        push bc
         call KM_TEST_KEY
-        ld a,0                  ; (LD ne modifie pas les drapeaux)
-        jr nz,rsk_go
-        ld a,KEY_F2
-        call KM_TEST_KEY
-        ld a,1
-        jr nz,rsk_go
-        ld a,KEY_F3
-        call KM_TEST_KEY
-        ld a,2
-        jr nz,rsk_go
-        ld a,KEY_F4
-        call KM_TEST_KEY
-        ld a,3
-        ret z
+        pop bc
+        pop hl
+        jr nz,rsk_found
+        inc hl
+        djnz rsk_loop
+        ret
+rsk_found:
+        ld de,tab_screens-tab_keys
+        add hl,de
+        ld a,(hl)               ; A = écran de ce panneau
 rsk_go:
         ld hl,screen
         cp (hl)
@@ -161,7 +167,11 @@ draw_screen:
         dec a
         jr z,ds_instrument
         dec a
-        jp nz,ds_sample         ; écran 3 : samples (smpscreen.asm)
+        jr z,ds_disk
+        dec a
+        jp z,ds_sample          ; écran 3 : samples (smpscreen.asm)
+        jp ds_song              ; écran 4 : song (panels.asm)
+ds_disk:
         ld hl,dsk_text          ; écran 2 : mixage et disquette
         call print_list
         xor a
@@ -180,7 +190,10 @@ ds_instrument:
         call TXT_SET_PAPER
         jp ins_show_all
 
-; Bandeau du haut : nom du programme et onglets, l'écran en cours en orange
+; Bandeau du haut : SEQ16 et les 5 onglets.  L'onglet du panneau en cours
+; est en bleu sur orange ; les autres ont leur chiffre en orange et leur
+; nom en cyan.  Dans txt_tabs, '|' commence un onglet (affiché en espace) :
+; un seul texte, pour que chaque langue répartisse ses 35 caractères.
 draw_title:
         ld hl,#0101
         call TXT_SET_CURSOR
@@ -190,43 +203,71 @@ draw_title:
         call TXT_SET_PEN
         ld hl,txt_title
         call print_str
+        ld hl,txt_tabs
         xor a
-        call dt_colors
-        ld hl,txt_tab1
-        call print_str
+        ld (dt_tab),a
+dt_loop:
+        ld a,(hl)
+        inc hl
+        or a
+        jr z,dt_end
+        push hl
+        cp '|'
+        jr z,dt_tab_start
+        ld c,a                  ; C = caractère à écrire
+        ld a,(dt_state)         ; 1 = c'est le chiffre de l'onglet
+        or a
+        ld b,3                  ; chiffre : orange
+        jr nz,dt_pen
+        ld b,2                  ; lettres : cyan
+dt_pen:
+        xor a
+        ld (dt_state),a
+        ld a,(dt_on)            ; onglet en cours : tout en bleu
+        or a
+        ld a,b
+        jr z,dt_setpen
+        xor a
+dt_setpen:
+        push bc
+        call TXT_SET_PEN
+        pop bc
+        ld a,c
+        jr dt_put
+dt_tab_start:                   ; '|' : un onglet commence
+        ld a,(dt_tab)
+        ld e,a
+        inc a
+        ld (dt_tab),a
+        ld d,0
+        ld hl,tab_screens
+        add hl,de
+        ld a,(screen)
+        cp (hl)
+        ld a,0
+        jr nz,dt_paper
+        ld a,3                  ; le panneau en cours : fond orange
+dt_paper:
+        ld (dt_on),a
+        call TXT_SET_PAPER
         ld a,1
-        call dt_colors
-        ld hl,txt_tab2
-        call print_str
-        ld a,2
-        call dt_colors
-        ld hl,txt_tab3
-        call print_str
-        ld a,3
-        call dt_colors
-        ld hl,txt_tab4
-        call print_str
+        ld (dt_state),a         ; le caractère suivant est le chiffre
+        ld a,' '
+dt_put:
+        call TXT_OUTPUT
+        pop hl
+        jr dt_loop
+dt_end:
         xor a
         jp TXT_SET_PAPER
-dt_colors:                      ; A = numéro de l'onglet à écrire
-        ld hl,screen
-        cp (hl)
-        jr nz,dt_other
-        ld a,3                  ; onglet de l'écran en cours
-        call TXT_SET_PAPER
-        xor a
-        jp TXT_SET_PEN
-dt_other:
-        xor a
-        call TXT_SET_PAPER
-        ld a,2
-        jp TXT_SET_PEN
 
-txt_title: db "SEQ16",0          ; 5 + 7 + 8 + 10 + 10 = 40 colonnes
-txt_tab1:  db " f1 SEQ",0
-txt_tab2:  db " f2 INST",0
-txt_tab3:  db " f3 DISQUE",0
-txt_tab4:  db " f4 SAMPLE",0
+dt_tab:      db 0               ; onglet suivant (0 à 4)
+dt_on:       db 0               ; 3 = onglet du panneau en cours, 0 sinon
+dt_state:    db 0               ; 1 = le prochain caractère est le chiffre
+txt_title:   db "SEQ16",0       ; 5 + 35 = 40 colonnes
+txt_tabs:    db "|1MOTIF|2SONG|3INST|4SAMPLE|5DISQUE",0
+tab_keys:    db KEY_F1,KEY_F2,KEY_F3,KEY_F4,KEY_F5
+tab_screens: db 0,4,1,3,2       ; écran de chaque onglet
 
 ; ----------------------------------------------------------------------------
 ; Touches de commande
@@ -286,6 +327,11 @@ rc_shift:
         inc a
 rc_ctrl:
         ld (mod_ctrl),a
+        ld a,(rc_index)         ; f8 / f9 : sauver / charger, dans tous les
+        cp 23                   ; panneaux (panels.asm)
+        jp z,panel_save
+        cp 24
+        jp z,panel_load
         ld a,(screen)
         or a
         jr z,rc_seq
@@ -293,7 +339,9 @@ rc_ctrl:
         jp z,ins_cmd            ; écran Instrument : ses propres commandes
         dec a
         jp z,dsk_cmd            ; écran Disque : ses propres commandes
-        jp smp_cmd              ; écran Samples : ses propres commandes
+        dec a
+        jp z,smp_cmd            ; écran Samples : ses propres commandes
+        jp song_cmd             ; panneau Song (panels.asm)
 rc_seq:
         ld a,(rc_index)
         cp 10
@@ -320,11 +368,11 @@ rc_seq:
         jp cmd_down
 
 cmd_table:
-        db KEY_SPACE,KEY_F5,KEY_DEL,KEY_CLR,KEY_TAB,KEY_CAPS   ; 0 à 5
+        db KEY_SPACE,KEY_F6,KEY_DEL,KEY_CLR,KEY_TAB,KEY_CAPS   ; 0 à 5
         db KEY_LEFT,KEY_RIGHT,KEY_UP,KEY_DOWN                  ; 6 à 9
         db KEY_F7,KEY_RETURN,KEY_S,KEY_L,KEY_C,KEY_N           ; 10 à 15
         db KEY_D,KEY_COPY,KEY_P,KEY_O,KEY_I,KEY_E              ; 16 à 21
-        db KEY_M                                               ; 22
+        db KEY_M,KEY_F8,KEY_F9                                 ; 22 à 24
 NB_CMDS equ $-cmd_table         ; nombre de touches de commande
 
 ; --- ESPACE : lecture / arrêt ---
@@ -2323,14 +2371,30 @@ dm_pad:
         ret
 
 ; --- Saisie du nom de fichier ------------------------------------------------
-edit_name:
+edit_name:                      ; écran Disque : RETURN sur la ligne du nom
         call silence
         ld hl,txt_m_name
         call dsk_message
+        ld hl,256*7+DSK_NAME_ROW
+        ld de,fname
+        ld bc,txt_ext
+        call name_edit
+        call dsk_draw_name
+        ld hl,txt_m_none
+        jp dsk_message
+
+; Saisie d'un nom de NAME_LEN caractères (lettres, chiffres, '-').
+; HL = position du nom à l'écran (colonne * 256 + ligne), DE = le nom,
+; modifié sur place, BC = extension affichée après le nom.
+; -> Carry = 1 : RETURN ; Carry = 0 : ESC (le nom garde ce qui a été tapé).
+name_edit:
+        ld (en_pos),hl
+        ld (en_buf),de
+        ld (en_ext),bc
 en_flush:                       ; on vide les frappes en attente
         call KM_READ_CHAR
         jr c,en_flush
-        ld hl,fname             ; position = longueur actuelle du nom
+        ld hl,(en_buf)          ; position = longueur actuelle du nom
         ld b,0
 en_len:
         ld a,(hl)
@@ -2347,11 +2411,11 @@ en_loop_init:
         ld a,1                  ; la première lettre tapée remplace tout le nom
         ld (name_fresh),a
 en_loop:
-        call dsk_draw_name
-        ld a,(name_pos)         ; curseur de saisie
-        add a,7
+        call en_draw
+        ld hl,(en_pos)          ; curseur de saisie
+        ld a,(name_pos)
+        add a,h
         ld h,a
-        ld l,DSK_NAME_ROW
         call TXT_SET_CURSOR
         ld a,3
         call TXT_SET_PAPER
@@ -2362,7 +2426,7 @@ en_loop:
         jr nc,en_wait
         ld e,a
         ld d,0
-        ld hl,fname
+        ld hl,(en_buf)
         add hl,de
         ld a,(hl)
         call TXT_OUTPUT
@@ -2371,9 +2435,9 @@ en_wait:
         call TXT_SET_PAPER
         call KM_WAIT_CHAR       ; attend une frappe (le son est coupé)
         cp 13
-        jr z,en_done            ; RETURN : fini
+        jp z,en_done            ; RETURN : fini
         cp #FC
-        jr z,en_esc             ; ESC : fini aussi
+        jp z,en_esc             ; ESC : annulé
         cp 127
         jr z,en_del             ; DEL : efface le dernier caractère
         cp 'a'
@@ -2400,7 +2464,7 @@ en_add:
         xor a
         ld (name_fresh),a
         ld (name_pos),a
-        ld hl,fname             ; nouveau nom : on efface l'ancien
+        ld hl,(en_buf)          ; nouveau nom : on efface l'ancien
         ld b,NAME_LEN
 en_clear:
         ld (hl),' '
@@ -2412,7 +2476,7 @@ en_add_go:
         jp nc,en_loop           ; nom plein
         ld e,a
         ld d,0
-        ld hl,fname
+        ld hl,(en_buf)
         add hl,de
         ld (hl),c
         inc a
@@ -2428,7 +2492,7 @@ en_del:
         ld (name_pos),a
         ld e,a
         ld d,0
-        ld hl,fname
+        ld hl,(en_buf)
         add hl,de
         ld (hl),' '
         jp en_loop
@@ -2436,10 +2500,31 @@ en_esc:
         ld a,KEY_ESC            ; on attend qu'ESC soit relâchée, pour ne pas
         call KM_TEST_KEY        ; qu'elle compte comme "quitter"
         jr nz,en_esc
+        call en_draw
+        or a                    ; Carry = 0 : annulé
+        ret
 en_done:
-        call dsk_draw_name
-        ld hl,txt_m_none
-        jp dsk_message
+        call en_draw
+        scf                     ; Carry = 1 : nom validé
+        ret
+
+; Dessine le nom en cours de saisie (jaune inversé) et son extension
+en_draw:
+        ld hl,(en_pos)
+        call TXT_SET_CURSOR
+        ld a,1
+        call TXT_SET_PAPER
+        xor a
+        call TXT_SET_PEN
+        ld hl,(en_buf)
+        ld b,NAME_LEN
+        call print_n
+        xor a
+        call TXT_SET_PAPER
+        ld a,3
+        call TXT_SET_PEN
+        ld hl,(en_ext)
+        jp print_str
 
 ; --- Sauvegarde --------------------------------------------------------------
 disk_save:
@@ -2764,7 +2849,7 @@ screen_text:
         db 6,22,2,0, "CURSEUR",0
         db 14,22,3,0,"ESPACE",0
         db 21,22,2,0,"LIRE",0
-        db 26,22,3,0,"f5",0
+        db 26,22,3,0,"f6",0
         db 29,22,2,0,"MODE",0
         db 34,22,3,0,"f7",0
         db 37,22,2,0,"MUET",0
@@ -2791,6 +2876,7 @@ screen_text:
         include 'factory.asm'
         include 'smpscreen.asm'
         include 'banks.asm'
+        include 'panels.asm'
         include 'smptables.asm'
 
 ; ----------------------------------------------------------------------------
@@ -2848,6 +2934,9 @@ dsk_row:    db 0                ; écran Disque : ligne choisie (0-3 voix, 4 nom
 dr_row:     db 0
 name_pos:   db 0
 name_fresh: db 0
+en_pos:     dw 0                ; name_edit : position du nom à l'écran,
+en_buf:     dw 0                ;   le nom modifié,
+en_ext:     dw 0                ;   l'extension affichée après
 new_armed:  db 0
 fname:      db "MORCEAU1"        ; nom de fichier, complété par des espaces
 fname_full: ds 13

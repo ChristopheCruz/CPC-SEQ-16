@@ -12,11 +12,11 @@ import lang  # noqa: E402
 
 try:
     import amsdsk
-    from cpcsim import CPC, KEY_F3, KEY_F4
+    from cpcsim import CPC, KEY_DISK, KEY_SAMPLE
 except ImportError:                  # paquet z80 ou CPC DISK absent
     CPC = None
 
-KEY_F2 = 14
+KEY_INST = 5
 ROOT = lang.ROOT
 
 
@@ -75,7 +75,7 @@ class BuiltLanguagesTest(unittest.TestCase):
         cpc = CPC.from_build(dsk(code))
         cpc.boot()
         out = {"f1": cpc.screen_text()}
-        for name, key in (("f2", KEY_F2), ("f3", KEY_F3), ("f4", KEY_F4)):
+        for name, key in (("f2", KEY_INST), ("f3", KEY_DISK), ("f4", KEY_SAMPLE)):
             cpc.frames(2, keys={key})
             cpc.frames(1)
             out[name] = cpc.screen_text()
@@ -92,7 +92,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_english(self):
         self.check("en", {
-            "f1": ["PATTERN", "CURSOR", "SOUND LOCK", "f3 DISK"],
+            "f1": ["PATTERN", "CURSOR", "SOUND LOCK", "1PATTERN 2SONG 3INST 4SAMPLE 5DISK", "f6 MODE"],
             "f2": ["ENVELOPE", "ATTACK", "BANK SOUND"],
             "f3": ["MIXER", "SAVE INSTR.", "CATALOG", "HOLD ESC 1 SECOND: QUIT"],
             "f4": ["BANK   :", "SETTINGS", "FREQUENCY", "TAKE 1 SAMPLE"],
@@ -100,7 +100,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_spanish(self):
         self.check("es", {
-            "f1": ["PATRON:", "CURSOR", "BLOQ.SONID", "f3 DISCO"],
+            "f1": ["PATRON:", "CURSOR", "BLOQ.SONID", "1PATRON 2TEMA 3INST 4SAMPLE 5DISCO", "f6 MODO"],
             "f2": ["ENVOLV.", "ATAQUE", "SON. BANCO"],
             "f3": ["MEZCLA", "GRABAR INSTR.", "CATALOGO", "ESC PULSADA 1 SEGUNDO: SALIR"],
             "f4": ["BANCO  :", "AJUSTES", "FRECUENC.", "TOMAR 1 SAMPLE"],
@@ -108,7 +108,7 @@ class BuiltLanguagesTest(unittest.TestCase):
 
     def test_french_unchanged(self):
         self.check("fr", {
-            "f1": ["MOTIF :", "VERROU SON"],
+            "f1": ["MOTIF :", "VERROU SON", "1MOTIF 2SONG 3INST 4SAMPLE 5DISQUE"],
             "f3": ["MIXAGE", "SAUVER INSTR."],
             "f4": ["REGLAGES"],
         })

@@ -16,7 +16,7 @@ import test_player  # noqa: E402
 from test_patterns import make_pattern  # noqa: E402
 
 cpcsim = test_player.cpcsim
-KEY_F1, KEY_F3, KEY_S, KEY_L = 13, 5, 60, 36
+KEY_MOTIF, KEY_DISK, KEY_S, KEY_L = 13, 12, 60, 36
 KEY_CTRL, KEY_RIGHT, KEY_LEFT = 23, 1, 8
 PAT_SIZE = 260
 SONG_FIXED = 16 + 32 * 16 + 32 * 6 + 8 * 16
@@ -80,7 +80,7 @@ class BankTest(unittest.TestCase):
         mine = make_pattern(mode=0, bpm=133, seed=7)
         cpc.poke(self.pat_work(), mine)                       # on « édite » le motif 1
         demo1 = self.bank_pattern(1)
-        self.key(KEY_F1)
+        self.key(KEY_MOTIF)
         self.key(KEY_CTRL, KEY_RIGHT)                         # motif 2
         self.assertEqual(self.cur_pat(), 1)
         self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), demo1)
@@ -94,7 +94,7 @@ class BankTest(unittest.TestCase):
         """Les copies se font interruptions coupées, moins de 2 ms, et les
         interruptions sont rendues ensuite."""
         cpc = self.cpc
-        self.key(KEY_F1)
+        self.key(KEY_MOTIF)
         n0 = len(cpc.di_spans)
         self.key(KEY_CTRL, KEY_RIGHT)
         spans = cpc.di_spans[n0:]
@@ -108,7 +108,7 @@ class BankTest(unittest.TestCase):
         cpc = self.cpc
         mine = make_pattern(mode=1, bpm=99, seed=3)
         cpc.poke(self.pat_work(), mine)                       # motif affiché modifié
-        self.key(KEY_F3)
+        self.key(KEY_DISK)
         self.key(KEY_S)
         self.assertIn("MORCEAU SAUVE", cpc.row(MSG_ROW))
         data = cpc.saved["MORCEAU1.SNG"]
@@ -121,7 +121,7 @@ class BankTest(unittest.TestCase):
 
     def test_load_song_roundtrip(self):
         cpc = self.cpc
-        self.key(KEY_F3)
+        self.key(KEY_DISK)
         self.key(KEY_S)
         song = bytearray(cpc.saved["MORCEAU1.SNG"])
         pats = [make_pattern(mode=n % 2, bpm=100 + n, seed=n) for n in range(32)]
@@ -140,7 +140,7 @@ class BankTest(unittest.TestCase):
             self.assertEqual(self.bank_pattern(n), pats[n], n)
         names = cpc.addr("smp_blk_src") + 16 + 32 * 16
         self.assertEqual(cpc.peek(names, 6), b"TESTIN")       # copie de travail
-        self.key(KEY_F1)
+        self.key(KEY_MOTIF)
         for _ in range(5):
             self.key(KEY_CTRL, KEY_RIGHT)
         self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), pats[5])

@@ -27,9 +27,9 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
 import cpcsim  # noqa: E402
-from cpcsim import (CPC, KEY_F2, KEY_F3, KEY_F4, KEY_SPACE)  # noqa: E402
+from cpcsim import (CPC, KEY_INST, KEY_DISK, KEY_SAMPLE, KEY_MODE, KEY_SPACE)  # noqa: E402
 
-KEY_F5, KEY_C = 12, 62
+KEY_C = 62
 
 # Couleurs : encre 0 bleu, 1 jaune, 2 cyan (couleurs du CPC au démarrage),
 # 3 orange (le programme la change). La bordure est bleue.
@@ -152,24 +152,24 @@ def s_playing(cpc):
 
 
 def s_layered(cpc):
-    press(cpc, KEY_F5)
+    press(cpc, KEY_MODE)
 
 
 def s_instrument(cpc):
-    press(cpc, KEY_F2)
+    press(cpc, KEY_INST)
 
 
 def s_mixer(cpc):
-    press(cpc, KEY_F3)
+    press(cpc, KEY_DISK)
 
 
 def s_catalog(cpc):
-    press(cpc, KEY_F3)
+    press(cpc, KEY_DISK)
     press(cpc, KEY_C, after=3)
 
 
 def s_sampler(cpc):
-    press(cpc, KEY_F4, after=3)
+    press(cpc, KEY_SAMPLE, after=3)
 
 
 SCENES = [
