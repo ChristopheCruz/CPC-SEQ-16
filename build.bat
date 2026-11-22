@@ -35,10 +35,14 @@ if errorlevel 1 goto pas_python
 rem Motifs d'usine (.PAT) : build\seq16-motifs-mono.dsk, seq16-motifs-poly.dsk
 python tools\gen_patterns.py
 if errorlevel 1 goto pas_python
+rem Morceaux de test (.SNG, .INS, .PAT) : build\seq16-songs.dsk
+python tools\gen_songs.py
+if errorlevel 1 goto pas_python
 echo.
 echo OK : build\seq16.dsk (francais), seq16-en.dsk (English), seq16-es.dsk (espanol).
 echo      build\seq16-inst.dsk et seq16-samples.dsk : les banques seules.
-echo      build\seq16-motifs-mono.dsk et seq16-motifs-poly.dsk : les motifs (f3 P).
+echo      build\seq16-motifs-mono.dsk et seq16-motifs-poly.dsk : les motifs (f9).
+echo      build\seq16-songs.dsk : le programme et 5 morceaux de test.
 echo Sur le CPC : RUN"SEQ16
 exit /b 0
 :pas_python

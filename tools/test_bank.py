@@ -60,7 +60,7 @@ class BankTest(unittest.TestCase):
         # le motif affiché et le tampon d'AMSDOS sont hors de la fenêtre
         self.assertGreaterEqual(self.pat_work(), 0x8000)
         self.assertLessEqual(self.pat_work() + PAT_SIZE, 0x9800)
-        self.assertEqual(cpc.window, 1)                       # mémoire normale
+        self.assertEqual(cpc.ram_block, 1)                       # mémoire normale
 
     # --- morceau d'usine ---------------------------------------------------------
     def test_factory_patterns_in_bank(self):
@@ -88,7 +88,7 @@ class BankTest(unittest.TestCase):
         self.key(KEY_CTRL, KEY_LEFT)                          # retour au motif 1
         self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), mine)
         self.assertEqual(cpc.peek(cpc.addr("seq_bpm"))[0], 133)
-        self.assertEqual(cpc.window, 1)
+        self.assertEqual(cpc.ram_block, 1)
 
     def test_switch_interrupts(self):
         """Les copies se font interruptions coupées, moins de 2 ms, et les
@@ -117,7 +117,7 @@ class BankTest(unittest.TestCase):
         self.assertEqual(data[:SONG_FIXED], cpc.peek(song, SONG_FIXED))
         self.assertEqual(data[SONG_FIXED:SONG_FIXED + PAT_SIZE], mine)
         self.assertEqual(data, cpc.bank_peek(4, 0x4000, SONG_SIZE))
-        self.assertEqual(cpc.window, 1)
+        self.assertEqual(cpc.ram_block, 1)
 
     def test_load_song_roundtrip(self):
         cpc = self.cpc
@@ -144,7 +144,7 @@ class BankTest(unittest.TestCase):
         for _ in range(5):
             self.key(KEY_CTRL, KEY_RIGHT)
         self.assertEqual(cpc.peek(self.pat_work(), PAT_SIZE), pats[5])
-        self.assertEqual(cpc.window, 1)
+        self.assertEqual(cpc.ram_block, 1)
 
 
 if cpcsim is not None:
