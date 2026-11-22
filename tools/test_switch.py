@@ -83,9 +83,11 @@ class SwitchTest(unittest.TestCase):
 if cpcsim is not None:
     class SlowTextCPC(RealTimeCPC):
         """Un CPC où écrire un caractère prend du temps, comme le vrai
-        firmware (environ 400 µs) : les dessins durent plusieurs images."""
+        firmware : environ 3,5 ms.  Mesuré sur la machine avec le
+        chronomètre des pas (PIXEL, panneau SONG : « MESURE 460 MS » avant
+        txt_out, exactement ce que donne le simulateur à 3 500 µs)."""
         def fw_TXT_OUTPUT(self):
-            self.t += 400
+            self.t += 3500
             super().fw_TXT_OUTPUT()
 
 
@@ -123,12 +125,13 @@ class SongTempoTest(unittest.TestCase):
     def test_bar_change_on_time(self):
         for screen_key in (14, 13):                        # SONG, puis MOTIF
             gaps = self.steps(screen_key)
-            # 125 BPM : un pas = 6 images (120 ms), à une image près, même
-            # au changement de motif et pendant le dessin qui le suit
+            # 125 BPM : un pas = 6 images (120 ms), à une image près (plus un
+            # caractère : le son ne reprend qu'entre deux), même au
+            # changement de motif et pendant le dessin qui le suit
             self.assertTrue([g for g, bar in gaps if bar])
             for g, _ in gaps:
-                self.assertLessEqual(g, 7 * FRAME, (screen_key, g))
-                self.assertGreaterEqual(g, 5 * FRAME, (screen_key, g))
+                self.assertLessEqual(g, 7 * FRAME + 3500, (screen_key, g))
+                self.assertGreaterEqual(g, 5 * FRAME - 3500, (screen_key, g))
 
     def test_stopwatch_on_stop(self):
         """ESPACE arrête la lecture : la ligne 25 donne le plus court et le
@@ -168,6 +171,34 @@ class SongTempoTest(unittest.TestCase):
         for shown, real in ((lo, min(steps)), (hi, max(steps)),
                             (blo, min(bars)), (bhi, max(bars))):
             self.assertLessEqual(abs(shown - real), 4, (row, shown, real))
+
+    def test_real_song_bar_change(self):
+        """PIXEL (150 BPM, un pas = 100 ms) de la disquette des morceaux,
+        panneau SONG, au rythme réel du firmware : sur le CPC, le chronomètre
+        donnait « PAS 100-100  MESURE 460-460 MS » (le dessin de la position
+        retardait le pas 0).  Il faut des pas réguliers, mesures comprises."""
+        import re
+        disk = os.path.join(HERE, "..", "build", "seq16-songs.dsk")
+        cpc = SlowTextCPC.from_build(disk)
+        cpc.boot()
+        cpc.frames(1, keys={14})                           # SONG
+        cpc.frames(1)
+        names = [n for n in cpc.files if n.endswith(".SNG")]
+        cpc.chars = [0xF1] * names.index("PIXEL.SNG") + [13]
+        cpc.frames(1, keys={3})                            # f9
+        cpc.frames(1)
+        self.assertIn("SONG:PIXEL", cpc.row(2))
+        cpc.frames(1, keys={KEY_SPACE})
+        cpc.frames(1)
+        t0 = cpc.t
+        while cpc.t - t0 < 12 * 1_000_000:                 # 7 mesures
+            cpc.frames(1)
+        cpc.frames(1, keys={KEY_SPACE})
+        cpc.frames(1)
+        m = re.match(r"PAS (\d+)-(\d+)  MESURE (\d+)-(\d+) MS", cpc.row(25))
+        self.assertTrue(m, cpc.row(25))
+        for v in map(int, m.groups()):
+            self.assertLessEqual(abs(v - 100), 24, cpc.row(25))
 
 
 if __name__ == "__main__":

@@ -47,6 +47,7 @@ seq_set_pattern:
 seq_start:
         call clock_reset        ; chronométrage des pas (songpanel.asm)
         xor a
+        ld (sq_end),a
         ld (seq_step),a
         ld hl,SEQ_BEAT          ; le premier pas part tout de suite
         ld (seq_acc),hl
@@ -56,6 +57,7 @@ seq_start:
 
 seq_stop:
         xor a
+        ld (sq_end),a
         ld (seq_playing),a
         ld (song_live),a        ; (fin de la lecture du morceau)
         ld (song_transp),a
@@ -86,14 +88,16 @@ seq_frame:
         sbc hl,de
         jr c,sq_wait            ; pas encore
         ld (seq_acc),hl         ; oui : on garde le reste, pour rester exact
+        ld a,(sq_end)           ; « 1 FOIS » : le motif est fini, on s'arrête
+        or a                    ; à l'heure où son pas 0 aurait été rejoué
+        jp nz,seq_stop
         call step_clock         ; (l'heure réelle du pas, pour le chronomètre)
         call seq_trigger        ; on joue les notes du pas
         ld a,(seq_step)
         inc a
         and 15
         ld (seq_step),a
-        call z,song_bar         ; fin de la mesure : position suivante du
-                                ; morceau (songpanel.asm)
+        call z,bar_end          ; fin de la mesure
 sq_wait:
         ld hl,(seq_acc)         ; à chaque image, le compteur avance du tempo
         ld a,(seq_bpm)
@@ -102,6 +106,22 @@ sq_wait:
         add hl,de
         ld (seq_acc),hl
         ret
+
+; Fin de la mesure : panneau MOTIF en « 1 FOIS », la lecture s'arrêtera au
+; prochain pas ; sinon le morceau passe à la position suivante (song_bar,
+; songpanel.asm ; en MOTIF, il ne fait rien : le motif boucle)
+bar_end:
+        ld a,(screen)
+        or a
+        jp nz,song_bar
+        ld a,(pat_once)
+        or a
+        ret z                   ; BOUCLE
+        ld (sq_end),a
+        ret
+
+sq_end:   db 0                  ; 1 = « 1 FOIS » : le motif a été joué
+pat_once: db 0                  ; panneau MOTIF : 0 = BOUCLE, 1 = 1 FOIS
 
 ; Joue les notes du pas courant
 seq_trigger:

@@ -48,7 +48,7 @@ colors:
 
 ; Affiche B fois le caractère A
 out_rep:
-        call TXT_OUTPUT
+        call txt_out
         djnz out_rep
         ret
 
@@ -111,18 +111,18 @@ print_note:
         ld hl,note_names
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         inc hl
         ld a,(hl)
         cp '-'
         jr nz,pn_sharp
         ld a,' '
 pn_sharp:
-        call TXT_OUTPUT
+        call txt_out
         pop de
         ld a,d
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; A (0-255) en 2 chiffres hexadécimaux
 print_hex2:
@@ -143,7 +143,7 @@ print_inst:
         inc a
         call print_dec2
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         pop af
         ld e,a
         add a,a
@@ -168,13 +168,32 @@ pd3_hundreds:
 pd3_out:
         push af
         ld a,c
-        call TXT_OUTPUT
+        call txt_out
         pop af
         jp print_dec2
 
-; Pendant un long affichage, la boucle principale ne tourne pas : si une
-; image (6 tops de 1/300 s) s'est écoulée depuis le dernier tour de son, on
-; en joue un ici.  Ne touche pas à l'écran ; les registres ne sont pas gardés.
+; Comme TXT_OUTPUT (garde tous les registres), mais la musique continue :
+; chaque caractère écrit donne sa chance à snd_tick.  Sur le vrai CPC, un
+; caractère coûte plusieurs millisecondes : un dessin de 100 caractères
+; retardait le pas suivant de 360 ms (chronomètre, panneau SONG).
+txt_out:
+        push af
+        push bc
+        push de
+        push hl
+        push ix
+        call snd_tick
+        pop ix
+        pop hl
+        pop de
+        pop bc
+        pop af
+        jp TXT_OUTPUT
+
+; Pendant un long affichage, la boucle principale ne tourne pas : on joue
+; ici toutes les images (6 tops de 1/300 s) écoulées depuis le dernier tour
+; de son (au-delà de 10, on repart de maintenant).  Ne touche pas à
+; l'écran ; les registres ne sont pas gardés.
 snd_tick:
         call KL_TIME_PLEASE     ; L = temps, en 1/300 s
         ld a,(tick_last)
@@ -183,8 +202,18 @@ snd_tick:
         sub b
         cp 6
         ret c                   ; pas encore une image
+        cp 61
+        jr nc,st_resync
         ld a,b
         add a,6
+        ld (tick_last),a
+        ld a,1
+        ld (sc_ticked),a
+        call seq_frame
+        call snd_frame
+        jr snd_tick             ; une autre image en retard ?
+st_resync:
+        ld a,l
         ld (tick_last),a
         ld a,1
         ld (sc_ticked),a
@@ -384,13 +413,13 @@ dce_pen1:
         call TXT_SET_PEN
         pop bc
         ld a,c
-        call TXT_OUTPUT
+        call txt_out
         call is_cursor_cell     ; second caractère
         jr nz,dce_second
         ld a,1
         call TXT_SET_PEN
         ld a,CH_MARK
-        call TXT_OUTPUT
+        call txt_out
         jr dce_gap
 dce_second:
         call dce_tail_char
@@ -410,7 +439,7 @@ dce_tail_char:                  ; trait (ou espace), couleur de la voix
         jr z,dce_tc_out
         ld a,CH_HOLD
 dce_tc_out:
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; --- Une voix, la grille -----------------------------------------------------------
 ; La voix dg_l : son nom et ses 16 cases
@@ -485,7 +514,7 @@ draw_label:
         xor a
         call TXT_SET_PAPER
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         call is_layered         ; voix muette ? (son composé : la voix A)
         ld a,0
         jr nz,dlb_mask
@@ -515,7 +544,7 @@ dlb_colors:
         ld hl,lane_letters
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld b,3
         jr dlb_pad
 dlb_son:
@@ -585,7 +614,7 @@ dh_print:
         call TXT_SET_PAPER
 dh_second:
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         xor a
         jp TXT_SET_PAPER
 
@@ -612,7 +641,8 @@ hide_playhead:
         ld a,#FF
         ld (shown_pos),a
         ld a,b
-        ; continue dans draw_column
+        call draw_column
+        jp show_state           ; (fin d'une lecture « 1 FOIS » : ARRET)
 
 ; Le pas A : son numéro et ses cases
 draw_column:
@@ -683,7 +713,7 @@ show_pattern:                   ; numéro du motif et son nom (celui de son
         inc a
         call print_dec2
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(cur_pat)
         call pat_name_ptr       ; HL = nom (8 caractères)
         ld b,8
@@ -693,7 +723,7 @@ spn_char:
         jr nc,spn_put
         ld a,' '
 spn_put:
-        call TXT_OUTPUT         ; (garde les registres)
+        call txt_out         ; (garde les registres)
         inc hl
         djnz spn_char
         ld a,' '                ; jusqu'à BPM
@@ -720,14 +750,14 @@ show_state:
         ld bc,2*256+0
         call colors
         ld a,CH_ON
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_stop
         jp print_str
 sst_play:
         ld bc,1*256+0
         call colors
         ld a,246                ; ►
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_play
         jp print_str
 
@@ -742,7 +772,7 @@ show_octave:
         call TXT_SET_PEN
         ld a,(cur_oct)
         add a,'0'
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; --- Le pinceau (ligne 19) -----------------------------------------------------------
 ; La note que pose ENTER (sur la voix de bruit : sa période) et l'instrument
@@ -756,17 +786,17 @@ show_inst:
         ld bc,3*256+0
         call colors
         ld a,CH_BRUSH
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,(cur_l)
         ld (dg_l),a
         call lane_is_noise
         jr nz,sb_note
         ld a,'B'                ; bruit : "BR" et la période
-        call TXT_OUTPUT
+        call txt_out
         ld a,'R'
-        call TXT_OUTPUT
+        call txt_out
         ld a,(brush_noise)
         call print_hex2
         jr sb_ins
@@ -774,7 +804,7 @@ sb_note:
         ld a,(brush_note)
         call print_note
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
 sb_ins:
         ld hl,256*16+BRUSH_ROW
         call TXT_SET_CURSOR
@@ -795,10 +825,10 @@ sb_son:
         ld a,3
         call TXT_SET_PEN
         ld a,'S'
-        call TXT_OUTPUT
+        call txt_out
         ld a,(cur_son)
         add a,'1'
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
         ld b,7
         call out_rep
@@ -849,13 +879,13 @@ db_side:
         ld h,1
         call TXT_SET_CURSOR
         ld a,149                ; │
-        call TXT_OUTPUT
+        call txt_out
         pop hl
         push hl
         ld h,40
         call TXT_SET_CURSOR
         ld a,149
-        call TXT_OUTPUT
+        call txt_out
         pop hl
         inc l
         ld a,l
@@ -864,12 +894,12 @@ db_side:
         ld hl,256*1+BOX_BOT
         call TXT_SET_CURSOR
         ld a,147                ; └
-        call TXT_OUTPUT
+        call txt_out
         ld a,CH_HOLD
         ld b,38
         call out_rep
         ld a,153                ; ┘
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; Ligne du haut du cadre (ligne L)
 box_line:
@@ -878,12 +908,12 @@ box_line:
         ld bc,2*256+0
         call colors
         ld a,150                ; ┌
-        call TXT_OUTPUT
+        call txt_out
         ld a,CH_HOLD
         ld b,38
         call out_rep
         ld a,156                ; ┐
-        jp TXT_OUTPUT
+        jp txt_out
 
 draw_panel:
         ld a,(screen)
@@ -946,11 +976,11 @@ pt_text:
         ld a,(cur_s)
         call print_hex1
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld a,CH_HOLD
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         call is_layered
         jr nz,pt_son
         ld hl,txt_t_voice       ; "VOIX "
@@ -961,9 +991,9 @@ pt_text:
         ld hl,lane_letters
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         jr pt_edit
 pt_son:
         ld hl,txt_comp
@@ -1049,7 +1079,7 @@ dk_low_p:
         ld hl,wk_letters
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld a,(dk_w)
         cp 13
         jr z,dk_low_last
@@ -1060,7 +1090,7 @@ dk_low_p:
 dk_low_last:
         ld a,' '
 dk_low_out:
-        call TXT_OUTPUT
+        call txt_out
         ld a,(dk_w)
         inc a
         cp 14
@@ -1084,7 +1114,7 @@ dk_up_p:
         call TXT_SET_PAPER
         pop de
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld hl,wk_black
         add hl,de
         ld a,(hl)
@@ -1114,7 +1144,7 @@ dk_up_white:
         call TXT_SET_PAPER
         ld a,149
 dk_up_out:
-        call TXT_OUTPUT
+        call txt_out
         ld a,(dk_w)
         inc a
         cp 14
@@ -1131,12 +1161,12 @@ dk_up_out:
         call TXT_SET_PEN
         ld a,(cur_oct)
         add a,'0'
-        call TXT_OUTPUT
+        call txt_out
         ld a,'-'
-        call TXT_OUTPUT
+        call txt_out
         ld a,(cur_oct)
         add a,'1'
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; dk_w (0-13) -> A = demi-ton (0-23) de cette blanche, E = rang dans l'octave
 dk_white:
@@ -1189,14 +1219,14 @@ draw_fields:
         jr df_ins
 df_noise:
         ld a,'B'
-        call TXT_OUTPUT
+        call txt_out
         ld a,'R'
-        call TXT_OUTPUT
+        call txt_out
         ld hl,(df_cell)
         ld a,(hl)
         call print_hex2
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         jr df_ins
 df_off:
         ld hl,txt_f_off         ; "ARRET"
@@ -1215,7 +1245,7 @@ df_ins:
         ld bc,2*256+0
         call colors
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         call is_layered
         ld hl,txt_f_ins
         jr z,df_ins_lab
@@ -1235,10 +1265,10 @@ df_ins_lab:
         jr df_vol
 df_son:
         ld a,'S'
-        call TXT_OUTPUT
+        call txt_out
         ld a,(df_ins_n)
         add a,'1'
-        call TXT_OUTPUT
+        call txt_out
         ld a,' '
         ld b,7
         call out_rep
@@ -1247,7 +1277,7 @@ df_vol:
         ld bc,2*256+0
         call colors
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_f_vol         ; "VOL:"
         call print_str
         ld a,2
@@ -1262,12 +1292,12 @@ df_vol:
         jr df_fx
 df_vol_def:
         ld a,'-'                ; volume de l'instrument
-        call TXT_OUTPUT
+        call txt_out
 df_fx:
         ld bc,2*256+0
         call colors
         ld a,' '
-        call TXT_OUTPUT
+        call txt_out
         ld hl,txt_f_fx          ; "FX:"
         call print_str
         ld a,3
@@ -1283,11 +1313,11 @@ df_fx:
         jr dfd_end
 df_fx_none:
         ld a,'-'
-        call TXT_OUTPUT
-        call TXT_OUTPUT
+        call txt_out
+        call txt_out
 dfd_end:
         ld a,' '
-        jp TXT_OUTPUT
+        jp txt_out
 
 ; Couleurs du champ A (0 NOTE, 1 INS, 2 VOL) : jaune inversé s'il est choisi
 ; en mode édition, orange sinon
@@ -1336,7 +1366,7 @@ dly_ok:
         call print_str
         ld a,(dly_n)
         add a,'1'
-        call TXT_OUTPUT
+        call txt_out
         call snd_tick
         ld hl,256*1+LAYER_ROW+1
         call TXT_SET_CURSOR
@@ -1370,7 +1400,7 @@ dly_voice:
         ld hl,lane_letters
         add hl,de
         ld a,(hl)
-        call TXT_OUTPUT
+        call txt_out
         ld a,(dly_row)
         ld l,a
         ld h,9
@@ -1383,8 +1413,8 @@ dly_voice:
         cp #FF
         jr nz,dly_used
         ld a,'-'                ; voix non utilisée par ce son
-        call TXT_OUTPUT
-        call TXT_OUTPUT
+        call txt_out
+        call txt_out
         jr dly_next
 dly_used:
         call print_inst
@@ -1399,9 +1429,9 @@ dly_used:
         cp 3
         jr nz,dly_offset
         ld a,'B'
-        call TXT_OUTPUT
+        call txt_out
         ld a,'R'
-        call TXT_OUTPUT
+        call txt_out
         ld a,c
         call print_hex2
         jr dly_vol
@@ -1418,7 +1448,7 @@ dly_offset:
 dly_sign:
         ld c,a
         ld a,b
-        call TXT_OUTPUT
+        call txt_out
         ld a,c
         call print_dec2
 dly_vol:
@@ -1436,7 +1466,7 @@ dly_vol:
         jr dly_next
 dly_vol_def:
         ld a,'-'
-        call TXT_OUTPUT
+        call txt_out
 dly_next:
         call snd_tick
         ld hl,(dly_ptr)
@@ -1455,6 +1485,7 @@ redraw_all:
         ld (shown_pos),a
         call show_pattern
         call show_state
+        call show_loop          ; BOUCLE / 1 FOIS
         call snd_tick           ; la musique continue pendant le dessin : un
         call show_speed         ; tour au plus toutes les 20 ms environ, pour
         call draw_grid          ; qu'aucun pas ne soit en retard (mode
