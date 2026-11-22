@@ -17,7 +17,7 @@
 ;   song_data ; au chargement, on saute l'en-tête : les volumes du mixage
 ;   ne changent pas.
 ;
-; Le chargement lit le fichier octet par octet (CAS_IN_CHAR) : il n'y a pas
+; Le chargement lit le fichier octet par octet (cas_in_byte) : il n'y a pas
 ; la place de garder une copie du fichier en mémoire.  Pour choisir un son,
 ; on range les 32 noms de la banque dans la zone de travail SCRATCH (les
 ; tables des samples, refaites avant chaque écoute), puis on relit le
@@ -224,7 +224,7 @@ ins_open:
         ld hl,song_sig          ; puis la signature "SQ16"
         ld b,4
 io_sig:
-        call CAS_IN_CHAR
+        call cas_in_byte
         jr nc,io_err
         cp (hl)
         jr nz,io_bad
@@ -250,7 +250,7 @@ cas_skip:
         or e
         scf
         ret z                   ; plus rien à sauter
-        call CAS_IN_CHAR        ; (garde BC, DE et HL)
+        call cas_in_byte        ; (garde BC, DE et HL)
         ret nc
         dec de
         jr cas_skip
@@ -262,7 +262,7 @@ cas_read:
         or e
         scf
         ret z                   ; tout est lu
-        call CAS_IN_CHAR
+        call cas_in_byte
         ret nc
         ld (hl),a
         inc hl

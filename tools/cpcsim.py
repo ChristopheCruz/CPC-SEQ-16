@@ -649,13 +649,16 @@ class CPC:
         elif data is not None:
             self.cas_in_mode = "char"
         if data is None or self.cas_pos >= len(data):
-            self.m.a = JUNK
-            self.m.f = 0x40                   # Z, Carry = 0 : fin du fichier
+            self.m.a = 0x0F                   # fin « dure »
+            self.m.f = 0x00                   # Carry = 0, Z = 0
             return
         self.m.a = data[self.cas_pos]
         self.cas_pos += 1
         self.m.f = 0x00
-        self._carry(True)
+        # Comme AMSDOS : l'octet #1A est signalé comme une « fin douce »
+        # (Carry = 0, A = #1A), même dans un fichier binaire ; la lecture
+        # peut continuer.  La vraie fin : Carry = 0, A = #0F.
+        self._carry(self.m.a != 0x1A)
 
     def fw_CAS_IN_CLOSE(self):
         self.cas_in = None
