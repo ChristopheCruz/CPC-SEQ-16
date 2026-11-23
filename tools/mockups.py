@@ -19,7 +19,7 @@ import zlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
-INKS = [(0, 0, 127), (255, 255, 0), (0, 255, 255), (255, 127, 0)]
+INKS = [(0, 0, 128), (255, 0, 255), (0, 255, 255), (255, 255, 128)]   # palette néon (main.asm)
 SCALE, BORDER_PX, MATRIX = 4, 8, 0x3800
 BLUE, YELLOW, CYAN, ORANGE = 0, 1, 2, 3
 

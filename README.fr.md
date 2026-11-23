@@ -210,7 +210,7 @@ La grille : les voix A, B, C et N (bruit) sur 16 pas, ou une seule ligne `SON` e
 | CTRL + ←/→ | motif précédent / suivant (32 motifs) ; pendant la lecture, la musique continue |
 | f8 / f9 | sauver / charger le motif affiché (`.PAT`) |
 
-Une note tenue est prolongée par un trait jusqu'à son arrêt. Une voix muette s'affiche en orange.
+Une note tenue est prolongée par un trait jusqu'à son arrêt. Une voix muette s'affiche en jaune pâle.
 
 ### f3 — INST (instruments et sons composés)
 
@@ -396,7 +396,7 @@ Le CPC n'a pas de convertisseur numérique-analogique. Il joue un sample en chan
 **1. Ouvrir le sampler.** Appuie sur **f4**. La première fois, la banque `DRUMS.SMP` se charge toute seule, et ses 4 sons s'affichent à gauche.
 
 **2. Écouter.**
-- Choisis un sample avec **CTRL + ←/→**. Le sample choisi est en jaune inversé.
+- Choisis un sample avec **CTRL + ←/→**. Le sample choisi est en magenta inversé.
 - **ESPACE** le joue à sa hauteur d'origine. ESPACE à nouveau l'arrête.
 - **Les touches du piano** le jouent plus aigu ou plus grave : la rangée du haut, à partir de la touche du DO, part de la hauteur d'origine et monte de demi-ton en demi-ton ; la rangée du bas joue une octave plus bas.
 - Pendant l'écoute, l'écran ne bouge plus : c'est normal.

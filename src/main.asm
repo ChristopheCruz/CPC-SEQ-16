@@ -59,10 +59,19 @@ start:
 boot:
         ld a,1                  ; Mode 1 : 40 colonnes, 4 couleurs
         call SCR_SET_MODE
+        ld bc,COL_BLEU*257      ; palette « néon » (écran de chargement) :
+        call SCR_SET_BORDER     ; bordure et fond bleu nuit,
+        xor a
         ld bc,COL_BLEU*257
-        call SCR_SET_BORDER
-        ld a,3                  ; l'encre 3 devient orange
-        ld bc,COL_ORANGE*257
+        call SCR_SET_INK
+        ld a,1                  ; encre 1 (surbrillances, « jaune » dans les
+        ld bc,COL_MAGENTA*257   ; commentaires d'avant) : magenta,
+        call SCR_SET_INK
+        ld a,2                  ; encre 2 (noms) : cyan,
+        ld bc,COL_CYAN*257
+        call SCR_SET_INK
+        ld a,3                  ; encre 3 (valeurs, « orange » dans les
+        ld bc,COL_JAUNE_PALE*257  ; commentaires d'avant) : jaune pâle
         call SCR_SET_INK
 
         call bank_check         ; il faut les 128 Ko du 6128 (bank.asm)

@@ -37,7 +37,7 @@ KEY_C, KEY_DOWN = 62, 2
 
 # Couleurs : encre 0 bleu, 1 jaune, 2 cyan (couleurs du CPC au démarrage),
 # 3 orange (le programme la change). La bordure est bleue.
-INKS = [(0, 0, 127), (255, 255, 0), (0, 255, 255), (255, 127, 0)]
+INKS = [(0, 0, 128), (255, 0, 255), (0, 255, 255), (255, 255, 128)]   # palette néon (main.asm)
 BORDER = INKS[0]
 SCALE = 4
 BORDER_PX = 8                     # pixels CPC (mode 1) de bordure autour du texte
