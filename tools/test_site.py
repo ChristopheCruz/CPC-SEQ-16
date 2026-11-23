@@ -33,6 +33,7 @@ class SiteTest(unittest.TestCase):
             for src in re.findall(r'(?:src|poster)="([^"]+)"', text):
                 if src.startswith("http"):
                     continue
+                src = src.split("?")[0]            # (?v=1.0 : version, pour le cache)
                 self.assertTrue(os.path.isfile(os.path.normpath(os.path.join(base, src))), (path, src))
 
     def test_every_snapshot_is_on_the_site(self):
