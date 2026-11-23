@@ -56,6 +56,14 @@ class PanelsTest(unittest.TestCase):
         return self.cpc.peek(self.cpc.word(self.cpc.addr("seq_pattern")), PAT_SIZE)
 
     # --- onglets ---------------------------------------------------------------
+    def test_neon_palette(self):
+        """Palette « néon » (celle de l'écran de chargement) : fond et bordure
+        bleu nuit, surbrillances magenta, noms cyan, valeurs jaune pâle."""
+        cpc = cpcsim.CPC.from_build()
+        cpc.boot()
+        self.assertEqual(cpc.inks, {0: 1, 1: 8, 2: 20, 3: 25})
+        self.assertEqual(cpc.border, 1)
+
     def test_tabs(self):
         """f1 à f5 : le bon panneau, et son onglet en bleu sur orange."""
         cpc = self.cpc

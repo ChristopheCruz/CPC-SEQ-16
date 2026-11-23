@@ -210,7 +210,7 @@ The grid: voices A, B, C and N (noise) over 16 steps, or a single `LAY` line in 
 | CTRL + ←/→ | previous / next pattern (32 patterns); while playing, the music goes on |
 | f8 / f9 | save / load the displayed pattern (`.PAT`) |
 
-A held note is drawn as a line up to its stop. A muted voice shows in orange.
+A held note is drawn as a line up to its stop. A muted voice shows in pale yellow.
 
 ### f3 — INST (instruments and layered sounds)
 
@@ -396,7 +396,7 @@ The CPC has no digital-to-analogue converter. It plays a sample by changing the 
 **1. Open the sampler.** Press **f4**. The first time, the `DRUMS.SMP` bank loads by itself and its 4 sounds show on the left.
 
 **2. Listen.**
-- Pick a sample with **CTRL + ←/→**. The chosen sample is in inverted yellow.
+- Pick a sample with **CTRL + ←/→**. The chosen sample is in inverted magenta.
 - **SPACE** plays it at its original pitch. SPACE again stops it.
 - **The piano keys** play it higher or lower: the top row, from the C key, starts at the original pitch and goes up semitone by semitone; the bottom row plays one octave lower.
 - While it plays, the screen freezes: that is normal.

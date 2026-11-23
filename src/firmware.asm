@@ -48,3 +48,6 @@ KEY_ESC   equ 66
 ; Couleurs du CPC (numéros du firmware)
 COL_BLEU   equ 1
 COL_ORANGE equ 15
+COL_MAGENTA equ 8
+COL_CYAN   equ 20
+COL_JAUNE_PALE equ 25

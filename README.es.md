@@ -210,7 +210,7 @@ La rejilla: las voces A, B, C y N (ruido) en 16 pasos, o una sola línea `SON` e
 | CTRL + ←/→ | patrón anterior / siguiente (32 patrones); mientras suena, la música sigue |
 | f8 / f9 | grabar / cargar el patrón que se ve (`.PAT`) |
 
-Una nota mantenida se prolonga con una raya hasta su parada. Una voz silenciada se ve en naranja.
+Una nota mantenida se prolonga con una raya hasta su parada. Una voz silenciada se ve en amarillo pálido.
 
 ### f3 — INST (instrumentos y sonidos de 4 voces)
 
@@ -396,7 +396,7 @@ El CPC no tiene convertidor digital-analógico. Toca un sample cambiando muy rá
 **1. Abrir el sampler.** Pulsa **f4**. La primera vez, el banco `DRUMS.SMP` se carga solo y sus 4 sonidos aparecen a la izquierda.
 
 **2. Escuchar.**
-- Elige un sample con **CTRL + ←/→**. El sample elegido está en amarillo invertido.
+- Elige un sample con **CTRL + ←/→**. El sample elegido está en magenta invertido.
 - **ESPACIO** lo toca a su altura original. ESPACIO otra vez lo para.
 - **Las teclas del piano** lo tocan más agudo o más grave: la fila de arriba, desde la tecla del DO, empieza en la altura original y sube de semitono en semitono; la fila de abajo toca una octava más grave.
 - Mientras suena, la pantalla no se mueve: es normal.
