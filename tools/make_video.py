@@ -4,7 +4,11 @@ Le vrai programme tourne dans tools/cpcsim.py ; le script appuie sur les
 touches d'un scénario, filme l'écran (police de la ROM du CPC, comme
 tools/snapshots.py) à chaque image de 50 Hz, et refait le son de l'AY à
 partir des écritures dans ses registres (tools/ay_render.py).  ffmpeg
-assemble le tout en MP4 (1344 x 864, 50 images/s).
+assemble le tout en MP4 (1344 x 864, 50 images/s), plus son affiche (PNG).
+
+Le scénario suit SYNTH, la song synthwave d'usine : l'écran de chargement,
+la song dans SONG, puis MOTIF (FX) et INST (sons composés, instruments)
+pendant qu'elle joue, et STUDIO (disquette de démonstration) pour les samples.
 
     python tools/make_video.py              # anglais : build/video/seq16-demo-en.mp4
     python tools/make_video.py fr           # français, es : espagnol
@@ -30,47 +34,35 @@ from cpcsim import CPC  # noqa: E402
 
 FRAME_US = 20_000                       # une image du CPC : 50 Hz
 SPF = ay_render.RATE // 50              # 882 échantillons de son par image
-KEY = dict(SPACE=47, F1=13, F2=14, F4=20, INST=5, DISK=12, MODE=4, CTRL=23, RIGHT=1, LEFT=8,
-           UP=0, DOWN=2, P=27, D=61)
+KEY = dict(SPACE=47, SONG=13, MOTIF=14, INST=5, F4=20, DISK=12, MODE=4, F9=3, CTRL=23,
+           SHIFT=21, RIGHT=1, LEFT=8, UP=0, DOWN=2)
 UP_, DOWN_, LEFT_, RIGHT_, RET = 0xF0, 0xF1, 0xF2, 0xF3, 13
 
 TEXT = {
     "en": dict(
-        title=["SEQ-16", "", "4-VOICE CHIPTUNE TRACKER", "FOR THE AMSTRAD CPC 6128", "",
-               "Z80 ASSEMBLER - AY-3-8912"],
-        split=["4 VOICES, 16 STEPS", "", "A, B, C : TONES", "N : NOISE"],
-        layered=["LAYERED SOUNDS", "", "ONE NOTE, FOUR VOICES"],
+        song=["SYNTH", "", "THE FACTORY SYNTHWAVE SONG", "", "F1 SONG : 64 POSITIONS"],
+        fx=["F2 PATTERN", "", "4 VOICES, 16 STEPS", "7 EFFECTS PER STEP"],
+        layered=["LAYERED SOUNDS", "", "ONE NOTE, FOUR VOICES", "EDITED ON F3 INST"],
         inst=["32 INSTRUMENTS", "", "ENVELOPES, ARPEGGIOS,", "VIBRATO, GLISSANDO"],
-        sampler=["SAMPLER", "", "4-BIT SAMPLES", "ON THE AY VOLUME"],
-        patterns=["125 FACTORY PATTERNS", "", "MONO AND POLY", "ON TWO DISKS"],
-        digi=["DIGIDRUMS", "", "SAMPLES INSIDE THE SONG"],
-        words=["AND IT TALKS..."],
-        end=["SEQ-16", "", "ENGLISH - FRANCAIS - ESPANOL", "", "GITHUB.COM/CHRISTOPHECRUZ",
-             "/CPC-SEQ-16"]),
+        studio=["SAMPLES", "", "DIGIDRUMS AND A VOICE", "INSIDE THE SONG"],
+        end=["SEQ-16", "", "4-VOICE CHIPTUNE TRACKER", "FOR THE AMSTRAD CPC 6128", "",
+             "ENGLISH - FRANCAIS - ESPANOL", "", "GITHUB.COM/CHRISTOPHECRUZ", "/CPC-SEQ-16"]),
     "fr": dict(
-        title=["SEQ-16", "", "SEQUENCEUR CHIPTUNE 4 VOIX", "POUR AMSTRAD CPC 6128", "",
-               "ASSEMBLEUR Z80 - AY-3-8912"],
-        split=["4 VOIX, 16 PAS", "", "A, B, C : SONS", "N : BRUIT"],
-        layered=["SONS COMPOSES", "", "UNE NOTE, QUATRE VOIX"],
+        song=["SYNTH", "", "LA SONG SYNTHWAVE D'USINE", "", "F1 SONG : 64 POSITIONS"],
+        fx=["F2 MOTIF", "", "4 VOIX, 16 PAS", "7 EFFETS PAR PAS"],
+        layered=["SONS COMPOSES", "", "UNE NOTE, QUATRE VOIX", "EDITES SUR F3 INST"],
         inst=["32 INSTRUMENTS", "", "ENVELOPPES, ARPEGES,", "VIBRATO, GLISSANDO"],
-        sampler=["SAMPLER", "", "SAMPLES 4 BITS", "SUR LE VOLUME DE L'AY"],
-        patterns=["125 MOTIFS D'USINE", "", "MONO ET POLY", "SUR DEUX DISQUETTES"],
-        digi=["DIGIDRUMS", "", "DES SAMPLES DANS LE MORCEAU"],
-        words=["ET IL PARLE..."],
-        end=["SEQ-16", "", "FRANCAIS - ENGLISH - ESPANOL", "", "GITHUB.COM/CHRISTOPHECRUZ",
-             "/CPC-SEQ-16"]),
+        studio=["SAMPLES", "", "DIGIDRUMS ET UNE VOIX", "DANS LE MORCEAU"],
+        end=["SEQ-16", "", "SEQUENCEUR CHIPTUNE 4 VOIX", "POUR AMSTRAD CPC 6128", "",
+             "FRANCAIS - ENGLISH - ESPANOL", "", "GITHUB.COM/CHRISTOPHECRUZ", "/CPC-SEQ-16"]),
     "es": dict(
-        title=["SEQ-16", "", "SECUENCIADOR CHIPTUNE", "DE 4 VOCES PARA AMSTRAD", "CPC 6128", "",
-               "ENSAMBLADOR Z80 - AY-3-8912"],
-        split=["4 VOCES, 16 PASOS", "", "A, B, C : TONOS", "N : RUIDO"],
-        layered=["SONIDOS DE 4 VOCES", "", "UNA NOTA, CUATRO VOCES"],
+        song=["SYNTH", "", "EL TEMA SYNTHWAVE DE FABRICA", "", "F1 TEMA : 64 POSICIONES"],
+        fx=["F2 PATRON", "", "4 VOCES, 16 PASOS", "7 EFECTOS POR PASO"],
+        layered=["SONIDOS DE 4 VOCES", "", "UNA NOTA, CUATRO VOCES", "EDITADOS EN F3 INST"],
         inst=["32 INSTRUMENTOS", "", "ENVOLVENTES, ARPEGIOS,", "VIBRATO, GLISSANDO"],
-        sampler=["SAMPLER", "", "SAMPLES DE 4 BITS", "CON EL VOLUMEN DEL AY"],
-        patterns=["125 PATRONES DE FABRICA", "", "MONO Y POLI", "EN DOS DISQUETES"],
-        digi=["DIGIDRUMS", "", "SAMPLES DENTRO DEL TEMA"],
-        words=["Y HABLA..."],
-        end=["SEQ-16", "", "ESPANOL - ENGLISH - FRANCAIS", "", "GITHUB.COM/CHRISTOPHECRUZ",
-             "/CPC-SEQ-16"]),
+        studio=["SAMPLES", "", "DIGIDRUMS Y UNA VOZ", "DENTRO DEL TEMA"],
+        end=["SEQ-16", "", "SECUENCIADOR CHIPTUNE", "DE 4 VOCES PARA AMSTRAD", "CPC 6128", "",
+             "ESPANOL - ENGLISH - FRANCAIS", "", "GITHUB.COM/CHRISTOPHECRUZ", "/CPC-SEQ-16"]),
 }
 
 
@@ -96,6 +88,7 @@ class Film:
         self.cpc = cpc
         self.frames = []                 # (clé d'écran, image de son ou None)
         self.screens = {}                # clé -> (codes, attr)
+        self.pictures = {}               # clé -> image RGB toute faite
         self.done_t = 0                  # images déjà filmées (indice en 20 ms)
 
     def _key(self, codes, attr):
@@ -126,6 +119,12 @@ class Film:
     def still(self, seconds):
         """Images fixes de l'écran actuel, sans son (le CPC attend une touche)."""
         key = self._key(self.cpc.codes, self.cpc.attr)
+        self.frames += [(key, None)] * round(seconds * 50)
+
+    def picture(self, rgb, seconds):
+        """Une image RGB toute faite (l'écran de chargement), sans son."""
+        key = ("image", len(self.pictures))
+        self.pictures[key] = rgb
         self.frames += [(key, None)] * round(seconds * 50)
 
     def card(self, lines, seconds=2.2):
@@ -166,76 +165,71 @@ def disk_names(path, ext):
     return [n[:-4] for n in amsdsk.list_files(path) if n.endswith(ext)]
 
 
+def loading_screen(lang):
+    """L'écran de chargement (tools/gen_screen.py) au format des images du
+    film : 320 x 200 (un pixel du mode 0 = 2 de large) et la bordure."""
+    import gen_screen
+    img = gen_screen.draw(lang)
+    border = bytes(gen_screen.cpc_rgb(gen_screen.INKS[gen_screen.BORDER]))
+    pal = [bytes(gen_screen.cpc_rgb(n)) for n in gen_screen.INKS]
+    b = snapshots.BORDER_PX
+    w = 320 + 2 * b
+    lines = [border * w] * b
+    for row in img:
+        lines.append(border * b + b"".join(pal[c] * 2 for c in row) + border * b)
+    lines += [border * w] * b
+    return b"".join(lines)
+
+
 def scenario(film, lang):
+    """SYNTH, la song d'usine, de bout en bout : l'écran de chargement, la
+    song dans SONG, puis MOTIF et INST pendant qu'elle joue ; enfin STUDIO
+    (la disquette de démonstration) pour les samples."""
     cpc, T = film.cpc, TEXT[lang]
-    prog = os.path.join(ROOT, "build", f"seq16-{lang}.dsk")
-    poly = os.path.join(ROOT, "build", "seq16-motifs-poly.dsk")
-    mono = os.path.join(ROOT, "build", "seq16-motifs-mono.dsk")
+    demo = os.path.join(ROOT, "build", f"seq16-demo-{lang}.dsk")
 
-    film.card(T["title"], 3.5)
-    cpc.boot()
+    film.picture(loading_screen(lang), 4.0)     # RUN"SEQ16 : l'écran de chargement
+    cpc.boot()                                  # le programme : MOTIF, SYNTH
     film.done_t = cpc.t // FRAME_US
-    film.run(1.0)
-    film.card(T["split"])
-    film.press(KEY["SPACE"])                    # le motif de démonstration
-    film.run(7.5)
-    film.card(T["inst"], 1.8)
-    film.press(KEY["INST"])                       # la musique continue
-    for _ in range(8):                          # on parcourt les réglages
-        film.press(KEY["DOWN"], wait=0.45)
-    film.run(1.5)
-    film.press(KEY["F1"], wait=0.8)
-    film.press(KEY["SPACE"], wait=0.3)          # arrêt
+    film.run(1.2)
+    film.card(T["song"], 2.6)
+    film.press(KEY["SONG"], wait=0.6)
+    film.press(KEY["SPACE"])                    # SYNTH depuis la position 00
+    film.run(12.0)                              # intro, couplets, refrain
 
-    film.card(T["sampler"])
-    film.press(KEY["F4"], wait=1.2)             # DRUMS.SMP se charge
-    for _ in range(4):                          # kick, snare, hat, clap
-        film.press(KEY["SPACE"], wait=0.5)
-        film.press(KEY["CTRL"], KEY["RIGHT"], wait=0.35)
+    film.card(T["fx"], 2.0)                     # (la musique continue)
+    film.press(KEY["MOTIF"], wait=0.6)          # MOTIF : le motif en cours boucle
+    film.run(6.0)
 
-    film.card(T["patterns"])
-    cpc.use_disk(poly)                          # disquette des motifs poly
-    film.press(KEY["DISK"], wait=0.8)
-    names = disk_names(poly, ".PAT")
-    cpc.chars = film.chooser([RIGHT_] * 4 + [LEFT_] * 4 + pick(names, "TECHNO01")[:-1] + [RET])
-    film.press(KEY["P"], wait=0.8)
-    film.press(KEY["F1"], wait=0.5)
+    film.card(T["layered"], 2.2)
+    film.press(KEY["INST"], wait=0.6)
+    film.press(KEY["MODE"], wait=0.8)           # f6 : les sons composés
+    for k in (KEY["DOWN"], KEY["DOWN"], KEY["DOWN"]):
+        film.press(k, wait=0.35)                # voix B, instrument
+    for _ in range(3):
+        film.press(KEY["RIGHT"], wait=0.35)     # un autre instrument
+    film.press(KEY["CTRL"], KEY["RIGHT"], wait=0.8)     # S2
+    film.press(KEY["CTRL"], KEY["RIGHT"], wait=0.8)     # S3
+
+    film.card(T["inst"], 2.0)
+    film.press(KEY["MODE"], wait=0.6)           # f6 : les instruments
+    for _ in range(4):
+        film.press(KEY["CTRL"], KEY["RIGHT"], wait=0.55)
+    for _ in range(5):
+        film.press(KEY["DOWN"], wait=0.3)
+
+    film.press(KEY["SONG"], wait=0.6)           # SONG : la song reprend
+    film.run(12.0)                              # le refrain
+    film.press(KEY["SPACE"], wait=0.4)          # arrêt
+
+    film.card(T["studio"], 2.2)
+    cpc.use_disk(demo)
+    names = disk_names(demo, ".SNG")
+    cpc.chars = film.chooser(pick(names, "STUDIO"), pause=0.3)
+    film.press(KEY["F9"], wait=1.0)             # f9 : STUDIO et sa banque
     film.press(KEY["SPACE"])
-    film.run(7.0)
-    film.press(KEY["SPACE"], wait=0.3)
-
-    film.card(T["digi"])
-    film.press(KEY["DISK"], wait=0.6)
-    cpc.chars = film.chooser(pick(names, "DIGIHOP1"), pause=0.08)
-    film.press(KEY["P"], wait=0.8)
-    film.press(KEY["F1"], wait=0.5)
-    film.press(KEY["SPACE"])
-    film.run(8.0)
-    film.press(KEY["SPACE"], wait=0.3)
-
-    film.card(T["layered"])
-    cpc.use_disk(mono)                          # disquette des motifs mono
-    names = disk_names(mono, ".PAT")
-    for name, secs in (("POPCHRD1", 7.0), ("CHIPLD1", 7.0)):
-        film.press(KEY["DISK"], wait=0.6)
-        cpc.chars = film.chooser(pick(names, name), pause=0.12)
-        film.press(KEY["P"], wait=0.8)
-        film.press(KEY["F1"], wait=0.5)
-        film.press(KEY["SPACE"])
-        film.run(secs)
-        film.press(KEY["SPACE"], wait=0.3)
-
-    film.card(T["words"], 1.6)
-    cpc.use_disk(prog)                          # la banque de mots
-    film.press(KEY["DISK"], wait=0.6)
-    banks = disk_names(prog, ".SMP")
-    cpc.chars = film.chooser(pick(banks, "MOTS"), pause=0.2)
-    film.press(KEY["D"], wait=1.0)
-    film.press(KEY["F4"], wait=0.8)
-    for word in range(14):                      # ALLEZ OUI NON ENCORE ... MUSIQ
-        if word in (0, 7, 11, 12, 13):
-            film.press(KEY["SPACE"], wait=0.6)
-        film.press(KEY["CTRL"], KEY["RIGHT"], wait=0.12 if word not in (0, 7, 11, 12, 13) else 0.3)
+    film.run(13.0)
+    film.press(KEY["SPACE"], wait=0.4)
     film.card(T["end"], 4.0)
 
 
@@ -262,6 +256,7 @@ def render_frames(film, font):
                                              for c in range(40)) + side)
         lines += [border * w] * snapshots.BORDER_PX
         cache[key] = b"".join(lines)
+    cache.update(film.pictures)
     return cache, w, 25 * 8 + 2 * snapshots.BORDER_PX
 
 
@@ -321,6 +316,11 @@ def main():
     ff.stdin.close()
     if ff.wait() != 0:
         raise SystemExit("ffmpeg a échoué")
+    poster = os.path.join(out_dir, f"seq16-demo-{lang}.png")
+    first = images[film.frames[0][0]]
+    rows = [first[y * w * 3:(y + 1) * w * 3] for y in range(h)]
+    big = b"".join(b"".join(row[x * 3:x * 3 + 3] * 2 for x in range(w)) * 2 for row in rows)
+    snapshots.write_png(poster, w * 2, h * 2, big)
     print(f"OK : {os.path.relpath(mp4, ROOT)} ({len(film.frames) / 50:.1f} s, "
           f"{os.path.getsize(mp4) // 1024} Ko)")
 
