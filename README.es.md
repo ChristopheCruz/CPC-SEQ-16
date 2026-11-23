@@ -64,7 +64,7 @@ El disco trae **13 bancos de instrumentos (416 sonidos), 8 bancos de samples (el
 
 1. Descarga **[`seq16-es.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** de la última release (también hay una copia en [`build/`](build/)).
    - **Version française :** `seq16-fr.dsk` (`build/seq16-fr.dsk`). **English version:** `seq16-en.dsk`. Mismo programa, mismos ficheros, mismas teclas: solo cambian los textos de la pantalla.
-   - **Demostración:** `build/seq16-demo-es.dsk` (y `seq16-demo-fr.dsk` en francés, `-en`): el programa y dos temas completos, ver [El disco de demostración](#-el-disco-de-demostración).
+   - **Demostración:** `seq16-demo-es.dsk` (y `seq16-demo-fr.dsk` en francés, `-en`), en la misma release: el programa y dos temas completos, ver [El disco de demostración](#-el-disco-de-demostración).
    - **Solo bancos:** `seq16-inst.dsk` (13 bancos de instrumentos `.INS`) y `seq16-samples.dsk` (9 bancos de samples `.SMP`), discos de datos sin el programa.
    - **Patrones de fábrica:** `seq16-motifs-mono.dsk` (62 patrones con sonido de 4 voces) y `seq16-motifs-poly.dsk` (63 patrones con voces sueltas). Ver [Los patrones de fábrica](#-los-patrones-de-fábrica).
 2. Mete el disco en un emulador (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) configurado como **CPC 6128**.

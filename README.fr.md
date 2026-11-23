@@ -64,7 +64,7 @@ La disquette est livrée avec **13 banques d'instruments (416 sons), 8 banques d
 
 1. Télécharge **[`seq16-fr.dsk`](https://github.com/ChristopheCruz/CPC-SEQ-16/releases/latest)** depuis la dernière release (une copie se trouve aussi dans [`build/`](build/)).
    - **English version:** `seq16-en.dsk`. **Versión en español:** `seq16-es.dsk`. Même programme, mêmes fichiers, mêmes touches : seuls les textes de l'écran changent.
-   - **Démonstration :** `build/seq16-demo-fr.dsk` (et `-en`, `-es`) : le programme et deux morceaux complets, voir [La disquette de démonstration](#-la-disquette-de-démonstration).
+   - **Démonstration :** `seq16-demo-fr.dsk` (et `-en`, `-es`), dans la même release : le programme et deux morceaux complets, voir [La disquette de démonstration](#-la-disquette-de-démonstration).
    - **Banques seules :** `seq16-inst.dsk` (13 banques d'instruments `.INS`) et `seq16-samples.dsk` (9 banques de samples `.SMP`), des disquettes de données sans le programme.
    - **Motifs d'usine :** `seq16-motifs-mono.dsk` (62 motifs en son composé) et `seq16-motifs-poly.dsk` (63 motifs en voix séparées). Voir [Les motifs d'usine](#-les-motifs-dusine).
 2. Insère la disquette dans un émulateur (WinAPE, Caprice32, ACE-DL, RetroVirtualMachine…) réglé en **CPC 6128**.
