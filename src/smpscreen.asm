@@ -871,6 +871,16 @@ quit_line:
 smp_scan_dir:
         xor a
         ld (smp_nfiles),a
+        call dir_read           ; -> A = 0 : lu (fichiers et blocs comptés)
+        or a
+        ret nz
+        jr ssd_parse
+
+; Lit le catalogue dans io_buffer et compte les fichiers et les blocs
+; utilisés (dir_files, dir_blocks ; dir_cap : capacité), sans toucher à la
+; liste des noms.  -> A = 0 : lu, 1 : erreur de lecture, 4 : pas d'AMSDOS
+dir_read:
+        xor a
         ld (dir_files),a        ; panneau DISQUE : fichiers et blocs utilisés
         ld hl,0
         ld (dir_blocks),hl
@@ -893,7 +903,7 @@ ssd_have:
         ld d,0                  ; format DATA
         ld c,#C1
         call ssd_read4
-        jr c,ssd_parse
+        jr c,dr_count
         ld a,169                ; format SYSTEME : 169 blocs
         ld (dir_cap),a
         ld d,2
@@ -901,6 +911,20 @@ ssd_have:
         call ssd_read4
         ld a,1
         ret nc
+dr_count:
+        ld hl,io_buffer         ; 64 entrées de 32 octets : tous les types
+        ld b,64
+drc_entry:
+        ld a,(hl)               ; octet 0 = utilisateur (#E5 = effacée)
+        cp 16
+        push bc
+        call c,ssd_count
+        pop bc
+        ld de,32
+        add hl,de
+        djnz drc_entry
+        xor a
+        ret
 ssd_parse:
         ld hl,io_buffer         ; 64 entrées de 32 octets
         ld b,64
@@ -910,7 +934,6 @@ ssd_entry:
         ld a,(hl)               ; octet 0 = utilisateur (#E5 = effacée)
         cp 16
         jr nc,ssd_next
-        call ssd_count          ; fichiers et blocs (tous les types)
         ld de,12                ; octet 12 = numéro d'extent : 0 seulement
         add hl,de               ; (un gros fichier a plusieurs entrées)
         ld a,(hl)

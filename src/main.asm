@@ -2145,6 +2145,9 @@ save_block:
         ld a,(fname_len)
         ld b,a
         ld hl,fname_full
+        ld de,(sf_size)
+        call disk_room          ; assez de place ? (sngio.asm)
+        ret nc
         ld de,io_buffer
         call CAS_OUT_OPEN
         jp nc,disk_error

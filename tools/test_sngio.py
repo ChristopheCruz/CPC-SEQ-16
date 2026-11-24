@@ -197,6 +197,82 @@ class SngV4Test(unittest.TestCase):
         self.assertIn("MORCEAU", cpc.row(MSG))
         self.assertEqual(self.var("smp_count"), 4)             # par son nom (DRUMS.SMP)
 
+    # --- la place sur la disquette (disk_room) ---------------------------------------
+    def program_disk(self, free_k=None):
+        """Une copie de la disquette du programme (25 K libres), où vont les
+        fichiers écrits (avec NOM.BAK, comme AMSDOS).  free_k : un fichier
+        de remplissage ne laisse que free_k K libres."""
+        import amsdsk
+        import shutil
+        import tempfile
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        path = os.path.join(d, "t.dsk")
+        shutil.copy(os.path.join(test_player.ROOT, "build", "seq16-fr.dsk"), path)
+        cpc = self.cpc
+        cpc.use_disk(path)
+        if free_k is not None:
+            fill = cpc.disk_free() // 1024 - free_k
+            amsdsk.add_file(path, "PLEIN.BIN", bytes(fill * 1024 - 128))
+            cpc.use_disk(path)
+            self.assertEqual(cpc.disk_free(), free_k * 1024)
+        cpc.write_disk = True
+        return path
+
+    def test_same_song_saved_again_and_again(self):
+        """Sauver quatre fois LONG.SNG (10 K) sur la disquette du programme.
+        AMSDOS n'efface LONG.BAK qu'à la fermeture : pendant l'écriture, la
+        disquette garde LONG.BAK, l'ancien LONG.SNG et le nouveau.  En v1.0,
+        la 3e sauvegarde manquait de place (ERREUR DISQUE) et la disquette
+        gardait l'ancienne version.  LONG.BAK est maintenant effacé avant."""
+        import amsdsk
+        cpc = self.cpc
+        cpc.poke(cpc.addr("smp_count"), [0])
+        path = self.program_disk()
+        pos0 = cpc.addr("smp_blk_src") + FIXED + 16 + 2       # motif de la position 00
+        for i in range(4):
+            cpc.poke(pos0, [i])
+            self.save("LONG")
+            self.assertIn("MORCEAU SAUVE", cpc.row(MSG), i)
+            self.assertEqual(amsdsk.read_file(path, "LONG.SNG")[FIXED + 32 * PAT + 16 + 2], i)
+        self.assertEqual(cpc.disk_full, [])
+        self.assertEqual(cpc.rsx_log[-1], ("ERA", "LONG.BAK"))
+        self.assertIn("LONG.BAK", amsdsk.list_files(path))     # la version d'avant
+
+    def test_disk_full_message(self):
+        """Pas assez de place, même sans .BAK : rien n'est écrit, le message
+        dit la place libre."""
+        cpc = self.cpc
+        cpc.poke(cpc.addr("smp_count"), [0])
+        self.program_disk(free_k=6)
+        self.key(KEY_SONG)
+        cpc.chars = typed("GROS")
+        self.key(KEY_SAVE)
+        self.assertEqual(cpc.row(MSG).strip(), "6 K LIBRES : DISQUETTE PLEINE")
+        self.assertNotIn("GROS.SNG", cpc.saved)
+        self.assertEqual(cpc.disk_full, [])                    # pas même essayé
+        self.assertEqual(cpc.file_errors, [])
+
+    def test_room_counts_blocks_of_1k(self):
+        """disk_room : (octets + 128 d'en-tête) en blocs de 1 Ko."""
+        cpc = self.cpc
+        self.program_disk(free_k=1)
+        name = cpc.addr("fname_full")
+        cpc.poke(name, b"ESSAI.PAT")
+        for size, ok in ((896, True), (897, False), (0, True)):
+            cpc.call("disk_room", b=9, hl=name, de=size)
+            self.assertEqual(bool(cpc.m.f & 1), ok, size)
+        self.assertEqual(cpc.row(MSG).strip(), "1 K LIBRES : DISQUETTE PLEINE")
+
+    def test_pattern_save_checks_room_too(self):
+        """Les autres sauvegardes (motif, instruments, samples) aussi."""
+        cpc = self.cpc
+        self.program_disk(free_k=0)
+        cpc.chars = typed("MOTIF9")
+        cpc.call("disk_save_pat")
+        self.assertEqual(cpc.row(MSG).strip(), "0 K LIBRES : DISQUETTE PLEINE")
+        self.assertEqual(cpc.saved, {})
+
 
 if __name__ == "__main__":
     unittest.main()
