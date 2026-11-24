@@ -302,6 +302,9 @@ smp_save_bank:
         call dsk_message
         pop bc
         pop hl
+        ld de,(smp_bank_len)
+        call disk_room          ; assez de place ? (sngio.asm)
+        ret nc
         ld de,io_buffer
         call CAS_OUT_OPEN
         jp nc,disk_error

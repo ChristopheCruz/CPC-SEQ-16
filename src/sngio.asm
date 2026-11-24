@@ -40,9 +40,12 @@ sw_len:
         ld de,SONG_SIZE3+2
         add hl,de
         ld (sio_total),hl
+        ex de,hl                ; DE = octets à écrire
         ld a,(fname_len)
         ld b,a
         ld hl,fname_full
+        call disk_room          ; assez de place ? (NOM.BAK effacé)
+        ret nc
         ld de,io_buffer
         call CAS_OUT_OPEN
         jp nc,disk_error
@@ -94,6 +97,109 @@ sw_bank:
         jp dsk_message
 sw_fail:
         jp ds_abandon
+
+; Avant d'écrire un fichier : HL = son nom complet ("NOM.EXT"), B = sa
+; longueur, DE = nombre d'octets (sans l'en-tête de 128 octets).
+; AMSDOS écrit d'abord NOM.$$$ ; c'est seulement à la fermeture qu'il efface
+; NOM.BAK, renomme l'ancien NOM.EXT en NOM.BAK, puis NOM.$$$ en NOM.EXT.
+; Pendant l'écriture, la disquette garde donc l'ancien fichier ET le .BAK :
+; sauver trois fois le même morceau demande trois fois sa place.  On efface
+; NOM.BAK tout de suite (AMSDOS l'effacerait de toute façon), puis on
+; compte la place libre dans le catalogue.
+; -> Carry = 1 : on peut écrire (HL et B gardés) ; Carry = 0 : disquette
+;    pleine, message affiché (« 12 K LIBRES : DISQUETTE PLEINE »).
+disk_room:
+        push hl
+        push bc
+        push de
+        ld de,dr_bak            ; "NOM.BAK"
+drm_name:
+        ld a,(hl)
+        ld (de),a
+        inc hl
+        inc de
+        cp '.'
+        jr nz,drm_name
+        ld hl,txt_bak
+        ld bc,3
+        ldir
+        ld a,e                  ; longueur = DE - dr_bak (12 au plus)
+        sub dr_bak&255
+        ld (dk_desc),a          ; |ERA,"NOM.BAK" (s'il n'existe pas : rien,
+        ld hl,dr_bak            ; les messages d'AMSDOS sont coupés)
+        ld (dk_desc+1),hl
+        ld hl,dk_desc
+        ld (dk_params),hl
+        ld hl,rsx_era_name
+        ld a,1
+        call dk_rsx
+        call dir_read           ; -> A = 0 : catalogue lu
+        pop hl                  ; HL = octets
+        or a
+        jr nz,drm_ok            ; illisible : on essaie quand même
+        ld de,128+1023          ; blocs de 1 Ko : (octets + 128 + 1023) / 1024
+        add hl,de
+        ld a,h
+        rrca
+        rrca
+        and #3F
+        ld e,a                  ; E = blocs nécessaires
+        ld a,(dir_cap)          ; A = blocs libres
+        ld hl,dir_blocks
+        sub (hl)
+        jr nc,drm_free
+        xor a
+drm_free:
+        cp e
+        jr nc,drm_ok
+        ld hl,err_buf           ; « 12 K LIBRES : DISQUETTE PLEINE »
+        ld d,0
+        ld c,100
+        call drm_digit
+        ld c,10
+        call drm_digit
+        ld c,1
+        ld d,c                  ; (le dernier chiffre, même 0)
+        call drm_digit
+        ex de,hl
+        ld hl,txt_m_full
+        ld bc,txt_m_full_end-txt_m_full
+        ldir
+        ld hl,err_buf
+        call dsk_message
+        pop bc
+        pop hl
+        or a
+        ret
+drm_ok:
+        pop bc
+        pop hl
+        scf
+        ret
+
+; Un chiffre de A (A mod C*10) en (HL) : C = 100, 10 ou 1.  D = 1 dès le
+; premier chiffre écrit (pas de zéros devant).
+drm_digit:
+        ld b,'0'-1
+drd_sub:
+        inc b
+        sub c
+        jr nc,drd_sub
+        add a,c
+        ld e,a
+        ld a,b
+        cp '0'
+        jr nz,drd_put
+        inc d
+        dec d
+        jr z,drd_skip
+drd_put:
+        ld (hl),b
+        inc hl
+        ld d,1
+drd_skip:
+        ld a,e
+        ret
 
 ; L'en-tête AMSDOS (128 octets) dans SCRATCH, puis dans le fichier :
 ; nom, type 2 (binaire), longueurs, somme de contrôle des octets 0 à 66
@@ -385,4 +491,8 @@ sio_dst:   dw 0
 sio_n:     dw 0
 sio_count: dw 0                 ; octets lus (message d'erreur)
 sio_code:  db 0                 ; code d'erreur d'AMSDOS
+dr_bak:    ds 12                ; "NOM.BAK" (disk_room)
+txt_bak:   db "BAK"
+txt_m_full: db " K LIBRES : DISQUETTE PLEINE",0
+txt_m_full_end:
 err_buf:   ds 41                ; le message d'erreur complet

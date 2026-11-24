@@ -107,6 +107,7 @@ TEXTS = {
     "CHARGEMENT EN COURS...": ("LOADING...", "CARGANDO..."),
     "MORCEAU CHARGE": ("SONG LOADED", "TEMA CARGADO"),
     "ERREUR DISQUE (DISQUETTE ? NOM ?)": ("DISK ERROR (DISK? NAME?)", "ERROR DE DISCO (DISCO? NOMBRE?)"),
+    " K LIBRES : DISQUETTE PLEINE": (" K FREE: DISK FULL", " K LIBRES: DISCO LLENO"),
     "SEQ-16 : IL FAUT UN CPC 6128": ("SEQ-16 NEEDS A CPC 6128", "SEQ-16 NECESITA UN CPC 6128"),
     "CE FICHIER N'EST PAS UN MORCEAU SEQ-16": ("THIS FILE IS NOT A SEQ-16 SONG", "ESTE FICHERO NO ES UN TEMA SEQ-16"),
     "DONNE D'ABORD UN NOM (RETURN)": ("ENTER A NAME FIRST (RETURN)", "PRIMERO UN NOMBRE (RETURN)"),
@@ -220,7 +221,7 @@ KEEP = {
     "  SAMPLE ", "  SAMPLE       ", "GLISSANDO      ", "PORTAMENTO     ",
     "DIGIDRUM       ", "-       ",
     "CDEFGAB", "OCT", "INS:", "VOL:", "FX:", "ENTER", "ON/OFF", "CLR", "SHIFT", "CTRL",
-    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC",
+    "BPM", "INS", "---  ", "f8 f9", " --", "ER", "RE", "ESC", "BAK",
 }
 
 _QUOTED = re.compile(r'"([^"]*)"')

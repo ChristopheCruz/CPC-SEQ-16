@@ -215,6 +215,7 @@ class CPC:
         self.on_key_read = None               # fonction appelée à chaque lecture
         self.chars = []                       # frappes rendues par KM_WAIT_CHAR
         self.disk = None                      # image .dsk (lecture de secteurs)
+        self.disk_path = None                 #   et son fichier (use_disk)
         self.sector_reads = []
         self.screen = [[" "] * 40 for _ in range(25)]
         self.codes = [[32] * 40 for _ in range(25)]   # codes bruts (flèches 240-243…)
@@ -227,6 +228,9 @@ class CPC:
         self.started = []                     # MC_START_PROGRAM : (adresse, ROM)
         self.cas_in_mode = None
         self.cas_out_open = False
+        self.write_disk = False               # True : les fichiers écrits vont
+                                              # dans l'image .dsk (et NOM.BAK)
+        self.disk_full = []                   # écritures refusées : disquette pleine
         self.file_errors = []                 # ce qu'AMSDOS aurait refusé
         self.stopped = False
         self.di_spans = []                    # (début, fin) interruptions coupées
@@ -257,14 +261,20 @@ class CPC:
         path = self.disk_path
         if routine == FAKE_ERA:
             self.rsx_log.append(("ERA", self._rsx_string(0)))
-            amsdsk.remove_file(path, self._rsx_string(0))
+            if path:                          # (pas de disquette : rien à effacer)
+                amsdsk.remove_file(path, self._rsx_string(0))
         else:
             old, new = self._rsx_string(0), self._rsx_string(1)
             self.rsx_log.append(("REN", new, old))
+            if not path:
+                self._corrupt("af", "bc", "de", "hl")
+                self._carry(True)
+                return
             data = amsdsk.read_file(path, old)
             amsdsk.remove_file(path, old)
             amsdsk.add_file(path, new, data)
-        self.use_disk(path)
+        if path:
+            self.use_disk(path)
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
@@ -397,7 +407,7 @@ class CPC:
             if n > limit:
                 raise RuntimeError("trop long : PC = #%04X" % self.m.pc)
 
-    def call(self, routine, a=None, b=None, c=None, limit=20_000_000):
+    def call(self, routine, a=None, b=None, c=None, limit=20_000_000, **regs):
         """Appelle une routine et rend la main à son RET."""
         m = self.m
         ret = 0x0000                          # adresse de retour fictive
@@ -410,6 +420,8 @@ class CPC:
             m.b = b & 0xFF
         if c is not None:
             m.c = c & 0xFF
+        for r, v in regs.items():              # hl=..., de=...
+            setattr(m, r, v & 0xFFFF)
         m.pc = self.addr(routine) if isinstance(routine, str) else routine
         self.run_until(ret, limit)
 
@@ -689,6 +701,26 @@ class CPC:
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
+    def disk_free(self):
+        """Place libre (octets) sur la disquette du lecteur : 178 blocs de
+        1 Ko (format DATA) moins ceux des fichiers, NOM.BAK compris."""
+        if not self.disk_path:
+            return 1 << 20
+        used = sum((size + 1023) // 1024 for size in amsdsk.list_files(self.disk_path).values())
+        return max(0, 178 - used) * 1024
+
+    def _out_full(self, size):
+        """Comme AMSDOS : NOM.$$$ s'écrit à côté de l'ancien NOM.EXT et de
+        NOM.BAK (effacé seulement à la fermeture).  True (et l'écriture
+        échoue : A = #24, « disc full ») s'il n'y a plus de place."""
+        if size <= self.cas_out_room:
+            return False
+        self.disk_full.append(self.cas_out)
+        self._corrupt("bc", "de", "hl")
+        self.m.a = 0x24
+        self._carry(False)
+        return True
+
     def fw_CAS_OUT_OPEN(self):
         if self.cas_out_open:
             self._file_error("CAS_OUT_OPEN : un fichier est déjà ouvert en écriture")
@@ -696,12 +728,16 @@ class CPC:
         self.cas_out_open = True
         self.cas_out = self._name()
         self.cas_out_chars = None             # octets écrits par CAS_OUT_CHAR
+        self.cas_out_room = self.disk_free()
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
     def fw_CAS_OUT_DIRECT(self):
         hl, de = self.m.hl, self.m.de
+        if self._out_full(128 + de):          # (+ l'en-tête d'AMSDOS)
+            return
         self.saved[self.cas_out] = bytes(self.mem[hl:hl + de])
+        self.cas_out_data = self.saved[self.cas_out]
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
 
@@ -709,6 +745,8 @@ class CPC:
         """Un octet de plus dans le fichier ouvert (AF corrompu)."""
         if self.cas_out_chars is None:
             self.cas_out_chars = bytearray()
+        if self._out_full(len(self.cas_out_chars) + 1):
+            return
         self.cas_out_chars.append(self.m.a)
         self._corrupt("af")
         self._carry(True)
@@ -730,8 +768,23 @@ class CPC:
                 self.saved[self.cas_out] = data
             self.cas_out_chars = None
         self.cas_out_open = False
+        if self.write_disk and self.cas_out in self.saved:
+            self._write_to_disk(self.cas_out, self.saved[self.cas_out])
         self._corrupt("af", "bc", "de", "hl")
         self._carry(True)
+
+    def _write_to_disk(self, name, data):
+        """À la fermeture, comme AMSDOS : NOM.BAK effacé, l'ancien NOM.EXT
+        devient NOM.BAK, le nouveau prend sa place."""
+        path = self.disk_path
+        bak = name.rsplit(".", 1)[0] + ".BAK"
+        if name in amsdsk.list_files(path):
+            old = amsdsk.read_file(path, name)
+            amsdsk.remove_file(path, bak)
+            amsdsk.remove_file(path, name)
+            amsdsk.add_file(path, bak, old)
+        amsdsk.add_file(path, name, data)
+        self.use_disk(path)
 
     def fw_CAS_OUT_ABANDON(self):
         self.cas_out_open = False
